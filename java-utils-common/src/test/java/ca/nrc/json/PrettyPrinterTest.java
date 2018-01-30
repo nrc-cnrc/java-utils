@@ -24,7 +24,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import ca.nrc.json.PrettyPrinter;
 
-//import ca.nrc.ict.testingutils.AssertHelpers;
+//import ca.nrc.testing.AssertHelpers;
 //import ca.nrc.container.Tracer;
 
 public class PrettyPrinterTest {
@@ -76,7 +76,7 @@ public class PrettyPrinterTest {
 	 *************************************************************/
 
 	@Test
-	public void test__PrettyPrinter2__Synopsis() {
+	public void test__PrettyPrinter__Synopsis() {
 		//
 		// Use the PrettyPrinter to create json strings for diffferent
 		// data structures and objects. The string will be formatted
