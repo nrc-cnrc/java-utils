@@ -15,7 +15,7 @@ import org.junit.Assert;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import ca.nrc.debug.PrettyPrinter;
+import ca.nrc.json.PrettyPrinter;
 
 
 

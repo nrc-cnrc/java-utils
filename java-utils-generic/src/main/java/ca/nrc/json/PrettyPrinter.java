@@ -1,4 +1,4 @@
-package ca.nrc.debug;
+package ca.nrc.json;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;

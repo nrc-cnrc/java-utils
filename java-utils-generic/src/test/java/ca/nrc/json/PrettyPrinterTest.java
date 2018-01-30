@@ -1,4 +1,4 @@
-package ca.nrc.debug;
+package ca.nrc.json;
 
 //import static ca.nrc.ict.testingutils.Assert.assertEquals;
 import static org.junit.Assert.*;
@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import ca.nrc.debug.PrettyPrinter;
+import ca.nrc.json.PrettyPrinter;
 
 //import ca.nrc.ict.testingutils.AssertHelpers;
 //import ca.nrc.container.Tracer;
