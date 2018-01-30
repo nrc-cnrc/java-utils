@@ -1,4 +1,4 @@
-package ca.nrc.dtrc.debug;
+package ca.nrc.debug;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
