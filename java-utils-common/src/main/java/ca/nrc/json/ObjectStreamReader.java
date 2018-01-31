@@ -91,7 +91,7 @@ public class ObjectStreamReader implements Closeable {
 
 
 	public Object readObject() throws IOException, ClassNotFoundException {		
-		Logger tLogger = LogManager.getLogger("ca.nrc.ict.json.ObjectStreamReader.readObject");
+		Logger tLogger = LogManager.getLogger("ca.nrc.json.ObjectStreamReader.readObject");
 		Object object = null;
 		int startLine = lineCount;
 		
@@ -147,7 +147,7 @@ public class ObjectStreamReader implements Closeable {
 	}
 
 	private Object onObjectBodyFirstAndLast(String line) throws JsonParseException, IOException {
-		Logger tLogger = LogManager.getLogger("ca.nrc.ict.json.ObjectStreamReader.onObjectBodyFirstAndLast");
+		Logger tLogger = LogManager.getLogger("ca.nrc.json.ObjectStreamReader.onObjectBodyFirstAndLast");
 		tLogger.trace("invoked");		
 		onObjectBodyMiddleLine(line);
 		Object obj = onObjectBodyEnd(line);
@@ -155,7 +155,7 @@ public class ObjectStreamReader implements Closeable {
 	}
 
 	private Object onObjectBodyEnd(String currentLine) throws JsonParseException, IOException {
-		Logger tLogger = LogManager.getLogger("ca.nrc.ict.json.ObjectStreamReader.onObjectBodyEnd");
+		Logger tLogger = LogManager.getLogger("ca.nrc.json.ObjectStreamReader.onObjectBodyEnd");
 		tLogger.trace("invoked");
 		objectBodyBuilder.append(currentLine);
 		
@@ -188,7 +188,7 @@ public class ObjectStreamReader implements Closeable {
 	}
 
 	private void onObjectBodyMiddleLine(String line) {
-		Logger tLogger = LogManager.getLogger("ca.nrc.ict.json.ObjectStreamReader.onObjectBodyMiddleLine");
+		Logger tLogger = LogManager.getLogger("ca.nrc.json.ObjectStreamReader.onObjectBodyMiddleLine");
 		tLogger.trace("invoked");
 		if (currentObjClass == null) {
 			error("No 'class=' line found for this object");
