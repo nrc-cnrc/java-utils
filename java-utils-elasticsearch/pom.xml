@@ -64,7 +64,7 @@
 	<dependencies>
 
 		<dependency>
-			<groupId>ca.nrc.dtrc</groupId>
+			<groupId>ca.nrc</groupId>
 			<artifactId>java-utils-common</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
 		</dependency>
