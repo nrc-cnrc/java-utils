@@ -62,11 +62,36 @@
 
 	<dependencies>
 	
-	<dependency>
-		<groupId>ca.nrc.dtrc</groupId>
-		<artifactId>java-utils-common</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
-	</dependency>
+		<dependency>
+			<groupId>ca.nrc.dtrc</groupId>
+			<artifactId>java-utils-common</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
+			<version>4.5.2</version>
+		</dependency>	
+		
+		<dependency>
+    		<groupId>de.l3s.boilerpipe</groupId>
+    		<artifactId>boilerpipe</artifactId>
+    		<version>1.1.0</version>
+		</dependency>		
+		
+		<dependency>
+			<groupId>net.sourceforge.htmlcleaner</groupId>
+			<artifactId>htmlcleaner</artifactId>
+			<version>2.16</version>
+		</dependency>
+		
+		<dependency>
+  		  <groupId>net.sourceforge.nekohtml</groupId>
+ 		   <artifactId>nekohtml</artifactId>
+    		<version>1.9.22</version>
+		</dependency>	
+		
 
 <!-- ********************************************
      * Dependancies from  old big java-utils pom
