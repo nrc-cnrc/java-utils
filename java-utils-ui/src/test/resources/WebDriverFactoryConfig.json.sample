@@ -1,0 +1,4 @@
+{
+   "browserName": "chrome",
+   "pathToChromeDriver": "/full/path/to/your/chromedriver"
+}
