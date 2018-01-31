@@ -18,12 +18,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import ca.nrc.ict.Collections.Pair;
 import ca.nrc.json.JSONUtils;
 import ca.nrc.json.PrettyPrinter;
 import ca.nrc.testing.AssertHelpers;
-import ca.nrc.container.ResourceGetter;
-//import ca.nrc.dtrc.json.JSONUtils;
+import ca.nrc.datastructure.Pair;
+import ca.nrc.file.ResourceGetter;
 
 public class ESTestHelpers {
 	

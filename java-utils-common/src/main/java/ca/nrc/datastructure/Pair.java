@@ -1,4 +1,4 @@
-package ca.nrc.ict.Collections;
+package ca.nrc.datastructure;
 
 public class Pair<A, B> {
 	 

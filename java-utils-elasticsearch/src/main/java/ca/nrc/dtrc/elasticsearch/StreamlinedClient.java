@@ -24,8 +24,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import ca.nrc.ict.Collections.Pair;
 import ca.nrc.json.PrettyPrinter;
+import ca.nrc.datastructure.Pair;
 import ca.nrc.dtrc.elasticsearch.ESUrlBuilder;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;

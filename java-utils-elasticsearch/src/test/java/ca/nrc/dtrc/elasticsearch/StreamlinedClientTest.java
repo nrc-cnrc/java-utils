@@ -22,13 +22,12 @@ import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import ca.nrc.datastructure.Pair;
 import ca.nrc.dtrc.elasticsearch.ESTestHelpers;
 import ca.nrc.dtrc.elasticsearch.ESTestHelpers.PlayLine;
 import ca.nrc.dtrc.elasticsearch.ExcludeFields;
 import ca.nrc.dtrc.elasticsearch.IncludeFields;
 import ca.nrc.dtrc.elasticsearch.StreamlinedClient;
-//import ca.nrc.dtrc.json.JSONUtils;
-import ca.nrc.ict.Collections.Pair;
 import ca.nrc.testing.AssertHelpers;
 
 public class StreamlinedClientTest {

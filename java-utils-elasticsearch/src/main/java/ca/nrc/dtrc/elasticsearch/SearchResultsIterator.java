@@ -6,7 +6,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import ca.nrc.ict.Collections.Pair;
+import ca.nrc.datastructure.Pair;
 
 public class SearchResultsIterator<T extends Document> implements Iterator<Pair<T,Double>> {
 
