@@ -1,0 +1,4 @@
+class=ca.nrc.ict.json.DummyClass1
+{
+	"greetings": "Hi"
+}
