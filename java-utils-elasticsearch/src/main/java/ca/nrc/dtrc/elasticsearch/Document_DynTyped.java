@@ -31,6 +31,17 @@ public class Document_DynTyped extends Document {
 	}
 	
 	
+	public Document_DynTyped(Map<String, Object> _fields) {
+		String _idFieldName = (String)_fields.get("Document_DynTyped.idFieldName");
+		String _id = (String)_fields.get(_idFieldName);
+		Map<String,Object> fieldsFiltered = new HashMap<String,Object>();
+		for (String fldName: _fields.keySet()) {
+			if (fldName.equals("Document_DynTyped.idFieldName")) continue;
+			fieldsFiltered.put(fldName, _fields.get(fldName));
+		}
+		initialize(_idFieldName, _id, fieldsFiltered);
+	}
+	
 	private void initialize(String _idFieldName, String _idValue, Map<String,Object> _fields) {
 		this.idFieldName = _idFieldName;		
 

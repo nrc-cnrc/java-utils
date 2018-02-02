@@ -2,6 +2,9 @@ package ca.nrc.dtrc.elasticsearch;
 
 import static org.junit.Assert.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.Test;
 
 import ca.nrc.testing.AssertHelpers;
@@ -12,6 +15,7 @@ public class Document_DynTypedTest {
 	 * DOCUMENTATION TESTS
 	 ***************************/
 
+	@SuppressWarnings("unused")
 	@Test
 	public void test__Document_DynTyped__Synopsis() throws Exception {
 		// This class allows you to create an ElasticSearch indexable
@@ -53,6 +57,19 @@ public class Document_DynTypedTest {
 		} catch (DocumentException exc) {
 			// Nothing to do here... we expected that exception
 		}
+		
+		// You can also instantiate a dynamic document all at once 
+		// by feeding it a map of fields
+		Map<String,Object> fields = new HashMap<String,Object>();
+		fields.put(idFieldName, "X18D98KL9");
+		fields.put("name", "6in screw");
+		fields.put("weight_grams", 0.4);
+		
+		// This last entry specifies the name of the key field
+		fields.put("Document_DynTyped.idFieldName", idFieldName);
+		doc = new Document_DynTyped(fields);
+
+		
 	}
 	
 	/***************************
@@ -72,6 +89,25 @@ public class Document_DynTypedTest {
 		String name = (String) doc.getField("name");
 		AssertHelpers.assertDeepEquals("", name, "6in screw");
 		
+		Double weight = (Double) doc.getField("weight_grams");
+		AssertHelpers.assertDeepEquals("", weight, 0.4);		
+	}
+	
+	@Test
+	public void test__Document_DynTyped__InitializeFromHashMap() throws Exception {
+		Map<String,Object> fields = new HashMap<String,Object>();
+		fields.put("Document_DynTyped.idFieldName", "part_number");
+		fields.put("part_number", "X18D98KL9");
+		fields.put("name", "6in screw");
+		fields.put("weight_grams", 0.4);
+		
+		Document_DynTyped doc = new Document_DynTyped(fields);
+		
+		String key = doc.getKey();
+		AssertHelpers.assertDeepEquals("", key, "X18D98KL9");
+
+		String name = (String) doc.getField("name");
+		AssertHelpers.assertDeepEquals("", name, "6in screw");
 		
 		Double weight = (Double) doc.getField("weight_grams");
 		AssertHelpers.assertDeepEquals("", weight, 0.4);		
