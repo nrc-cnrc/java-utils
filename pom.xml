@@ -12,7 +12,7 @@
 	   <!-- Note: Order of modules is important.
 		Make sure any modulte A that is required by module B
 		apperas before B in the list -->
-	 	<module>java-utils-common</module>
+	 	<module>java-utils-core</module>
 	 	<module>java-utils-data</module>
 	 	<module>java-utils-ui</module>
 	 	<module>java-utils-elasticsearch</module>

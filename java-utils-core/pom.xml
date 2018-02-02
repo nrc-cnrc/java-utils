@@ -9,7 +9,7 @@
 	</parent>
 		
 	<groupId>ca.nrc</groupId>
-	<artifactId>java-utils-common</artifactId>
+	<artifactId>java-utils-core</artifactId>
 	
 	
 	<distributionManagement>

@@ -79,7 +79,7 @@
 	
 		<dependency>
 			<groupId>ca.nrc</groupId>
-			<artifactId>java-utils-common</artifactId>
+			<artifactId>java-utils-core</artifactId>
 			<version>1.0.5-SNAPSHOT</version>
 		</dependency>
 		
