@@ -142,7 +142,7 @@ public abstract class SearchEngineTest {
 	public void test__search__OverrideDefaultMaxHits__ShouldReturnCorrectNumberOfHits() throws Exception {
 		SearchEngine engine = makeSearchEngine();
 		
-		SearchEngine.Query query = new SearchEngine.Query("Blade Runner");
+		SearchEngine.Query query = new SearchEngine.Query("wikipedia");
 		
 		
 		// Set the max number of hits to twice the default value;
