@@ -92,6 +92,7 @@ public class ESTestHelpers {
 		double sleepSecs = 1.0;
 		StreamlinedClient client = new StreamlinedClient(emptyTestIndex, sleepSecs);
 		client.deleteIndex();
+		client.createIndex(emptyTestIndex);
 		
 		return client;
 	}
