@@ -45,7 +45,7 @@ public class ESUrlBuilder {
 		return this;
 	}
 
-	public ESUrlBuilder forClassName(String _className) {
+	public ESUrlBuilder forDocType(String _className) {
 		this.docType = _className;
 		return this;
 	}

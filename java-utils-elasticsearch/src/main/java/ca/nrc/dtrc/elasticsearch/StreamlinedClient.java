@@ -106,7 +106,7 @@ public class StreamlinedClient {
 	
 	public String refreshIndex(String type) throws IOException, ElasticSearchException, InterruptedException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.refreshIndex");
-		URL url = esUrlBuilder().forClassName(type).forEndPoint("_refresh").build();
+		URL url = esUrlBuilder().forDocType(type).forEndPoint("_refresh").build();
 		String jsonResponse = post(url);
 		tLogger.trace("url="+url+", jsonResponse="+jsonResponse);
 		
@@ -116,32 +116,37 @@ public class StreamlinedClient {
 	public String putDocument(Document doc) throws ElasticSearchException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.putDocument");
 		tLogger.trace("putting document: "+doc.getKey());
-		String jsonBody;
+		String jsonDoc;
 		try {
-			jsonBody = new ObjectMapper().writeValueAsString(doc);
+			jsonDoc = new ObjectMapper().writeValueAsString(doc);
 		} catch (JsonProcessingException e) {
 			throw new ElasticSearchException(e);
-		}		
-		URL url = esUrlBuilder().forDocument(doc).build();
-		String jsonResponse = post(url, jsonBody);
-		
-		clearFieldTypesCache(doc.getClass().getName());
-		
-		sleep();
+		}	
+		String docType = doc.getClass().getName();
+		String docID = doc.getKey();
+		String jsonResponse = putDocument(docType, docID, jsonDoc);
 		
 		return jsonResponse;
 	}
 
-	public String putDocument(String type, Document_DynTyped dynDoc) throws IOException, ElasticSearchException, InterruptedException {
-		return null;
+	public String putDocument(String type, Document_DynTyped dynDoc) throws ElasticSearchException {
+		String docID = dynDoc.getKey();
+		String jsonDoc;
+		try {
+			jsonDoc = new ObjectMapper().writeValueAsString(dynDoc);
+		} catch (JsonProcessingException e) {
+			throw new ElasticSearchException(e);
+		}
+		String jsonResp = putDocument(type, docID, jsonDoc);
+		
+		return jsonResp;
 	}
-	
-	public String putDocument(String type, String docID, Map<String,Object> doc) throws IOException, ElasticSearchException, InterruptedException {
+		
+	public String putDocument(String type, String docID, String jsonDoc) throws ElasticSearchException {
 		@SuppressWarnings("unused")
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.putDocument");
-		String jsonBody = new ObjectMapper().writeValueAsString(doc);		
-		URL url = esUrlBuilder().forClassName(type).forDocID(docID).build();
-		String jsonResponse = post(url, jsonBody);
+		URL url = esUrlBuilder().forDocType(type).forDocID(docID).build();
+		String jsonResponse = post(url, jsonDoc);
 		
 		clearFieldTypesCache(type);		
 		
@@ -602,22 +607,19 @@ public class StreamlinedClient {
 	}
 	
 
-	public Document getDocumentWithID(String docID, String docClassName) throws ElasticSearchException {
-		Class<? extends Document> docClass;
-		try {
-			docClass = (Class<? extends Document>) Class.forName(docClassName);
-		} catch (ClassNotFoundException exc) {
-			throw new ElasticSearchException(exc);
-		}
-		return getDocumentWithID(docID, docClass);
+	public Document getDocumentWithID(String docID, Class<?extends Document> docClass) throws ElasticSearchException {
+		return getDocumentWithID(docID, docClass, null);
 	}
 	
 	
-	public Document getDocumentWithID(String docID, Class<?extends Document> docClass) throws ElasticSearchException {
+	public Document getDocumentWithID(String docID, Class<?extends Document> docClass, String esDocType) throws ElasticSearchException {
+		if (esDocType == null) {
+			esDocType = docClass.getName();
+		}
 		Document doc = null;
 		
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.getDocumentWithID");
-		URL url = esUrlBuilder().forClass(docClass).forDocID(docID).build();
+		URL url = esUrlBuilder().forDocType(esDocType).forDocID(docID).build();
 		tLogger.trace("url="+url);
 		
 		ObjectMapper mapper = new ObjectMapper();
@@ -664,7 +666,7 @@ public class StreamlinedClient {
 		Map<String,String> fieldTypes = uncacheFieldTypes(type);
 		if (fieldTypes == null) {
 			fieldTypes = new HashMap<String,String>();
-			URL url = esUrlBuilder().forClassName(type)
+			URL url = esUrlBuilder().forDocType(type)
 						.forEndPoint("_mapping")
 						.endPointBeforeType(true).build();
 			String jsonResponse = get(url);
@@ -770,6 +772,15 @@ public class StreamlinedClient {
 		} catch (Exception e) {
 			throw new ElasticSearchException(e);
 		}
+	}
+
+	public void createIndex(String emptytestindex) throws ElasticSearchException {
+		URL url = esUrlBuilder().build();
+		
+		put(url, null);
+	
+		int x = 0;
+		
 	}
 
 }

@@ -22,26 +22,27 @@ public class Document_DynTyped extends Document {
 		public String getIdFieldName() {return this.idFieldName; }
 
 
-	public Document_DynTyped(String _idFieldName, String _idValue) {
+	public Document_DynTyped() {};
+		
+	public Document_DynTyped(String _idFieldName, String _idValue) throws ElasticSearchException {
+		if (_idFieldName == null) throw new ElasticSearchException("You must provide a non-null name for the ID field");
+		if (_idValue == null) throw new ElasticSearchException("The value for the ID field cannot be null");
 		initialize(_idFieldName, _idValue, null);
 	}
 
-	public Document_DynTyped(String _idFieldName, String _idValue, Map<String,Object> _fields) {
+	public Document_DynTyped(String _idFieldName, String _idValue, Map<String,Object> _fields) throws ElasticSearchException {
+		if (_idFieldName == null) throw new ElasticSearchException("You must provide a non-null name for the ID field");
+		if (_idValue == null) throw new ElasticSearchException("The value for the ID field cannot be null");
 		initialize(_idFieldName, _idValue, _fields);
 	}
 	
-	
-	public Document_DynTyped(Map<String, Object> _fields) {
-		String _idFieldName = (String)_fields.get("Document_DynTyped.idFieldName");
-		String _id = (String)_fields.get(_idFieldName);
-		Map<String,Object> fieldsFiltered = new HashMap<String,Object>();
-		for (String fldName: _fields.keySet()) {
-			if (fldName.equals("Document_DynTyped.idFieldName")) continue;
-			fieldsFiltered.put(fldName, _fields.get(fldName));
-		}
-		initialize(_idFieldName, _id, fieldsFiltered);
+	public Document_DynTyped(String _idFieldName, Map<String,Object> _fields) throws ElasticSearchException  {
+		if (_idFieldName == null) throw new ElasticSearchException("You must provide a non-null name for the ID field");
+		if (_fields == null || !_fields.containsKey(_idFieldName)) throw new ElasticSearchException("The map of fields must contain a value for the ID field '"+_idFieldName+"'");
+		initialize(_idFieldName, (String)_fields.get(_idFieldName), _fields);
 	}
 	
+		
 	private void initialize(String _idFieldName, String _idValue, Map<String,Object> _fields) {
 		this.idFieldName = _idFieldName;		
 
@@ -51,9 +52,10 @@ public class Document_DynTyped extends Document {
 		this.fields = _fields;
 
 		this.fields.put(_idFieldName, _idValue);
-
 	}
 
+
+	
 	public void setField(String fldName, Object fldValue) throws DocumentException {
 		if (fldName.equals(idFieldName) && !(fldValue instanceof String)) {
 			throw new DocumentException("Cannot set ID field '"+fldName+"' to a non-string value");
@@ -78,5 +80,4 @@ public class Document_DynTyped extends Document {
 	public String getKey() {
 		return (String) this.fields.get(idFieldName);
 	}
-
 }

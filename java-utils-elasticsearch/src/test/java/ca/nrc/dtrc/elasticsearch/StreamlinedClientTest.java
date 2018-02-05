@@ -57,7 +57,7 @@ public class StreamlinedClientTest {
 
 		@Override
 		public String getKey() {return firstName;}
-	}
+	}	
 	
 	public static class Movie {
 		public String title;
@@ -70,7 +70,7 @@ public class StreamlinedClientTest {
 			this.synopsis = _synopsis;
 		}
 	}
-
+	
 	private static boolean skipTests = false;
 	
 	@Before
@@ -403,7 +403,7 @@ public class StreamlinedClientTest {
 		AssertHelpers.assertDeepEquals("Negative filter did not produce expected field names", expFilteredFields, gotFilteredFields);
 	}
 	
-	@Test @Ignore
+	@Test
 	public void test__put_getDocument__HappyPath() throws Exception {
 		StreamlinedClient client = ESTestHelpers.makeEmptyTestClient();
 		
@@ -416,6 +416,27 @@ public class StreamlinedClientTest {
 		gotPerson = (Person) client.getDocumentWithID("Homer", Person.class);
 		AssertHelpers.assertDeepEquals("Homer SHOULD have been in the index after being added", homer, gotPerson);
 	}
+
+	@Test
+	public void test__put_getDocument__DynTyped() throws Exception {
+		StreamlinedClient client = ESTestHelpers.makeEmptyTestClient();
+		
+		String esDocType = "car-model";
+		
+		String modelID = "YTD24211";		
+		Document_DynTyped gotCar = (Document_DynTyped) client.getDocumentWithID(modelID, Document_DynTyped.class, esDocType);
+		AssertHelpers.assertDeepEquals("Car model "+modelID+" should NOT have been in the index initially", null, gotCar);
+		
+		Document_DynTyped corolla2009 = new Document_DynTyped("model-number", modelID);
+		corolla2009.setField("maker", "Toyota");
+		corolla2009.setField("model", "Corolla");
+		corolla2009.setField("year", "2009");
+		client.putDocument(esDocType, corolla2009);
+		
+		gotCar = (Document_DynTyped) client.getDocumentWithID(modelID, Document_DynTyped.class, esDocType);
+		AssertHelpers.assertDeepEquals("Homer SHOULD have been in the index after being added", corolla2009, gotCar);
+	}
+	
 	
 	@Test
 	public void test__getFieldTypes__HappyPath() throws Exception {

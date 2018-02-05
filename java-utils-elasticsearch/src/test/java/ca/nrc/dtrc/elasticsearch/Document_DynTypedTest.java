@@ -65,11 +65,7 @@ public class Document_DynTypedTest {
 		fields.put("name", "6in screw");
 		fields.put("weight_grams", 0.4);
 		
-		// This last entry specifies the name of the key field
-		fields.put("Document_DynTyped.idFieldName", idFieldName);
-		doc = new Document_DynTyped(fields);
-
-		
+		doc = new Document_DynTyped(idFieldName, fields);
 	}
 	
 	/***************************
@@ -96,12 +92,11 @@ public class Document_DynTypedTest {
 	@Test
 	public void test__Document_DynTyped__InitializeFromHashMap() throws Exception {
 		Map<String,Object> fields = new HashMap<String,Object>();
-		fields.put("Document_DynTyped.idFieldName", "part_number");
 		fields.put("part_number", "X18D98KL9");
 		fields.put("name", "6in screw");
 		fields.put("weight_grams", 0.4);
 		
-		Document_DynTyped doc = new Document_DynTyped(fields);
+		Document_DynTyped doc = new Document_DynTyped("part_number", fields);
 		
 		String key = doc.getKey();
 		AssertHelpers.assertDeepEquals("", key, "X18D98KL9");
