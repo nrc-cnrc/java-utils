@@ -59,26 +59,16 @@ public class ObjectStreamReader implements Closeable {
 
 	private ObjectMapper mapper = new ObjectMapper();
 
-	public ObjectStreamReader(String fPath) throws FileNotFoundException {
-		FileReader fileReader = new FileReader(fPath);
-		initialize(fileReader);
-	}
-	
 	public ObjectStreamReader(File file) throws FileNotFoundException {
 		FileReader fileReader = new FileReader(file);
 		initialize(fileReader);
 	}
-	
-	
-	public ObjectStreamReader(String streamSpecs, boolean specsIsFilePath) throws FileNotFoundException {
-		if (specsIsFilePath) {
-			initialize(new FileReader(streamSpecs));
-		} else {
-			initialize(new StringReader(streamSpecs));
-		}
+
+	public ObjectStreamReader(String streamContent) throws FileNotFoundException {
+		StringReader strReader = new StringReader(streamContent);
+		initialize(strReader);
 	}
 	
-
 	public ObjectStreamReader(Reader _reader) {
 		initialize(_reader);
 	}
