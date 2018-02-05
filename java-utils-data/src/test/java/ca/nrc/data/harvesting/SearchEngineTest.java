@@ -159,26 +159,6 @@ public abstract class SearchEngineTest {
 		int maxNonMatching = 3;
 		assertResultsFitTheQuery(results, query, maxNonMatching);
 	}
-
-//	@Test
-//	public void test__search__IntermittentBugWith_count() throws Exception {
-//		for (int ii=0; ii < 20; ii++) {
-//			SearchEngine engine = makeSearchEngine();
-//			
-//			SearchEngine.Query query = new SearchEngine.Query("machine learning");
-//			int maxHits = 10;
-//			
-//			if (Math.floorMod(ii, 2) == 0) {
-//				maxHits = 25;
-//				query = new SearchEngine.Query("software engineering");
-//			}
-//			
-//			query.setMaxHits(maxHits);
-//			List<SearchEngine.Hit> results = engine.search(query); 
-//			if (results.size() != maxHits) System.out.println("   !!!!! Number of hits was wrong. Should have been "+maxHits);
-//			Thread.sleep(500);
-//		}
-//	}	
 	
 	@Test
 	public void test__search__TypeNEWS() throws IOException, SearchEngineException {
