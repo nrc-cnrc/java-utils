@@ -342,12 +342,32 @@ public class StreamlinedClient {
 		if (exception != null) throw exception;
 		
 	}
-
-	public <T extends Document> SearchResults<T> search(String jsonQuery, T docPrototype) throws ElasticSearchException {
 	
+	public <T extends Document> SearchResults<T> search(String jsonQuery, T docPrototype) throws ElasticSearchException {
+		
+//		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.search");
+//		URL url = esUrlBuilder()
+//					.forClass(docPrototype.getClass()).forEndPoint("_search")
+//					.scroll().build();
+//		tLogger.trace("url="+url+", jsonQuery="+jsonQuery);
+//		String jsonResponse = post(url, jsonQuery);
+//		
+//		@SuppressWarnings({ "unchecked", "rawtypes" })
+//		Pair<String,List<Pair<T,Double>>> parsedResults = parseJsonSearchResponse(jsonResponse, docPrototype);		
+//		SearchResults results = new SearchResults(parsedResults.getSecond(), parsedResults.getFirst(), docPrototype, this);
+//		
+//		return results;
+		String docTypeName = docPrototype.getClass().getName();
+		SearchResults<T> hits = search(jsonQuery, docTypeName, docPrototype);
+		
+		return hits;
+	}	
+
+	public <T extends Document> SearchResults<T> search(String jsonQuery, String docTypeName, T docPrototype) throws ElasticSearchException {
+		
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.search");
 		URL url = esUrlBuilder()
-					.forClass(docPrototype.getClass()).forEndPoint("_search")
+					.forDocType(docTypeName).forEndPoint("_search")
 					.scroll().build();
 		tLogger.trace("url="+url+", jsonQuery="+jsonQuery);
 		String jsonResponse = post(url, jsonQuery);
@@ -359,9 +379,19 @@ public class StreamlinedClient {
 		return results;
 	}
 	
-	public <T extends Document> SearchResults<T> searchFreeform(String query, T docPrototype) throws ElasticSearchException {
+	public <T extends Document> SearchResults<T> searchFreeform(String query, String docTypeName, T docPrototype) throws ElasticSearchException {
 		String jsonQuery = "{\"query\": {\"query_string\": {\"query\": \""+query+"\"}}}\n";
-		SearchResults<T> hits = search(jsonQuery, docPrototype);
+		SearchResults<T> hits = search(jsonQuery, docTypeName, docPrototype);
+		
+		return hits;
+	}
+	
+	public <T extends Document> SearchResults<T> searchFreeform(String query, T docPrototype) throws ElasticSearchException {
+//		String jsonQuery = "{\"query\": {\"query_string\": {\"query\": \""+query+"\"}}}\n";
+//		SearchResults<T> hits = search(jsonQuery, docPrototype);
+		
+		String docTypeName = docPrototype.getClass().getName();
+		SearchResults<T> hits = searchFreeform(query, docTypeName, docPrototype);
 		
 		return hits;
 	}

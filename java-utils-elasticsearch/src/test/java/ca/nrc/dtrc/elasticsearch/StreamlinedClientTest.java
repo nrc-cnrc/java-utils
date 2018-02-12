@@ -227,7 +227,7 @@ public class StreamlinedClientTest {
 	}		
 	
 	@Test
-	public void test__searcFreeform__HappyPath() throws Exception {
+	public void test__searchFreeform__HappyPath() throws Exception {
 		StreamlinedClient client = ESTestHelpers.makeHamletTestClient();	
 		Thread.sleep(1*1000);
 
@@ -248,7 +248,7 @@ public class StreamlinedClientTest {
 		
 		int hitsCount = 0;
 		Iterator<Pair<PlayLine,Double>> iter = hits.iterator();
-		while (iter.hasNext() && hitsCount < 25) {
+		while (iter.hasNext() && hitsCount < 26) {
 			Pair<ESTestHelpers.PlayLine,Double> scoredHit = iter.next();
 			AssertHelpers.assertStringContains("Hit did not fit query.", scoredHit.getFirst().text_entry, "say", false);
 			hitsCount++;
