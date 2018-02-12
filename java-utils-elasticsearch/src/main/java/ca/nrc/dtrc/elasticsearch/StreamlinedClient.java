@@ -1,6 +1,9 @@
 package ca.nrc.dtrc.elasticsearch;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -60,6 +63,7 @@ public class StreamlinedClient {
 			.writeTimeout(60, TimeUnit.SECONDS)
 			.build();
 
+	private List<StreamlinedClientObserver> observers = new ArrayList<StreamlinedClientObserver>();
 
 	public StreamlinedClient(String _indexName) {
 		initialize(_indexName);
@@ -354,6 +358,14 @@ public class StreamlinedClient {
 		
 		return results;
 	}
+	
+	public <T extends Document> SearchResults<T> searchFreeform(String query, T docPrototype) throws ElasticSearchException {
+		String jsonQuery = "{\"query\": {\"query_string\": {\"query\": \""+query+"\"}}}\n";
+		SearchResults<T> hits = search(jsonQuery, docPrototype);
+		
+		return hits;
+	}
+	
 
 	public <T extends Document> List<Pair<T,Double>> scroll(String scrollID, T docPrototype) throws ElasticSearchException {
 		URL url = esUrlBuilder().forEndPoint("_search/scroll").build();
@@ -588,23 +600,64 @@ public class StreamlinedClient {
 		bulk(new File(jsonFPath), docClass);
 	}
 
+
 	public void bulk(File jsonFile, Class<? extends Document> docClass) throws ElasticSearchException, IOException {
-		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.bulk");
-		URL url = esUrlBuilder().forClass(docClass).forEndPoint("_bulk").build();
+		String docTypeName = docClass.getName();
 		List<String> jsonLines = Files.readAllLines(jsonFile.toPath());
 		String json = String.join("\n", jsonLines);
+		bulk(json, docTypeName);
+	}
+
+	public void bulk(String jsonContent, String docTypeName) throws ElasticSearchException, IOException {
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.bulk");
+		URL url = esUrlBuilder().forDocType(docTypeName).forEndPoint("_bulk").build();
 		tLogger.trace("url="+url);
-		put(url, json);
+		put(url, jsonContent);
 		
 		// A bulk operation may have changed the properties of different document types in different indices
 		clearFieldTypesCache();
 	}
 	
+	public void bulkIndex(String dataFPath, String docTypeName) throws ElasticSearchException {
+		bulkIndex(dataFPath, docTypeName, null);
+	}
 	
-	public void bulk(String jsonString, String docType) {
-		// TODO Auto-generated method stub
+	public void bulkIndex(String dataFPath, String docTypeName, Integer batchSize) throws ElasticSearchException {
+		try {
+			if (batchSize == null) batchSize = 100;
+			int batchStart = 1;
+			File dataFile = new File(dataFPath);			
+			BufferedReader br = new BufferedReader(new FileReader(dataFile));
+			int currBatchSize = 0;
+			String jsonBatch = "";
+			String  jsonLine = br.readLine();
+			while (jsonLine != null) {
+				jsonBatch += 
+					"\n{\"index\": {\"_index\": \""+indexName+"\", \"_type\" : \""+docTypeName+"\"}}" +
+					"\n" + jsonLine;
+				
+				if (currBatchSize > batchSize) {
+					for (StreamlinedClientObserver obs: observers) {
+						obs.onBulkIndex(batchStart, batchStart+currBatchSize, indexName, docTypeName);
+					}
+					bulk(jsonBatch, docTypeName);
+					currBatchSize = 0;
+					batchStart += currBatchSize;
+					jsonBatch = "";
+				} else {
+					currBatchSize++;
+				}
+				
+				jsonLine = br.readLine();
+			}
+		} catch (FileNotFoundException e) {
+			throw new ElasticSearchException("Could not open file "+dataFPath+" for bulk indexing.");
+		} catch (IOException e) {
+			throw new ElasticSearchException("Could not read from data file "+dataFPath, e);
+		}
 		
 	}
+	
 	
 
 	public Document getDocumentWithID(String docID, Class<?extends Document> docClass) throws ElasticSearchException {
@@ -781,6 +834,10 @@ public class StreamlinedClient {
 	
 		int x = 0;
 		
+	}
+	
+	public void attachObserver(StreamlinedClientObserver _obs) {
+		observers.add(_obs);
 	}
 
 }

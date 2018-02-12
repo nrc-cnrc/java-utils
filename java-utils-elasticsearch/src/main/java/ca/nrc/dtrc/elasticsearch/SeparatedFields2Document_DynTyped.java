@@ -9,19 +9,25 @@ import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.opencsv.CSVReader;
 
+
 public class SeparatedFields2Document_DynTyped {
 	
-	String separator = ",";
+	char separator = ',';
 	Integer maxLines = null;
-	List<String> headers = null;
+	String[] headers = null;
+	String idFieldName = null;
+	String idGeneratorPrefix = null;
+	int counter = 0;
+	int badLines = 0;
+	Integer verbosity = null;
 	
-	public SeparatedFields2Document_DynTyped setSeparator(String _sep) {
+	public SeparatedFields2Document_DynTyped setSeparator(char _sep) {
+		this.separator = _sep;
 		return this;
 	}
 
@@ -30,36 +36,19 @@ public class SeparatedFields2Document_DynTyped {
 		return this;
 	}
 
-	private void convert(File inputFile, File outputFile, Integer maxJobs) throws IOException {
+	public SeparatedFields2Document_DynTyped setVerbose() {
+		this.verbosity = 1;
+		return this;
+	}
+
+	public void convert(File inputFile, File outputFile) throws IOException, ElasticSearchException {
+		convert(inputFile, outputFile, null);
+	}
+	
+	public void convert(File inputFile, File outputFile, Integer maxJobs) throws IOException, ElasticSearchException {
 		FileReader input = new FileReader(inputFile);
 		FileWriter output = new FileWriter(outputFile);
 		convert(input, output);
-	}
-
-	private static Map<String, Object> readJob(BufferedReader reader, String[] fieldNames) throws IOException {
-		Map<String,Object> jobFields = null;
-		String jobLine = reader.readLine();
-		if (jobLine != null) {
-			String[] fieldValues = jobLine.split("\\t");
-			
-			jobFields = new HashMap<String,Object>();
-			jobFields.put("Document_DynTyped.idFieldName", fieldNames[0]);
-			for (int ii=0; ii < fieldValues.length; ii++) {
-				jobFields.put(fieldNames[ii], fieldValues[ii]);
-			}
-		}		
-		return jobFields;
-	}
-
-	private static String[] parseFieldNames(BufferedReader reader) throws IOException {
-		String headerLine = reader.readLine();
-		String[] headers = headerLine.split("\\t");
-		String[] fieldNames = new String[headers.length];
-		for (int ii=0; ii < headers.length; ii++) {
-			fieldNames[ii] = escapeFieldName(headers[ii]);
-		}
-		
-		return fieldNames;
 	}
 
 	private static String escapeFieldName(String nameOrig) {
@@ -73,46 +62,111 @@ public class SeparatedFields2Document_DynTyped {
 		return nameEscaped;
 	}
 
-	private static void usage(String errMess) {
-		
-		String message = "";
-		if (errMess != null) {
-			errMess += "** ERROR: "+errMess+"\n";
-		}
-		message += 
-			  "Usage: NRCNeo4j2ElasticSearchBulk inputFile maxJobs?\n"
-			+ "\n"
-			+ "  Take a list of Indeed jobs from the NRC neo4j database,\n"
-			+ "  and convert it to an ElasticSearch _bulk script. The _bulk\n"
-			+ "  script is output to stdout."
-			+ ""
-			+ "ARGUMENTS"
-			+ "  "
-			+ "  inputFile: path of the neo4j dump file."
-			+ ""
-			+ "  maxJobs: optional argument specifying the maximum number of "
-			+ "    jobs to read from the file. Useful when debugging, to avoid"
-			+ "    reading through the whole file."
-			+ ""
-			;
-				
-		System.out.println(message);
-		System.exit(0);
-	}
-
-	public void convert(Reader input, Writer output) throws IOException {
-		convert(input, output, ",");
-		
-	}
-
-	public void convert(Reader input, Writer output, String separator) throws IOException {
-		CSVReader reader = new CSVReader(input);
-		String[] headers = reader.readNext();
-		String idHeader = headers[0];
+	public void convert(Reader input, Writer output) throws IOException, ElasticSearchException {
+		counter = 0;
+		badLines = 0;
+		@SuppressWarnings("deprecation")
+		CSVReader reader = new CSVReader(input, this.separator);
+		headers = reader.readNext();
+		String idField = findIDFieldName(headers);
 		String[] record = reader.readNext();
+		
+		
+		ObjectMapper mapper = new ObjectMapper();
+		
+		String[] prevRecord = new String[]{};
 		while (record != null)  {
-			record = reader.readNext();
+			counter++;
+			echo("Converting record number: "+counter, 0);
+			
+			if (record.length != headers.length) {
+				System.out.println(
+					  "Line "+counter+" has wrong number of fields!\n"
+					+ "  Num fields: "+record.length+"\n"
+					+ "  Fields were:\n---"+String.join("\n---\n", record)
+					+ "\nPrevious line was had fields:\n---"+String.join("\n---\n", prevRecord)
+					);
+				badLines++;
+			} else {		
+				Map<String,Object> fields = new HashMap<String,Object>();
+				for (int ii=0; ii < record.length; ii++) {
+					String escFieldName = escapeFieldName(headers[ii]);
+					String fieldValue = record[ii];
+					if (fieldValue == null) fieldValue = "";
+					fields.put(escFieldName, fieldValue);
+				}
+				
+				if (idGeneratorPrefix != null) {
+					// We need to generate the ID, instead of getting it
+					// from the list of fields
+					fields.put(idGeneratorPrefix, idGeneratorPrefix+"_"+counter);
+				}
+				
+				Document_DynTyped doc = documentForLine(idField, fields);
+				String json = mapper.writeValueAsString(doc);
+				output.write(json+"\n");
+			}
+			prevRecord = record.clone();
+			record = reader.readNext();	
+			if (maxLines != null && maxLines < counter) break;
 		}
+		reader.close();
+		
+		System.out.println("Found "+badLines+" bad lines out of "+counter);
+	}
+
+
+	private void echo(String message, int level) {
+		if (verbosity != null && verbosity > level) {
+			System.out.println(message);
+		}
+		
+	}
+
+	public Document_DynTyped documentForLine(String idField, Map<String,Object> fields) throws ElasticSearchException {
+		Document_DynTyped doc = new Document_DynTyped(idField, fields);
+		
+		return doc;
+	}
+
+	public String findIDFieldName(String[] headers) throws ElasticSearchException {
+		
+		if (idFieldName != null && idGeneratorPrefix != null) {
+			throw new ElasticSearchException("You cannot set 'idFieldName' and 'idGenerator' at the same time");
+		}
+		String idField = null;
+		if (idGeneratorPrefix != null) {
+			idField = idGeneratorPrefix;
+		} else {
+			idField = this.idFieldName;
+			if (idField != null) {
+				boolean found = false;
+				for (int ii=0; ii < headers.length; ii++) {
+					if (headers[ii].equals(idField)) {
+						found = true;
+						break;
+					}
+				}
+				if (!found) {
+					throw new ElasticSearchException("ID field name: "+idField+" was not found in the list of headers.\nHeaders were: "+String.join(", ", headers));
+				}
+			} else {
+				idField = headers[0];
+			}
+		}
+		
+		idField = escapeFieldName(idField);
+		return idField;
+	}
+
+	public SeparatedFields2Document_DynTyped setIDFieldName(String _idFieldName) {
+		this.idFieldName = _idFieldName;
+		return this;
+	}
+
+	public SeparatedFields2Document_DynTyped setIDGenerator(String prefix) {
+		this.idGeneratorPrefix = prefix;
+		return this;
 	}
 
 }

@@ -25,29 +25,34 @@ public class SeparatedFields2Document_DynTypedTest {
 		// Use SeparatedFields2Document_DynTyped to convert a stream of tab or comma
 		// separated records to a stream of json records for ElasticSearch
 		// Document_DynTyped,
-		SeparatedFields2Document_DynTyped converter = new SeparatedFields2Document_DynTyped();
+		
+		// Create a configure the converter
+		SeparatedFields2Document_DynTyped converter = 
+				new SeparatedFields2Document_DynTyped()
+				
+				// Specify separator: ',' or '\t'
+				.setSeparator(',') 
+				
+				// Name of the field that constitutes the unique ID for a record
+				// If not specified, assume first field si the ID
+				.setIDFieldName("ModelID") 
+				;
 		
 		String csvStreamContent = 
-				  "First,Last,Gender\n"
-				+ "Homer,Simpson,M\n"
-				+ "Marg,Simpson,F"
+				  "Manufacturer,Model,Year,ModelID\n"
+				+ "Toyota,Corolla,2009,TOY242p\n"
+				+ "Hyundai,Elentra,2011,Hyu9834"
 				;
 		BufferedReader input = new BufferedReader(new StringReader(csvStreamContent));
 		StringWriter output = new StringWriter();
 		
 		converter.convert(input, output);
 		
-		// By default, the converter assumes that the stream is comma separated.
-		// But you can override that
-		String tsvStreamContent = 
-				  "First\tLast\tGender\n"
-				+ "Homer\tSimpson\tM\n"
-				+ "Marg\tSimpson\tF"
-				;
-		input = new BufferedReader(new StringReader(tsvStreamContent));
-		output = new StringWriter();
+		// If the fields do not contain anything that can act as a unique identifier, 
+		// you can ask the converter to generate a unique ID. Each 
+		// ID will start with the same prefix, and will have a counter appended to it
+		converter.setIDGenerator("CAR_MODEL");
 		
-		converter.convert(input, output, "\t");
 	}
 	
 	////////////////////////////////////////////////////////
@@ -56,12 +61,16 @@ public class SeparatedFields2Document_DynTypedTest {
 	
 	@Test
 	public void test__SeparatedFields2Document_DynTyped__HappyPath() throws Exception {
-		SeparatedFields2Document_DynTyped converter = new SeparatedFields2Document_DynTyped();
+		SeparatedFields2Document_DynTyped converter = 
+				new SeparatedFields2Document_DynTyped()
+				.setSeparator(',') 
+				.setIDFieldName("ModelID") 
+				;
 		
 		String csvStreamContent = 
-				  "First,Last,Gender\n"
-				+ "Homer,Simpson,M\n"
-				+ "Marg,Simpson,F"
+				  "Manufacturer,Model,Year,ModelID\n"
+				+ "Toyota,Corolla,2009,TOY242p\n"
+				+ "Hyundai,Elentra,2011,Hyu9834"
 				;
 		BufferedReader input = new BufferedReader(new StringReader(csvStreamContent));
 		StringWriter output = new StringWriter();
@@ -70,10 +79,38 @@ public class SeparatedFields2Document_DynTypedTest {
 		
 		String gotOutput = output.toString();
 		String expOutput = 
-				  "{BLAH}\n"
-				+ "{BLOB}"
-				;
+				   "{\"fields\":{\"Year\":\"2009\",\"Manufacturer\":\"Toyota\",\"Model\":\"Corolla\",\"ModelID\":\"TOY242p\"},\"idFieldName\":\"ModelID\"}\n"
+				 + "{\"fields\":{\"Year\":\"2011\",\"Manufacturer\":\"Hyundai\",\"Model\":\"Elentra\",\"ModelID\":\"Hyu9834\"},\"idFieldName\":\"ModelID\"}\n"
+						   ;
+		
 		AssertHelpers.assertDeepEquals("", expOutput, gotOutput);
 	}	
+	
+	@Test
+	public void test__SeparatedFields2Document_DynTyped__GeneratedIDs() throws Exception {
+		SeparatedFields2Document_DynTyped converter = 
+				new SeparatedFields2Document_DynTyped()
+				.setSeparator(',') 
+				.setIDGenerator("CarModel")
+				;
+		
+		String csvStreamContent = 
+				  "Manufacturer,Model,Year\n"
+				+ "Toyota,Corolla,2009\n"
+				+ "Hyundai,Elentra,2011"
+				;
+		BufferedReader input = new BufferedReader(new StringReader(csvStreamContent));
+		StringWriter output = new StringWriter();
+		
+		converter.convert(input, output);
+		
+		String gotOutput = output.toString();
+		String expOutput = 
+				   "{\"fields\":{\"CarModel\":\"CarModel_1\",\"Year\":\"2009\",\"Manufacturer\":\"Toyota\",\"Model\":\"Corolla\"},\"idFieldName\":\"CarModel\"}\n"
+				 + "{\"fields\":{\"CarModel\":\"CarModel_2\",\"Year\":\"2011\",\"Manufacturer\":\"Hyundai\",\"Model\":\"Elentra\"},\"idFieldName\":\"CarModel\"}\n"
+						   ;
+		
+		AssertHelpers.assertDeepEquals("", expOutput, gotOutput);
+	}		
 
 }

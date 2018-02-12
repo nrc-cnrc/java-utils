@@ -120,7 +120,7 @@ public class StreamlinedClientTest {
 		
 		
 		//
-		// Search for some objects. You can specify the query as a JSON string
+		// Search for some objects. You can specify an arbitrary query as a JSON string
 		//
 		String jsonQuery = 
 				"{\n"
@@ -139,6 +139,14 @@ public class StreamlinedClientTest {
 			Person hitDocument = scoredHit.getFirst();
 			Double hitScore = scoredHit.getSecond();
 		}		
+		
+		//
+		// There are also some more streamlined search methods. For example,
+		// use this method to search all fields for a given free-form 
+		// query.
+		//
+		String query = "(lisa OR marge) AND simpson";
+		hits = client.searchFreeform(query, personPrototype);
 		
 		// 
 		// Find documents that are similar to a particular doc.
@@ -212,12 +220,22 @@ public class StreamlinedClientTest {
 	public void test__moreLikeThis__HappyPath() throws Exception {
 		StreamlinedClient client = ESTestHelpers.makeHamletTestClient();	
 		Thread.sleep(1*1000);
-		final String PLAY_LINE = "line";
 
 		ESTestHelpers.PlayLine queryLine = new ESTestHelpers.PlayLine("Something is rotten in the kingdom of England");
 		SearchResults<ESTestHelpers.PlayLine> gotSearchResults = client.moreLikeThis(queryLine, new IncludeFields("^text_entry$"));		
 		assertIsInFirstNHits("Something is rotten in the state of Denmark.", 3, "text_entry", gotSearchResults);
 	}		
+	
+	@Test
+	public void test__searcFreeform__HappyPath() throws Exception {
+		StreamlinedClient client = ESTestHelpers.makeHamletTestClient();	
+		Thread.sleep(1*1000);
+
+		String query = "denmark AND rotten";
+		SearchResults<ESTestHelpers.PlayLine> gotSearchResults = client.searchFreeform(query, new PlayLine());		
+		assertIsInFirstNHits("Something is rotten in the state of Denmark.", 3, "text_entry", gotSearchResults);
+	}		
+	
 
 	@Test
 	public void test__scrollThroughSearchResults__HappyPath() throws Exception {
