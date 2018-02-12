@@ -168,9 +168,14 @@ public class StreamlinedClient {
 		URL url = esUrlBuilder().forClass(docClass).forEndPoint("_search").scroll().build();
 		String jsonResponse = post(url, "{}");
 		
-		Pair<String,List<Pair<T,Double>>> parsedResults = parseJsonSearchResponse(jsonResponse, docPrototype);		
+		Pair<Pair<Long,String>,List<Pair<T,Double>>> parsedResults = parseJsonSearchResponse(jsonResponse, docPrototype);		
 		@SuppressWarnings({ "unchecked", "rawtypes" })
-		SearchResults results = new SearchResults(parsedResults.getSecond(), parsedResults.getFirst(), docPrototype, this);
+		
+		Long totalHits = parsedResults.getFirst().getFirst();
+		List<Pair<T,Double>> firstBatch = parsedResults.getSecond();
+		String scrollID = parsedResults.getFirst().getSecond();
+		
+		SearchResults results = new SearchResults(firstBatch, scrollID, totalHits, docPrototype, this);
 		
 		int count = 0;
 		List<T> docs = new ArrayList<T>();
@@ -196,9 +201,7 @@ public class StreamlinedClient {
 		URL url = esUrlBuilder().forClass(docClass).forEndPoint("_search").scroll().build();
 		String jsonResponse = post(url, "{}");
 		
-		Pair<String,List<Pair<T,Double>>> parsedResults = parseJsonSearchResponse(jsonResponse, docPrototype);		
-		@SuppressWarnings({ "unchecked", "rawtypes" })
-		SearchResults results = new SearchResults(parsedResults.getSecond(), parsedResults.getFirst(), docPrototype, this);
+		SearchResults<T> results = new SearchResults<T>(jsonResponse, docPrototype, this);
 		
 		return results;
 	}		
@@ -371,10 +374,12 @@ public class StreamlinedClient {
 					.scroll().build();
 		tLogger.trace("url="+url+", jsonQuery="+jsonQuery);
 		String jsonResponse = post(url, jsonQuery);
+
+		SearchResults<T> results = new SearchResults<T>(jsonResponse, docPrototype, this);
 		
-		@SuppressWarnings({ "unchecked", "rawtypes" })
-		Pair<String,List<Pair<T,Double>>> parsedResults = parseJsonSearchResponse(jsonResponse, docPrototype);		
-		SearchResults results = new SearchResults(parsedResults.getSecond(), parsedResults.getFirst(), docPrototype, this);
+//		@SuppressWarnings({ "unchecked", "rawtypes" })
+//		Pair<String,List<Pair<T,Double>>> parsedResults = parseJsonSearchResponse(jsonResponse, docPrototype);		
+//		SearchResults results = new SearchResults(parsedResults.getSecond(), parsedResults.getFirst(), docPrototype, this);
 		
 		return results;
 	}
@@ -412,20 +417,22 @@ public class StreamlinedClient {
 			throw new ElasticSearchException(e);
 		}
 		
-		Pair<String,List<Pair<T,Double>>> parsedResults = parseJsonSearchResponse(jsonResponse, docPrototype);
+		Pair<Pair<Long,String>,List<Pair<T,Double>>> parsedResults = parseJsonSearchResponse(jsonResponse, docPrototype);
  		
 		return parsedResults.getSecond();
 	}
 	
-	private <T extends Document> Pair<String,List<Pair<T, Double>>> parseJsonSearchResponse(String jsonSearchResponse, T docPrototype) throws ElasticSearchException {
+	private <T extends Document> Pair<Pair<Long,String>,List<Pair<T, Double>>> parseJsonSearchResponse(String jsonSearchResponse, T docPrototype) throws ElasticSearchException {
 		List<Pair<T, Double>> scoredDocuments = new ArrayList<Pair<T,Double>>();
 		String scrollID = null;
 		ObjectMapper mapper = new ObjectMapper();
 		ObjectNode jsonRespNode;
+		Long totalHits;
 		try {
 			jsonRespNode = (ObjectNode) mapper.readTree(jsonSearchResponse);	
 			scrollID = jsonRespNode.get("_scroll_id").asText();
 			ObjectNode hitsCollectionNode = (ObjectNode) jsonRespNode.get("hits");
+			totalHits = hitsCollectionNode.get("total").asLong();
 			ArrayNode hitsArrNode = (ArrayNode) hitsCollectionNode.get("hits");
 			for (int ii=0; ii < hitsArrNode.size(); ii++) {
 				String hitJson = hitsArrNode.get(ii).get("_source").toString();
@@ -438,7 +445,7 @@ public class StreamlinedClient {
 			throw new ElasticSearchException(e);
 		}			
 		
-		return Pair.of(scrollID, scoredDocuments);
+		return Pair.of(Pair.of(totalHits, scrollID), scoredDocuments);
 	}
 
 	public String clearIndex() throws IOException, ElasticSearchException, InterruptedException {
@@ -671,8 +678,8 @@ public class StreamlinedClient {
 						obs.onBulkIndex(batchStart, batchStart+currBatchSize, indexName, docTypeName);
 					}
 					bulk(jsonBatch, docTypeName);
-					currBatchSize = 0;
 					batchStart += currBatchSize;
+					currBatchSize = 0;
 					jsonBatch = "";
 				} else {
 					currBatchSize++;
@@ -688,8 +695,6 @@ public class StreamlinedClient {
 		
 	}
 	
-	
-
 	public Document getDocumentWithID(String docID, Class<?extends Document> docClass) throws ElasticSearchException {
 		return getDocumentWithID(docID, docClass, null);
 	}

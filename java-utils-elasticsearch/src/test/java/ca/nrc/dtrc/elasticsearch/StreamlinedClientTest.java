@@ -155,7 +155,7 @@ public class StreamlinedClientTest {
 		SearchResults<Person> searchResults = client.moreLikeThis(queryPerson);
 		
 		// You can then scroll through the hits as described above...
-		
+				
 		// In all of the above, we were using "statically typed" documents whose fields and 
 		// structure were known at compile time (ex: Person).
 		//
@@ -164,23 +164,21 @@ public class StreamlinedClientTest {
 		// 
 		// Here is how you do this.
 		//   - First, you define the dynamic document
-//		String idFieldName = "part_number";		
-//		Document_DynTyped doc = new Document_DynTyped(idFieldName, "X18D98KL9");
-//		doc.setField("name", "6in screw");
-//		doc.setField("weight_grams", 0.4);
+		String idFieldName = "part_number";		
+		Document_DynTyped doc = new Document_DynTyped(idFieldName, "X18D98KL9");
+		doc.setField("name", "6in screw");
+		doc.setField("weight_grams", 0.4);
 		
 		// Next, you add the document to ES. Note that contrarily to statically typed
 		// docs, you need to specify a document type for ES to store the doc under
-//		String docType = "ca.nrc.dtrc.Part";
-//		client.putDocument(docType, doc);
+		String docType = "ca.nrc.dtrc.Part";
+		client.putDocument(docType, doc);
 		
 		// In general, you always need to specify an ES document type name 
 		// to search, put, retrieve, etc... dynamically typed docs in ES
 		// For example...
 		//
-//		Document_DynTyped retrievedDoc = (Document_DynTyped) client.getDocumentWithID("X18D98KL9", docType);
-//		
-//		Document_DynTyped 
+		Document_DynTyped retrievedDoc = (Document_DynTyped) client.getDocumentWithID("X18D98KL9", Document_DynTyped.class, docType);
 			
 	}
 	

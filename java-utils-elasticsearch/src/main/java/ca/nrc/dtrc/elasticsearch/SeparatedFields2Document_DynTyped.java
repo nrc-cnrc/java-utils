@@ -41,11 +41,11 @@ public class SeparatedFields2Document_DynTyped {
 		return this;
 	}
 
-	public void convert(File inputFile, File outputFile) throws IOException, ElasticSearchException {
+	public void convert(File inputFile, File outputFile) throws IOException, ElasticSearchException, DocumentException {
 		convert(inputFile, outputFile, null);
 	}
 	
-	public void convert(File inputFile, File outputFile, Integer maxJobs) throws IOException, ElasticSearchException {
+	public void convert(File inputFile, File outputFile, Integer maxJobs) throws IOException, ElasticSearchException, DocumentException {
 		FileReader input = new FileReader(inputFile);
 		FileWriter output = new FileWriter(outputFile);
 		convert(input, output);
@@ -62,7 +62,7 @@ public class SeparatedFields2Document_DynTyped {
 		return nameEscaped;
 	}
 
-	public void convert(Reader input, Writer output) throws IOException, ElasticSearchException {
+	public void convert(Reader input, Writer output) throws IOException, ElasticSearchException, DocumentException {
 		counter = 0;
 		badLines = 0;
 		@SuppressWarnings("deprecation")
@@ -123,7 +123,7 @@ public class SeparatedFields2Document_DynTyped {
 		
 	}
 
-	public Document_DynTyped documentForLine(String idField, Map<String,Object> fields) throws ElasticSearchException {
+	public Document_DynTyped documentForLine(String idField, Map<String,Object> fields) throws ElasticSearchException, DocumentException {
 		Document_DynTyped doc = new Document_DynTyped(idField, fields);
 		
 		return doc;

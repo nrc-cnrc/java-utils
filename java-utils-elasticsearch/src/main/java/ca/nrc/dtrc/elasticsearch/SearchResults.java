@@ -55,11 +55,51 @@ public class SearchResults<T extends Document> implements Iterable<Pair<T,Double
 		
 	}
 
-	public SearchResults(List<Pair<T,Double>> firstResultsBatch, String _scrollID, T _docPrototype, StreamlinedClient _esClient) throws ElasticSearchException {
+	public SearchResults(List<Pair<T,Double>> firstResultsBatch, String _scrollID, Long _totalHits, T _docPrototype, StreamlinedClient _esClient) throws ElasticSearchException {
+		initialize(firstResultsBatch, _scrollID, _totalHits, _docPrototype, _esClient);
+	}	
+	
+	public SearchResults(String jsonResponse, T _docPrototype, StreamlinedClient _esClient) throws ElasticSearchException {
+		Pair<Pair<Long, String>, List<Pair<T, Double>>> parsedResults = parseJsonSearchResponse(jsonResponse, _docPrototype);
+		Long _totalHits = parsedResults.getFirst().getFirst();
+		List<Pair<T,Double>> firstBatch = parsedResults.getSecond();
+		String scrollID = parsedResults.getFirst().getSecond();
+
+		initialize(firstBatch, scrollID, _totalHits, _docPrototype, _esClient);
+	}
+	
+	public void initialize(List<Pair<T,Double>> firstResultsBatch, String _scrollID, Long _totalHits, T _docPrototype, StreamlinedClient _esClient) {
 		this.documentsBatch = firstResultsBatch;
 		this.scrollID = _scrollID;
 		this.docPrototype = _docPrototype;
 		this.esClient = _esClient;
+		this.totalHits = _totalHits;		
+	}
+	
+	private Pair<Pair<Long,String>,List<Pair<T, Double>>> parseJsonSearchResponse(String jsonSearchResponse, T docPrototype) throws ElasticSearchException {
+		List<Pair<T, Double>> scoredDocuments = new ArrayList<Pair<T,Double>>();
+		String scrollID = null;
+		ObjectMapper mapper = new ObjectMapper();
+		ObjectNode jsonRespNode;
+		Long totalHits;
+		try {
+			jsonRespNode = (ObjectNode) mapper.readTree(jsonSearchResponse);	
+			scrollID = jsonRespNode.get("_scroll_id").asText();
+			ObjectNode hitsCollectionNode = (ObjectNode) jsonRespNode.get("hits");
+			totalHits = hitsCollectionNode.get("total").asLong();
+			ArrayNode hitsArrNode = (ArrayNode) hitsCollectionNode.get("hits");
+			for (int ii=0; ii < hitsArrNode.size(); ii++) {
+				String hitJson = hitsArrNode.get(ii).get("_source").toString();
+				T hitObject = (T) mapper.readValue(hitJson, docPrototype.getClass());
+				Double hitScore = hitsArrNode.get(ii).get("_score").asDouble();
+				
+				scoredDocuments.add(Pair.of(hitObject, hitScore));
+			}
+		} catch (IOException e) {
+			throw new ElasticSearchException(e);
+		}			
+		
+		return Pair.of(Pair.of(totalHits, scrollID), scoredDocuments);
 	}	
 	
 	@Override
