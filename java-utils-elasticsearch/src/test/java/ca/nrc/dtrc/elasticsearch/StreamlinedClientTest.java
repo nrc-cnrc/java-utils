@@ -357,6 +357,7 @@ public class StreamlinedClientTest {
 		{
 			expFilteredFields.put("surname", "simpson");
 			expFilteredFields.put("birthDay", null);
+			expFilteredFields.put("_detect_language", true);
 		}
 		AssertHelpers.assertDeepEquals("Negative filter did not produce expected field names", expFilteredFields, gotFilteredFields);
 	}
@@ -371,6 +372,7 @@ public class StreamlinedClientTest {
 			expFilteredFields.put("firstName", "homer");
 			expFilteredFields.put("surname", "simpson");
 			expFilteredFields.put("birthDay", null);
+			expFilteredFields.put("_detect_language", true);
 		}
 		AssertHelpers.assertDeepEquals("Negative filter did not produce expected field names", expFilteredFields, gotFilteredFields);
 	}
@@ -462,10 +464,11 @@ public class StreamlinedClientTest {
 		Person homer = new Person("Homer", "Simpson");
 		client.putDocument(homer);
 		
-		Map<String,String> expFieldTypes = new HashMap<String,String>();
+		Map<String,Object> expFieldTypes = new HashMap<String,Object>();
 		{
 			expFieldTypes.put("firstName", "text");
 			expFieldTypes.put("surname", "text");
+			expFieldTypes.put("_detect_language", "boolean");			
 		}
 		Map<String,String> gotFieldTypes = client.getFieldTypes(Person.class);	
 		AssertHelpers.assertDeepEquals("ElasticSearch types were wrong for fields of class "+Person.class, 

@@ -6,6 +6,11 @@ import java.util.Set;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public abstract class Document {
+	
+	// This makes it possible for a document collection to 
+	// contain documents that are in different languages
+	public boolean _detect_language = true;
+		
 	@JsonIgnore
 	public abstract String getKeyFieldName();
 

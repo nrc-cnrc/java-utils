@@ -79,8 +79,8 @@ public class SeparatedFields2Document_DynTypedTest {
 		
 		String gotOutput = output.toString();
 		String expOutput = 
-				   "{\"fields\":{\"Year\":\"2009\",\"Manufacturer\":\"Toyota\",\"Model\":\"Corolla\",\"ModelID\":\"TOY242p\"},\"idFieldName\":\"ModelID\"}\n"
-				 + "{\"fields\":{\"Year\":\"2011\",\"Manufacturer\":\"Hyundai\",\"Model\":\"Elentra\",\"ModelID\":\"Hyu9834\"},\"idFieldName\":\"ModelID\"}\n"
+				   "{\"_detect_language\":true,\"fields\":{\"Year\":\"2009\",\"Manufacturer\":\"Toyota\",\"Model\":\"Corolla\",\"ModelID\":\"TOY242p\"},\"idFieldName\":\"ModelID\"}\n"
+				 + "{\"_detect_language\":true,\"fields\":{\"Year\":\"2011\",\"Manufacturer\":\"Hyundai\",\"Model\":\"Elentra\",\"ModelID\":\"Hyu9834\"},\"idFieldName\":\"ModelID\"}\n"
 						   ;
 		
 		AssertHelpers.assertDeepEquals("", expOutput, gotOutput);
@@ -106,8 +106,8 @@ public class SeparatedFields2Document_DynTypedTest {
 		
 		String gotOutput = output.toString();
 		String expOutput = 
-				   "{\"fields\":{\"CarModel\":\"CarModel_1\",\"Year\":\"2009\",\"Manufacturer\":\"Toyota\",\"Model\":\"Corolla\"},\"idFieldName\":\"CarModel\"}\n"
-				 + "{\"fields\":{\"CarModel\":\"CarModel_2\",\"Year\":\"2011\",\"Manufacturer\":\"Hyundai\",\"Model\":\"Elentra\"},\"idFieldName\":\"CarModel\"}\n"
+				   "{\"_detect_language\":true,\"fields\":{\"CarModel\":\"CarModel_1\",\"Year\":\"2009\",\"Manufacturer\":\"Toyota\",\"Model\":\"Corolla\"},\"idFieldName\":\"CarModel\"}\n"
+				 + "{\"_detect_language\":true,\"fields\":{\"CarModel\":\"CarModel_2\",\"Year\":\"2011\",\"Manufacturer\":\"Hyundai\",\"Model\":\"Elentra\"},\"idFieldName\":\"CarModel\"}\n"
 						   ;
 		
 		AssertHelpers.assertDeepEquals("", expOutput, gotOutput);
