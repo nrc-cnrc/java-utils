@@ -12,7 +12,7 @@ import java.util.Map;
  */
 
 public class Document_DynTyped extends Document {
-	
+		
 	private Map<String,Object> fields = null;
 		public void setFields(Map<String,Object> _fields) {this.fields = _fields;}
 		public Map<String,Object> getFields() {return this.fields;}

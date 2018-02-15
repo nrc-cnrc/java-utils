@@ -669,8 +669,9 @@ public class StreamlinedClient {
 			String jsonBatch = "";
 			String  jsonLine = br.readLine();
 			while (jsonLine != null) {
+				String id = getLineID(jsonLine);
 				jsonBatch += 
-					"\n{\"index\": {\"_index\": \""+indexName+"\", \"_type\" : \""+docTypeName+"\"}}" +
+					"\n{\"index\": {\"_index\": \""+indexName+"\", \"_type\" : \""+docTypeName+"\", \"_id\": \""+id+"\"}}" +
 					"\n" + jsonLine;
 				
 				if (currBatchSize > batchSize) {
@@ -695,6 +696,18 @@ public class StreamlinedClient {
 		
 	}
 	
+	private String getLineID(String jsonLine) throws ElasticSearchException {
+		Document_DynTyped doc = null;
+		try {
+			doc = (Document_DynTyped) new ObjectMapper().readValue(jsonLine, Document_DynTyped.class);
+		} catch (IOException e) {
+			throw new ElasticSearchException(e);
+		}		
+		String id =  doc.getKey();
+		
+		return id;
+	}
+
 	public Document getDocumentWithID(String docID, Class<?extends Document> docClass) throws ElasticSearchException {
 		return getDocumentWithID(docID, docClass, null);
 	}
