@@ -8,7 +8,9 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,11 +43,11 @@ public class SeparatedFields2Document_DynTyped {
 		return this;
 	}
 
-	public void convert(File inputFile, File outputFile) throws IOException, ElasticSearchException, DocumentException {
+	public void convert(File inputFile, File outputFile) throws Exception {
 		convert(inputFile, outputFile, null);
 	}
 	
-	public void convert(File inputFile, File outputFile, Integer maxJobs) throws IOException, ElasticSearchException, DocumentException {
+	public void convert(File inputFile, File outputFile, Integer maxJobs) throws Exception {
 		FileReader input = new FileReader(inputFile);
 		FileWriter output = new FileWriter(outputFile);
 		convert(input, output);
@@ -62,7 +64,7 @@ public class SeparatedFields2Document_DynTyped {
 		return nameEscaped;
 	}
 
-	public void convert(Reader input, Writer output) throws IOException, ElasticSearchException, DocumentException {
+	public void convert(Reader input, Writer output) throws Exception {
 		counter = 0;
 		badLines = 0;
 		@SuppressWarnings("deprecation")
@@ -102,9 +104,11 @@ public class SeparatedFields2Document_DynTyped {
 					fields.put(idGeneratorPrefix, idGeneratorPrefix+"_"+counter);
 				}
 				
-				Document_DynTyped doc = documentForLine(idField, fields);
-				String json = mapper.writeValueAsString(doc);
-				output.write(json+"\n");
+				List<Document_DynTyped> docList = documentsForLine(idField, fields);
+				for (Document_DynTyped doc: docList) {
+					String json = mapper.writeValueAsString(doc);
+					output.write(json+"\n");
+				}
 			}
 			prevRecord = record.clone();
 			record = reader.readNext();	
@@ -123,10 +127,11 @@ public class SeparatedFields2Document_DynTyped {
 		
 	}
 
-	public Document_DynTyped documentForLine(String idField, Map<String,Object> fields) throws ElasticSearchException, DocumentException {
-		Document_DynTyped doc = new Document_DynTyped(idField, fields);
+	public List<Document_DynTyped> documentsForLine(String idField, Map<String,Object> fields) throws Exception {
+		List<Document_DynTyped> docs = new ArrayList<Document_DynTyped>();	
+		docs.add(new Document_DynTyped(idField, fields));
 		
-		return doc;
+		return docs;
 	}
 
 	public String findIDFieldName(String[] headers) throws ElasticSearchException {
