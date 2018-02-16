@@ -46,7 +46,7 @@ public class SeparatedFields2Document_DynTypedTest {
 		BufferedReader input = new BufferedReader(new StringReader(csvStreamContent));
 		StringWriter output = new StringWriter();
 		
-		converter.convert(input, output);
+		converter.convert(input, output, null);
 		
 		// If the fields do not contain anything that can act as a unique identifier, 
 		// you can ask the converter to generate a unique ID. Each 
@@ -75,12 +75,12 @@ public class SeparatedFields2Document_DynTypedTest {
 		BufferedReader input = new BufferedReader(new StringReader(csvStreamContent));
 		StringWriter output = new StringWriter();
 		
-		converter.convert(input, output);
+		converter.convert(input, output, null);
 		
 		String gotOutput = output.toString();
 		String expOutput = 
-				   "{\"_detect_language\":true,\"fields\":{\"Year\":\"2009\",\"Manufacturer\":\"Toyota\",\"Model\":\"Corolla\",\"ModelID\":\"TOY242p\"},\"idFieldName\":\"ModelID\"}\n"
-				 + "{\"_detect_language\":true,\"fields\":{\"Year\":\"2011\",\"Manufacturer\":\"Hyundai\",\"Model\":\"Elentra\",\"ModelID\":\"Hyu9834\"},\"idFieldName\":\"ModelID\"}\n"
+				   "{\"_detect_language\":true,\"lang\":\"en\",\"fields\":{\"Year\":\"2009\",\"Manufacturer\":\"Toyota\",\"Model\":\"Corolla\",\"ModelID\":\"TOY242p\"},\"idFieldName\":\"ModelID\"}\n"
+				 + "{\"_detect_language\":true,\"lang\":\"en\",\"fields\":{\"Year\":\"2011\",\"Manufacturer\":\"Hyundai\",\"Model\":\"Elentra\",\"ModelID\":\"Hyu9834\"},\"idFieldName\":\"ModelID\"}\n"
 						   ;
 		
 		AssertHelpers.assertDeepEquals("", expOutput, gotOutput);
@@ -102,12 +102,12 @@ public class SeparatedFields2Document_DynTypedTest {
 		BufferedReader input = new BufferedReader(new StringReader(csvStreamContent));
 		StringWriter output = new StringWriter();
 		
-		converter.convert(input, output);
+		converter.convert(input, output, null);
 		
 		String gotOutput = output.toString();
 		String expOutput = 
-				   "{\"_detect_language\":true,\"fields\":{\"CarModel\":\"CarModel_1\",\"Year\":\"2009\",\"Manufacturer\":\"Toyota\",\"Model\":\"Corolla\"},\"idFieldName\":\"CarModel\"}\n"
-				 + "{\"_detect_language\":true,\"fields\":{\"CarModel\":\"CarModel_2\",\"Year\":\"2011\",\"Manufacturer\":\"Hyundai\",\"Model\":\"Elentra\"},\"idFieldName\":\"CarModel\"}\n"
+				   "{\"_detect_language\":true,\"lang\":\"en\",\"fields\":{\"CarModel\":\"CarModel_1\",\"Year\":\"2009\",\"Manufacturer\":\"Toyota\",\"Model\":\"Corolla\"},\"idFieldName\":\"CarModel\"}\n"
+				 + "{\"_detect_language\":true,\"lang\":\"en\",\"fields\":{\"CarModel\":\"CarModel_2\",\"Year\":\"2011\",\"Manufacturer\":\"Hyundai\",\"Model\":\"Elentra\"},\"idFieldName\":\"CarModel\"}\n"
 						   ;
 		
 		AssertHelpers.assertDeepEquals("", expOutput, gotOutput);

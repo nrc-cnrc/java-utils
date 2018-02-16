@@ -20,7 +20,7 @@ import com.opencsv.CSVReader;
 public class SeparatedFields2Document_DynTyped {
 	
 	char separator = ',';
-	Integer maxLines = null;
+	Integer maxDocs = null;
 	String[] headers = null;
 	String idFieldName = null;
 	String idGeneratorPrefix = null;
@@ -33,8 +33,8 @@ public class SeparatedFields2Document_DynTyped {
 		return this;
 	}
 
-	public SeparatedFields2Document_DynTyped setMaxLines(int _maxLines) {
-		this.maxLines = _maxLines;
+	public SeparatedFields2Document_DynTyped setMaxDocs(Integer _maxLines) {
+		this.maxDocs = _maxLines;
 		return this;
 	}
 
@@ -47,10 +47,10 @@ public class SeparatedFields2Document_DynTyped {
 		convert(inputFile, outputFile, null);
 	}
 	
-	public void convert(File inputFile, File outputFile, Integer maxJobs) throws Exception {
+	public void convert(File inputFile, File outputFile, Integer _maxDocs) throws Exception {
 		FileReader input = new FileReader(inputFile);
 		FileWriter output = new FileWriter(outputFile);
-		convert(input, output);
+		convert(input, output, _maxDocs);
 	}
 
 	private static String escapeFieldName(String nameOrig) {
@@ -64,7 +64,8 @@ public class SeparatedFields2Document_DynTyped {
 		return nameEscaped;
 	}
 
-	public void convert(Reader input, Writer output) throws Exception {
+	public void convert(Reader input, Writer output, Integer _maxDocs) throws Exception {
+		setMaxDocs(_maxDocs);
 		counter = 0;
 		badLines = 0;
 		@SuppressWarnings("deprecation")
@@ -112,9 +113,10 @@ public class SeparatedFields2Document_DynTyped {
 			}
 			prevRecord = record.clone();
 			record = reader.readNext();	
-			if (maxLines != null && maxLines < counter) break;
+			if (maxDocs != null && maxDocs < counter) break;
 		}
 		reader.close();
+		output.close();
 		
 		System.out.println("Found "+badLines+" bad lines out of "+counter);
 	}

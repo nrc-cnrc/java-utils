@@ -206,6 +206,17 @@ public class StreamlinedClient {
 		return results;
 	}		
 
+	public <T extends Document> SearchResults<T> listAll(String esDocTypeName , T docPrototype) throws ElasticSearchException {
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.listAll");
+		tLogger.trace("searching for all type="+esDocTypeName);
+		URL url = esUrlBuilder().forDocType(esDocTypeName).forEndPoint("_search").scroll().build();
+		String jsonResponse = post(url, "{}");
+		
+		SearchResults<T> results = new SearchResults<T>(jsonResponse, docPrototype, this);
+		
+		return results;
+	}		
+	
 	private String post(URL url) throws IOException, ElasticSearchException, InterruptedException {
 		return post(url, null);
 	}
@@ -656,12 +667,17 @@ public class StreamlinedClient {
 	}
 	
 	public void bulkIndex(String dataFPath, String docTypeName) throws ElasticSearchException {
-		bulkIndex(dataFPath, docTypeName, null);
+		bulkIndex(dataFPath, docTypeName, -1, false);
+	}
+
+	public void bulkIndex(String dataFPath, String docTypeName, Boolean verbose) throws ElasticSearchException {
+		bulkIndex(dataFPath, docTypeName, -1, verbose);
 	}
 	
-	public void bulkIndex(String dataFPath, String docTypeName, Integer batchSize) throws ElasticSearchException {
+	public void bulkIndex(String dataFPath, String docTypeName, int batchSize, boolean verbose) throws ElasticSearchException {
+		String id = null;
 		try {
-			if (batchSize == null) batchSize = 100;
+			if (batchSize < 0) batchSize = 100;
 			int batchStart = 1;
 			File dataFile = new File(dataFPath);			
 			BufferedReader br = new BufferedReader(new FileReader(dataFile));
@@ -669,7 +685,7 @@ public class StreamlinedClient {
 			String jsonBatch = "";
 			String  jsonLine = br.readLine();
 			while (jsonLine != null) {
-				String id = getLineID(jsonLine);
+				id = getLineID(jsonLine, verbose);
 				jsonBatch += 
 					"\n{\"index\": {\"_index\": \""+indexName+"\", \"_type\" : \""+docTypeName+"\", \"_id\": \""+id+"\"}}" +
 					"\n" + jsonLine;
@@ -692,14 +708,19 @@ public class StreamlinedClient {
 			throw new ElasticSearchException("Could not open file "+dataFPath+" for bulk indexing.");
 		} catch (IOException e) {
 			throw new ElasticSearchException("Could not read from data file "+dataFPath, e);
+		} catch (ElasticSearchException e) {
+			throw(e);
 		}
 		
 	}
 	
-	private String getLineID(String jsonLine) throws ElasticSearchException {
+	private String getLineID(String jsonLine, boolean verbose) throws ElasticSearchException {
 		Document_DynTyped doc = null;
 		try {
 			doc = (Document_DynTyped) new ObjectMapper().readValue(jsonLine, Document_DynTyped.class);
+			if (verbose) {
+				System.out.println("Indexing doc with ID "+doc.getKey());
+			}
 		} catch (IOException e) {
 			throw new ElasticSearchException(e);
 		}		
@@ -855,15 +876,34 @@ public class StreamlinedClient {
 		return builder;
 	}
 	
+	public <T extends Document> void dumpToFile(File outputFile, String freeformQuery, String docTypeName, T docPrototype) throws ElasticSearchException {
+		try {			
+			SearchResults<T> results = searchFreeform(freeformQuery, docTypeName, docPrototype);
+			dumpToFile(outputFile, results);
+		} catch (Exception e) {
+			throw new ElasticSearchException(e);
+		}
+	}
+	
 	public void dumpToFile(String fPath, Class<? extends Document> docClass) throws ElasticSearchException {		
 		try {
 			Document docPrototype = docClass.getDeclaredConstructor().newInstance();
 			
 			@SuppressWarnings("unchecked")
 			SearchResults<? extends Document> allDocs = listAll(docPrototype);
-			FileWriter fWriter = new FileWriter(fPath);
+			File outputFile = new File(fPath);
+			dumpToFile(outputFile, allDocs);
+		} catch (Exception e) {
+			throw new ElasticSearchException(e);
+		}
+	}	
+
+	
+	private void dumpToFile(File outputFile, SearchResults<? extends Document> results) throws ElasticSearchException {
+		try {
+			FileWriter fWriter = new FileWriter(outputFile);
 			ObjectMapper mapper = new ObjectMapper();
-			Iterator<?> iter = allDocs.iterator();
+			Iterator<?> iter = results.iterator();
 			while (iter.hasNext()) {
 				Pair<Document,Double> aScoredDoc = (Pair<Document,Double>)iter.next();
 				String json = mapper.writeValueAsString(aScoredDoc.getFirst());
@@ -872,8 +912,9 @@ public class StreamlinedClient {
 			fWriter.close();
 		} catch (Exception e) {
 			throw new ElasticSearchException(e);
-		}
+		}	
 	}
+
 
 	public void createIndex(String emptytestindex) throws ElasticSearchException {
 		URL url = esUrlBuilder().build();

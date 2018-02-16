@@ -1,25 +1,17 @@
 package ca.nrc.dtrc.elasticsearch;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.junit.Assert;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import ca.nrc.json.JSONUtils;
-import ca.nrc.json.PrettyPrinter;
 import ca.nrc.testing.AssertHelpers;
 import ca.nrc.datastructure.Pair;
 import ca.nrc.file.ResourceGetter;
@@ -52,6 +44,28 @@ public class ESTestHelpers {
 			return line_number;
 		}
 	}	
+	
+	public static class SimpleDoc extends Document {
+		public String id = null;
+		public String content = null;
+		
+        public SimpleDoc() {}
+        
+        public SimpleDoc(String _id, String _content) {
+        	this.id = _id;
+        	this.content = _content;
+        }
+
+		@Override
+		public String getKeyFieldName() {
+			return "id";
+		}
+
+		@Override
+		public String getKey() {
+			return id;
+		}
+	}		
 
 	private static Boolean skipTests = null;
 	

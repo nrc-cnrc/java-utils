@@ -10,6 +10,8 @@ public abstract class Document {
 	// This makes it possible for a document collection to 
 	// contain documents that are in different languages
 	public boolean _detect_language = true;
+	
+	public String lang = "en";
 		
 	@JsonIgnore
 	public abstract String getKeyFieldName();

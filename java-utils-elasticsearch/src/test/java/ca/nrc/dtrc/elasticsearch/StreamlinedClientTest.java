@@ -334,7 +334,7 @@ public class StreamlinedClientTest {
 		Map<String, Object> homerMap = new ObjectMapper().convertValue(homer, Map.class);
 		String gotJson = client.moreLikeThisJsonBody(homer.getClass().getName(), homerMap);
 		String expJson = 
-				"{\"query\":{\"more_like_this\":{\"min_term_freq\":1,\"max_query_terms\":12,\"fields\":[\"firstName\",\"surname\"],\"like\":{\"_index\":\"es-test\",\"_type\":\"ca.nrc.dtrc.elasticsearch.StreamlinedClientTest$Person\",\"doc\":{\"firstName\":\"homer\",\"surname\":\"simpson\"}}}}}";
+				"{\"query\":{\"more_like_this\":{\"min_term_freq\":1,\"max_query_terms\":12,\"fields\":[\"lang\",\"firstName\",\"surname\"],\"like\":{\"_index\":\"es-test\",\"_type\":\"ca.nrc.dtrc.elasticsearch.StreamlinedClientTest$Person\",\"doc\":{\"lang\":\"en\",\"firstName\":\"homer\",\"surname\":\"simpson\"}}}}}";
 		AssertHelpers.assertStringEquals(expJson, gotJson);
 	}
 	
@@ -358,6 +358,7 @@ public class StreamlinedClientTest {
 			expFilteredFields.put("surname", "simpson");
 			expFilteredFields.put("birthDay", null);
 			expFilteredFields.put("_detect_language", true);
+			expFilteredFields.put("lang", "en");
 		}
 		AssertHelpers.assertDeepEquals("Negative filter did not produce expected field names", expFilteredFields, gotFilteredFields);
 	}
@@ -373,6 +374,7 @@ public class StreamlinedClientTest {
 			expFilteredFields.put("surname", "simpson");
 			expFilteredFields.put("birthDay", null);
 			expFilteredFields.put("_detect_language", true);
+			expFilteredFields.put("lang", "en");
 		}
 		AssertHelpers.assertDeepEquals("Negative filter did not produce expected field names", expFilteredFields, gotFilteredFields);
 	}
@@ -469,6 +471,7 @@ public class StreamlinedClientTest {
 			expFieldTypes.put("firstName", "text");
 			expFieldTypes.put("surname", "text");
 			expFieldTypes.put("_detect_language", "boolean");			
+			expFieldTypes.put("lang", "text");			
 		}
 		Map<String,String> gotFieldTypes = client.getFieldTypes(Person.class);	
 		AssertHelpers.assertDeepEquals("ElasticSearch types were wrong for fields of class "+Person.class, 

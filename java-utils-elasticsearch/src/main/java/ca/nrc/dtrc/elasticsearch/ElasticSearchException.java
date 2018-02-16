@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class ElasticSearchException extends Exception {
 	
-	private Map<String,Object> details = null;
+	private Map<String,Object> details = new HashMap<String,Object>();
 	
 	public ElasticSearchException(Exception exc) {
 		super(exc);
@@ -32,10 +32,10 @@ public class ElasticSearchException extends Exception {
 		String jsonDetails = 
 				  "{\"error\":\n"
 				+ "  {\"root_cause\":\n"
-				+ "    [\n"
+				+ "    {\n"
 				+ "      \"type\": null,\n"
-				+ "      \"reason\": "+errorMessage+"\n"
-				+ "    ]\n"
+				+ "      \"reason\": \""+errorMessage+"\"\n"
+				+ "    }\n"
 				+ "  }\n"
 				+ "}"
 				;
