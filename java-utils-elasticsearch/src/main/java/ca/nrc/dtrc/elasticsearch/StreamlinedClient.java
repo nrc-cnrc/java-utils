@@ -47,6 +47,8 @@ public class StreamlinedClient {
 	private double sleepSecs = 0.0;
 
 	private String indexName;
+		public String getIndexName() {return indexName;}
+		
 	private String serverName = "localhost";
 	private int port = 9200;
 	
@@ -387,11 +389,7 @@ public class StreamlinedClient {
 		String jsonResponse = post(url, jsonQuery);
 
 		SearchResults<T> results = new SearchResults<T>(jsonResponse, docPrototype, this);
-		
-//		@SuppressWarnings({ "unchecked", "rawtypes" })
-//		Pair<String,List<Pair<T,Double>>> parsedResults = parseJsonSearchResponse(jsonResponse, docPrototype);		
-//		SearchResults results = new SearchResults(parsedResults.getSecond(), parsedResults.getFirst(), docPrototype, this);
-		
+				
 		return results;
 	}
 	
@@ -403,15 +401,94 @@ public class StreamlinedClient {
 	}
 	
 	public <T extends Document> SearchResults<T> searchFreeform(String query, T docPrototype) throws ElasticSearchException {
-//		String jsonQuery = "{\"query\": {\"query_string\": {\"query\": \""+query+"\"}}}\n";
-//		SearchResults<T> hits = search(jsonQuery, docPrototype);
-		
 		String docTypeName = docPrototype.getClass().getName();
 		SearchResults<T> hits = searchFreeform(query, docTypeName, docPrototype);
 		
 		return hits;
 	}
 	
+	public DocClusterSet clusterDocuments(String query, String docTypeName, String[] useFields, String algName, Integer maxDocs) throws ElasticSearchException, JsonProcessingException {
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.clusterDocuments");
+		URL url = esUrlBuilder().forDocType(docTypeName)
+					.forEndPoint("_search_with_clusters").build();
+
+		String jsonQuery = clusterDocumentJsonBody(query, docTypeName, useFields, algName, maxDocs);
+		String jsonResponse = post(url, jsonQuery);
+		tLogger.trace("** ur="+url+"\njsonQuery="+jsonQuery);
+		tLogger.trace("** Received jsonResponse="+jsonResponse);
+		
+		DocClusterSet clusters = parseClusterResponse(jsonResponse, docTypeName);
+		
+		return clusters;
+	}
+
+	protected String clusterDocumentJsonBody(String freeformQuery, String docTypeName, String[] useFields, String algName, Integer maxDocs) throws ElasticSearchException, JsonProcessingException {
+		ObjectMapper mapper = new ObjectMapper(); 
+		JsonNodeFactory nodeFactory = JsonNodeFactory.instance;
+
+		ObjectNode root = nodeFactory.objectNode();
+		try {
+			ObjectNode searchRequest = nodeFactory.objectNode();
+			root.set("search_request", searchRequest);
+			{
+				ObjectNode query = nodeFactory.objectNode();
+				searchRequest.set("query", query);
+				{	
+					ObjectNode queryString = nodeFactory.objectNode();
+					query.set("query_string", queryString);
+					{
+						queryString.put("query", freeformQuery);
+					}
+				}
+				searchRequest.put("size", maxDocs);
+			}
+			root.put("query_hint", "");
+			
+			root.put("algorithm", algName);
+			
+			ArrayNode source = nodeFactory.arrayNode();
+			for (int ii=0; ii < useFields.length; ii++) source.add(useFields[ii]);
+			root.set("_source", source);
+
+			ObjectNode fieldMapping = nodeFactory.objectNode();
+			root.set("field_mapping", fieldMapping);
+			{
+				ArrayNode content = nodeFactory.arrayNode();
+				for (int ii=0; ii < useFields.length; ii++) content.add("_source."+useFields[ii]);
+				fieldMapping.set("content", content);
+			}		
+		} catch (Exception exc) {
+			throw new ElasticSearchException(exc);
+		}
+		
+		String jsonBody = mapper.writeValueAsString(root);
+
+		return jsonBody;
+	}
+	
+	private DocClusterSet parseClusterResponse(String jsonClusterResponse, String docTypeName) throws ElasticSearchException {
+		ObjectMapper mapper = new ObjectMapper();
+		ObjectNode jsonRespNode;
+		DocClusterSet clusters = new DocClusterSet(getIndexName(), docTypeName);
+		try {
+			jsonRespNode = (ObjectNode) mapper.readTree(jsonClusterResponse);	
+			ArrayNode clustersNode = (ArrayNode) jsonRespNode.get("clusters");
+			for (int ii=0; ii < clustersNode.size(); ii++) {
+				ObjectNode aClusterNode = (ObjectNode) clustersNode.get(ii);	
+				String clusterName = aClusterNode.get("label").asText();
+				ArrayNode documentIDsNode = (ArrayNode) aClusterNode.get("documents");
+				for (int jj=0; jj < documentIDsNode.size(); jj++) {
+					String docID = documentIDsNode.get(jj).asText();
+					clusters.addToCluster(clusterName, docID);
+				}
+			}
+
+		} catch (IOException e) {
+			throw new ElasticSearchException(e);
+		}					
+		
+		return clusters;
+	}	
 
 	public <T extends Document> List<Pair<T,Double>> scroll(String scrollID, T docPrototype) throws ElasticSearchException {
 		URL url = esUrlBuilder().forEndPoint("_search/scroll").build();

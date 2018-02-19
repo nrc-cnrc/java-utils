@@ -120,6 +120,10 @@ public class ESTestHelpers {
 		String fPath = ResourceGetter.getResourcePath("test_data/ca/nrc/dtrc/elasticsearch/hamlet.json");
 		client.bulk(fPath, PlayLine.class);
 		
+		// Sleep a bit to give the ES server to propagate the index to 
+		// all nodes in its cluster
+		Thread.sleep(1000);
+		
 		return client;
 	}
 

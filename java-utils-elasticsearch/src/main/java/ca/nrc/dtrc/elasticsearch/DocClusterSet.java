@@ -9,8 +9,19 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 public class DocClusterSet {
 	
 	private Map<String,DocCluster> clusters = new HashMap<String,DocCluster>();
+	
+	private String indexName = null;
+		public String getIndexName() {return indexName;}
 
-	public void addToCluster(String clusterName, Document doc) {
+	private String docTypeName = null;
+		public String getDocTypeName() {return docTypeName;}
+		
+	public DocClusterSet(String _indexName, String _docTypeName) {
+		this.indexName = _indexName;
+		this.docTypeName = _docTypeName;
+	}
+
+	public void addToCluster(String clusterName, String docID) {
 		DocCluster cluster = null;
 		if (clusters.containsKey(clusterName)) {
 			cluster = clusters.get(clusterName);
@@ -18,7 +29,7 @@ public class DocClusterSet {
 			cluster = new DocCluster();
 			clusters.put(clusterName, cluster);
 		}
-		cluster.addDocID(doc.getKey());
+		cluster.addDocID(docID);
 	}
 
 	@JsonIgnore

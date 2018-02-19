@@ -22,19 +22,21 @@ public class DocClusterSetTest {
 		//
 		// First create an instance...
 		//
-		DocClusterSet set = new DocClusterSet();
+		String indexName = "es-test";
+		String docTypeName = "test-docs";
+		DocClusterSet set = new DocClusterSet(indexName, docTypeName);
 		
 		//
 		// Add some documents to particular clusters
 		//
 		String clusterName = "mentionsPlace";
-		set.addToCluster(clusterName, new SimpleDoc("doc1", "I live in Montreal"));
-		set.addToCluster(clusterName, new SimpleDoc("doc2", "I traveled through Africa"));
+		set.addToCluster(clusterName, "doc1");
+		set.addToCluster(clusterName, "doc2");
 		
 		clusterName = "mentionsPerson";
-		set.addToCluster(clusterName, new SimpleDoc("doc3", "Homer Simpson is a cartoon character"));
-		set.addToCluster(clusterName, new SimpleDoc("doc4", "Barack Obama was elected President of the USA."));
-		set.addToCluster(clusterName, new SimpleDoc("doc5", "I will speak with John Smith about this."));
+		set.addToCluster(clusterName, "doc3");
+		set.addToCluster(clusterName, "doc4");
+		set.addToCluster(clusterName, "doc5");
 		
 		//
 		// You can then retrieve particular clusters
@@ -47,6 +49,20 @@ public class DocClusterSetTest {
 		Set<String> ids = cluster.getDocIDs();
 		int size = cluster.getSize();
 		
+		//
+		// Note that the clusters only contain the IDs of documents.
+		//
+		// But the DocClusterSet does specify the ElasticSearch
+		// index and document type that these documents were taken
+		// from, and you can use that information to retrieve the full
+		// content of the documents.
+		//
+		String esIndexName = set.getIndexName();
+		String esDocTypeName = set.getDocTypeName();
+		// You can retrieve the full content of those documents using
+		// StreamlinedClient.getDocumentWithID(), passing it the
+		// name of the index and 
+		
 	}
 	
 	/***********************
@@ -55,16 +71,16 @@ public class DocClusterSetTest {
 	
 	@Test
 	public void test__DocClusterSet__HappyPath() throws Exception {
-		DocClusterSet set = new DocClusterSet();
+		DocClusterSet set = new DocClusterSet("test-index", "test-documents");
 		
 		String clusterName = "mentionsPlace";
-		set.addToCluster(clusterName, new SimpleDoc("doc1", "I live in Montreal"));
-		set.addToCluster(clusterName, new SimpleDoc("doc2", "I traveled through Africa"));
+		set.addToCluster(clusterName, "doc1");
+		set.addToCluster(clusterName, "doc2");
 		
 		clusterName = "mentionsPerson";
-		set.addToCluster(clusterName, new SimpleDoc("doc3", "Homer Simpson is a cartoon character"));
-		set.addToCluster(clusterName, new SimpleDoc("doc4", "Barack Obama was elected President of the USA."));
-		set.addToCluster(clusterName, new SimpleDoc("doc5", "I will speak with John Smith about this."));
+		set.addToCluster(clusterName, "doc3");
+		set.addToCluster(clusterName, "doc4");
+		set.addToCluster(clusterName, "doc5");
 		
 		DocCluster cluster = set.getCluster("mentionsPlace");
 		String[] expIDs = new String[] {"doc1", "doc2"};

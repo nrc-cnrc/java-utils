@@ -44,13 +44,13 @@ public class SeparatedFields2Document_DynTyped {
 	}
 
 	public void convert(File inputFile, File outputFile) throws Exception {
-		convert(inputFile, outputFile, null);
+		convert(inputFile, outputFile, null, null);
 	}
 	
-	public void convert(File inputFile, File outputFile, Integer _maxDocs) throws Exception {
+	public void convert(File inputFile, File outputFile, Integer _maxDocs, Integer _skipDocs) throws Exception {
 		FileReader input = new FileReader(inputFile);
 		FileWriter output = new FileWriter(outputFile);
-		convert(input, output, _maxDocs);
+		convert(input, output, _maxDocs, _skipDocs);
 	}
 
 	private static String escapeFieldName(String nameOrig) {
@@ -64,7 +64,7 @@ public class SeparatedFields2Document_DynTyped {
 		return nameEscaped;
 	}
 
-	public void convert(Reader input, Writer output, Integer _maxDocs) throws Exception {
+	public void convert(Reader input, Writer output, Integer _maxDocs, Integer skipDocs) throws Exception {
 		setMaxDocs(_maxDocs);
 		counter = 0;
 		badLines = 0;
@@ -80,6 +80,10 @@ public class SeparatedFields2Document_DynTyped {
 		String[] prevRecord = new String[]{};
 		while (record != null)  {
 			counter++;
+			if (skipDocs != null && counter < skipDocs) {
+				echo("Skipping record number: "+counter, 0);
+				continue;
+			}
 			echo("Converting record number: "+counter, 0);
 			
 			if (record.length != headers.length) {

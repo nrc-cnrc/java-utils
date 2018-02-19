@@ -46,7 +46,7 @@ public class SeparatedFields2Document_DynTypedTest {
 		BufferedReader input = new BufferedReader(new StringReader(csvStreamContent));
 		StringWriter output = new StringWriter();
 		
-		converter.convert(input, output, null);
+		converter.convert(input, output, null, null);
 		
 		// If the fields do not contain anything that can act as a unique identifier, 
 		// you can ask the converter to generate a unique ID. Each 
@@ -75,7 +75,7 @@ public class SeparatedFields2Document_DynTypedTest {
 		BufferedReader input = new BufferedReader(new StringReader(csvStreamContent));
 		StringWriter output = new StringWriter();
 		
-		converter.convert(input, output, null);
+		converter.convert(input, output, null, null);
 		
 		String gotOutput = output.toString();
 		String expOutput = 
@@ -102,7 +102,7 @@ public class SeparatedFields2Document_DynTypedTest {
 		BufferedReader input = new BufferedReader(new StringReader(csvStreamContent));
 		StringWriter output = new StringWriter();
 		
-		converter.convert(input, output, null);
+		converter.convert(input, output, null, null);
 		
 		String gotOutput = output.toString();
 		String expOutput = 

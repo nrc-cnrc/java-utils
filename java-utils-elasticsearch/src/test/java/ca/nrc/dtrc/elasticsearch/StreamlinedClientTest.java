@@ -20,6 +20,7 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ca.nrc.datastructure.Pair;
@@ -83,7 +84,7 @@ public class StreamlinedClientTest {
 	 *********************************/
 	
 	@Test
-	public void test__Synopsis() throws Exception {
+	public void test__StreamlinedClient__Synopsis() throws Exception {
 		String indexName = "es-test";
 		StreamlinedClient client = new StreamlinedClient(indexName);
 
@@ -98,7 +99,6 @@ public class StreamlinedClientTest {
 		//		.setPort(9400);
 		
 
-		
 		// You can then use the client to do all sorts of operations
 		// on the index.
 		//
@@ -155,7 +155,42 @@ public class StreamlinedClientTest {
 		SearchResults<Person> searchResults = client.moreLikeThis(queryPerson);
 		
 		// You can then scroll through the hits as described above...
-				
+		
+		//
+		// You can cluster a set of documents.
+		// The  set of documents to be clustered is specified by a free-form query.
+		// 
+		// For this example, we will use a streamlined client that is connected
+		// to an index containing all the lines from Shakespear's play 'Hamlet'
+		//
+		// We will cluster all the lines that are spoken by Hamlet
+		//
+		StreamlinedClient hamletClient = ESTestHelpers.makeHamletTestClient();
+		query = "speaker:Hamlet";
+		Integer maxDocs = 1000; // Only cluster the first 1000 hits. We recommend no less than 100
+		
+		// Specify the clustering algorithm.
+		//
+		// Possible values are: lingo (default), stc and kmeans.
+		//
+		// For details on each algorithm, see:
+		//    http://doc.carrot2.org/#section.advanced-topics.fine-tuning.choosing-algorithm
+		//
+		String algName = "kmeans";
+		
+		String esDocTypeName = new PlayLine().getClass().getName();
+		String[] useFields = new String[] {"text_entry"};
+		DocClusterSet clusters = hamletClient.clusterDocuments(query, esDocTypeName, useFields, algName, maxDocs);
+		
+		// You can then look at the various clusters...
+		for (String clusterLabel: clusters.getClusterNames()) {
+			DocCluster aCluster = clusters.getCluster(clusterLabel);
+			// Get some info about the cluster
+			Set<String> idsOfDocsInCluster = aCluster.getDocIDs();
+			int size = aCluster.getSize();
+			// and so on...
+		}
+		
 		// In all of the above, we were using "statically typed" documents whose fields and 
 		// structure were known at compile time (ex: Person).
 		//
@@ -164,6 +199,7 @@ public class StreamlinedClientTest {
 		// 
 		// Here is how you do this.
 		//   - First, you define the dynamic document
+		//
 		String idFieldName = "part_number";		
 		Document_DynTyped doc = new Document_DynTyped(idFieldName, "X18D98KL9");
 		doc.setField("name", "6in screw");
@@ -509,6 +545,57 @@ public class StreamlinedClientTest {
 		Person expPerson = new Person("Homer", "Simpson").setBirthDay("1993-01-14");
 		AssertHelpers.assertDeepEquals("Birthday was not updated in the ES index", 
 				expPerson, gotPerson);
+	}
+	
+	@Test
+	public void test__clusterDocumentJsonBody__HappyPath() throws Exception {
+		String indexName = "test-index";
+		StreamlinedClient client = new StreamlinedClient(indexName);
+		
+		String[] useFields = new String[] {"text_entry"};
+		String gotJson = client.clusterDocumentJsonBody("speaker:hamlet", "testdoc", useFields, "kmeans", 1000);
+		String expJson = 
+				"{\"search_request\":"+
+		          "{\"query\":"+
+				    "{\"query_string\":"+
+		              "{\"query\":\"speaker:hamlet\"}"+
+				    "},"+
+		            "\"size\":1000"+
+				  "},"+
+		          "\"query_hint\":\"\","+
+				  "\"algorithm\":\"kmeans\","+
+		          "\"_source\":[\"text_entry\"],"+
+				  "\"field_mapping\":{"+
+		            "\"content\":[\"_source.text_entry\"]"+
+		          "}"+
+		        "}";
+		AssertHelpers.assertStringEquals(expJson, gotJson);
+	}
+	
+	@Test
+	public void test__clusterDocuments__HappyPath() throws Exception {
+		StreamlinedClient hamletClient = ESTestHelpers.makeHamletTestClient();
+		String query = "speaker:Hamlet";
+		Integer maxDocs = 1000; 
+		String algName = "stc";
+		String esDocTypeName = new PlayLine().getClass().getName();
+		String[] useFields = new String[] {"text_entry"};
+		DocClusterSet clusters = hamletClient.clusterDocuments(query, esDocTypeName, useFields, algName, maxDocs);
+		
+		String[] expClusterNames = new String[] {
+			"Heaven", "Horatio", "King", "Know", "Love", "Mother", "Other Topics",
+			"Play", "Shall", "Sir", "Soul", "Speak", "Thee", "Thou", "Thy", "Tis"
+		};
+		AssertHelpers.assertDeepEquals("Cluster names not as expected", expClusterNames, clusters.getClusterNames());
+		
+		String clusterName = "Heaven";
+		String[] expIDs = new String[] {
+			"32778","32779","32820","33105","33156","33265","33355",
+			"34135","34304","34871","34879","34890","35071","36280",
+			"36590"		
+		};
+		AssertHelpers.assertDeepEquals("Document IDs for cluster '"+clusterName+"' were not as expected.", 
+				expIDs, clusters.getCluster("Heaven").getDocIDs());
 	}
 
 	/*************************
