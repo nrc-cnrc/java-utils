@@ -1,6 +1,7 @@
 package ca.nrc.dtrc.elasticsearch;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -44,6 +45,19 @@ public class DocClusterSet {
 	public Set<String> getClusterNames() {
 		Set<String> names = clusters.keySet();
 		return names;
+	}
+
+	public int getTotalDocs() {
+		return getAllDocIDs().size();
+	}
+	
+	public Set<String> getAllDocIDs() {
+		Set<String> uniqueDocIDs = new HashSet<String>();
+		for (String clusterName: getClusterNames()) {
+			uniqueDocIDs.addAll(getCluster(clusterName).getDocIDs());
+		}
+		
+		return uniqueDocIDs;
 	}
 
 }

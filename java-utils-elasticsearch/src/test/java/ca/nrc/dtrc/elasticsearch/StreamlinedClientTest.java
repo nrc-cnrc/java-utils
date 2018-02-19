@@ -555,8 +555,9 @@ public class StreamlinedClientTest {
 		String[] useFields = new String[] {"text_entry"};
 		String gotJson = client.clusterDocumentJsonBody("speaker:hamlet", "testdoc", useFields, "kmeans", 1000);
 		String expJson = 
-				"{\"search_request\":"+
-		          "{\"query\":"+
+				"{\"search_request\":{"+
+				  "\"_source\":[\"text_entry\"],"+
+		          "\"query\":"+
 				    "{\"query_string\":"+
 		              "{\"query\":\"speaker:hamlet\"}"+
 				    "},"+
@@ -564,7 +565,6 @@ public class StreamlinedClientTest {
 				  "},"+
 		          "\"query_hint\":\"\","+
 				  "\"algorithm\":\"kmeans\","+
-		          "\"_source\":[\"text_entry\"],"+
 				  "\"field_mapping\":{"+
 		            "\"content\":[\"_source.text_entry\"]"+
 		          "}"+

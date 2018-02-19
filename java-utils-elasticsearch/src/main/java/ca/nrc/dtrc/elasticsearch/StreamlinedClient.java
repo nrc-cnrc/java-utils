@@ -407,15 +407,17 @@ public class StreamlinedClient {
 		return hits;
 	}
 	
-	public DocClusterSet clusterDocuments(String query, String docTypeName, String[] useFields, String algName, Integer maxDocs) throws ElasticSearchException, JsonProcessingException {
-		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.clusterDocuments");
+	public DocClusterSet clusterDocuments(String query, String docTypeName, String[] useFields, String algName, Integer maxDocs) throws ElasticSearchException {
 		URL url = esUrlBuilder().forDocType(docTypeName)
 					.forEndPoint("_search_with_clusters").build();
 
-		String jsonQuery = clusterDocumentJsonBody(query, docTypeName, useFields, algName, maxDocs);
+		String jsonQuery;
+		try {
+			jsonQuery = clusterDocumentJsonBody(query, docTypeName, useFields, algName, maxDocs);
+		} catch (JsonProcessingException e) {
+			throw new ElasticSearchException(e);
+		}
 		String jsonResponse = post(url, jsonQuery);
-		tLogger.trace("** ur="+url+"\njsonQuery="+jsonQuery);
-		tLogger.trace("** Received jsonResponse="+jsonResponse);
 		
 		DocClusterSet clusters = parseClusterResponse(jsonResponse, docTypeName);
 		
@@ -431,6 +433,12 @@ public class StreamlinedClient {
 			ObjectNode searchRequest = nodeFactory.objectNode();
 			root.set("search_request", searchRequest);
 			{
+				ArrayNode source = nodeFactory.arrayNode();
+				searchRequest.set("_source", source);
+				{
+					for (int ii=0; ii < useFields.length; ii++) source.add(useFields[ii]);
+				}
+				
 				ObjectNode query = nodeFactory.objectNode();
 				searchRequest.set("query", query);
 				{	
@@ -446,9 +454,6 @@ public class StreamlinedClient {
 			
 			root.put("algorithm", algName);
 			
-			ArrayNode source = nodeFactory.arrayNode();
-			for (int ii=0; ii < useFields.length; ii++) source.add(useFields[ii]);
-			root.set("_source", source);
 
 			ObjectNode fieldMapping = nodeFactory.objectNode();
 			root.set("field_mapping", fieldMapping);
