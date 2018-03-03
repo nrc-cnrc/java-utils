@@ -34,7 +34,14 @@ public abstract class SubCommand {
 		indentation.put(1, "  ");
 		indentation.put(2, "    ");
 		indentation.put(3, "      ");		
-		indentation.put(4, "        ");		
+		indentation.put(4, "          ");		
+		indentation.put(5, "            ");		
+		indentation.put(6, "              ");
+		indentation.put(7, "                ");		
+		indentation.put(8, "                  ");
+		indentation.put(9, "                    ");		
+		indentation.put(10, "                      ");		
+		
 	}
 	
 	public Options options = new Options();
@@ -103,12 +110,20 @@ public abstract class SubCommand {
 		formatter.printHelp(usageMessage, header, cmdLineOptions, errMessage, true);
 		System.exit(1);
 	}
+	
+	public static void echo() {
+		echo("");
+	}
 
 	public static void echo(int indentLevelChange) {
 		if (indentLevelChange > 0) currentIndentation += 2;
-		if (currentIndentation > 4) currentIndentation = 4;
+		if (currentIndentation > 10) currentIndentation = 10;
 		if (indentLevelChange < 0) currentIndentation -= 2;
 		if (currentIndentation < 0) currentIndentation = 0;
+	}
+	
+	public static void echo(String message, boolean newline) {
+		echo(message, 0, Verbosity.Level0, newline);
 	}
 	
 	public static void echo(String message) {
@@ -124,16 +139,25 @@ public abstract class SubCommand {
 	}
 
 	public static void echo(String message, int indentLevelChange, Verbosity level) {
+		echo(message, indentLevelChange, level, null);
+	}
+	
+	public static void echo(String message, int indentLevelChange, Verbosity level, Boolean newline) {
+		if (newline == null) newline = true;
 		if (verbosityLevelIsMet(level)) {
 		
-			if (indentLevelChange > 0) currentIndentation += 2;
-			if (currentIndentation > 4) currentIndentation = 4;
+			if (indentLevelChange > 0) currentIndentation += 1;
+			if (currentIndentation > 10) currentIndentation = 10;
 			
 			message = indentation.get(currentIndentation) + message;
-			System.out.println(message);
+			System.out.print(message);
+			
+			if (newline) {
+				System.out.println();
+				if (indentLevelChange < 0) currentIndentation -= 1;
+				if (currentIndentation < 0) currentIndentation = 0;
+			}
 	
-			if (indentLevelChange < 0) currentIndentation -= 2;
-			if (currentIndentation < 0) currentIndentation = 0;
 		}
 	}
 	

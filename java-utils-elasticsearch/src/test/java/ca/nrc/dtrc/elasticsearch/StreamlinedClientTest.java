@@ -583,8 +583,8 @@ public class StreamlinedClientTest {
 		DocClusterSet clusters = hamletClient.clusterDocuments(query, esDocTypeName, useFields, algName, maxDocs);
 		
 		String[] expClusterNames = new String[] {
-			"Heaven", "Horatio", "King", "Know", "Love", "Mother", "Other Topics",
-			"Play", "Shall", "Sir", "Soul", "Speak", "Thee", "Thou", "Thy", "Tis"
+				"Other Topics","Shall","Sir","King","Thou","Speak","Thee","Love",
+				"Know","Mother","Horatio","Heaven","Play","Tis","Thy","Soul"	
 		};
 		AssertHelpers.assertDeepEquals("Cluster names not as expected", expClusterNames, clusters.getClusterNames());
 		
