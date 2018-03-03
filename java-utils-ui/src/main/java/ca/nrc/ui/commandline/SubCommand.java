@@ -126,6 +126,11 @@ public abstract class SubCommand {
 		echo(message, 0, Verbosity.Level0, newline);
 	}
 	
+	public static void echo(String message, Verbosity level, boolean newline) {
+		echo(message, 0, level, newline);
+	}
+
+	
 	public static void echo(String message) {
 		echo(message, 0, Verbosity.Level0);
 	}
