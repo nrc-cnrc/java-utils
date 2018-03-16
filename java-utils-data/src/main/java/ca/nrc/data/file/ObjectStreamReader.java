@@ -18,6 +18,7 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ca.nrc.datastructure.Pair;
@@ -56,8 +57,6 @@ public class ObjectStreamReader implements Closeable {
 	
 	// Line that defines the class of objects being read from file
 	Pattern regexClass = Pattern.compile("^\\s*class=(.+)$");
-
-	private ObjectMapper mapper = new ObjectMapper();
 
 	public ObjectStreamReader(File file) throws FileNotFoundException {
 		FileReader fileReader = new FileReader(file);
@@ -161,7 +160,7 @@ public class ObjectStreamReader implements Closeable {
 		}
 		
 		try {
-			object = mapper.readValue(objectJson, currentObjClass);
+			object = getMapper().readValue(objectJson, currentObjClass);
 		} catch (Exception exc) {
 			String mess = badJsonMess+"\nCould not map object to an instance of "+currentObjClass;
 			Exception excToInclude = null;
@@ -265,4 +264,11 @@ public class ObjectStreamReader implements Closeable {
 		
 	}
 
+	private ObjectMapper getMapper() {
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.configure(JsonParser.Feature.ALLOW_COMMENTS, true);
+		mapper.configure(JsonParser.Feature.ALLOW_BACKSLASH_ESCAPING_ANY_CHARACTER, true);
+		
+		return mapper;
+	}
 }
