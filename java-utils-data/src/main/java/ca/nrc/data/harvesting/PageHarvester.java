@@ -53,13 +53,15 @@ public class PageHarvester {
 	private URL currentURL;
 	private IPageVisitor visitor;
 	private TagNode currentRoot;
+	public String error = null;
 	
 	private int connectionTimeoutSecs = 5;
 	public int getConnectionTimeoutSecs() {
 		return connectionTimeoutSecs;
 	}
-	public void setConnectionTimeoutSecs(int connectionTimeoutSecs) {
+	public PageHarvester setConnectionTimeoutSecs(int connectionTimeoutSecs) {
 		this.connectionTimeoutSecs = connectionTimeoutSecs;
+		return this;
 	}
 	
 
@@ -167,6 +169,7 @@ public class PageHarvester {
 	}
 	
 	public void harvestSinglePage(String url) throws PageHarvesterException {
+		error = null;
 		getPage(url);
 		if (visitor != null) {
 			visitor.visitPage(url, html, text);
@@ -285,7 +288,7 @@ public class PageHarvester {
 				failureStatus = status;
 			}
 		} catch (java.net.SocketTimeoutException exc) {
-			throw new PageHarvesterException(exc, "Connection timed out for url: "+url);
+			error = "Connection timed out for url: "+url;
 		} finally {
 			if (conn != null) {
 				conn.disconnect();
