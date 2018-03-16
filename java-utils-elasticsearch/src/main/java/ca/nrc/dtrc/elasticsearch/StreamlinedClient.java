@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -958,53 +959,58 @@ public class StreamlinedClient {
 		return builder;
 	}
 	
-	public <T extends Document> void dumpToFile(File outputFile, String freeformQuery, String docTypeName, T docPrototype) throws ElasticSearchException {
+	public <T extends Document> void dumpToFile(File outputFile, String freeformQuery, String docTypeName, T docPrototype, Boolean intoSingleJsonFile) throws ElasticSearchException {
 		try {			
 			SearchResults<T> results = searchFreeform(freeformQuery, docTypeName, docPrototype);
-			dumpToFile(outputFile, results);
+			dumpToFile(outputFile, results, intoSingleJsonFile);
 		} catch (Exception e) {
 			throw new ElasticSearchException(e);
 		}
 	}
 	
-	public void dumpToFile(String fPath, Class<? extends Document> docClass) throws ElasticSearchException {		
+	private void dumpToFile(File outputFile, SearchResults<? extends Document> results, Boolean intoSingleJsonFile) throws ElasticSearchException {
+		if (intoSingleJsonFile == null) intoSingleJsonFile = true;
+		
 		try {
-			Document docPrototype = docClass.getDeclaredConstructor().newInstance();
-			
-			@SuppressWarnings("unchecked")
-			SearchResults<? extends Document> allDocs = listAll(docPrototype);
-			File outputFile = new File(fPath);
-			dumpToFile(outputFile, allDocs);
-		} catch (Exception e) {
-			throw new ElasticSearchException(e);
-		}
-	}	
-
-	
-	private void dumpToFile(File outputFile, SearchResults<? extends Document> results) throws ElasticSearchException {
-		try {
-			FileWriter fWriter = new FileWriter(outputFile);
+			FileWriter fWriter = null;
+			if (intoSingleJsonFile) {
+				fWriter = new FileWriter(outputFile);
+			} else {
+				// Clear the output directory
+				FileUtils.deleteDirectory(outputFile);
+				outputFile.mkdir();
+			}
 			ObjectMapper mapper = new ObjectMapper();
 			Iterator<?> iter = results.iterator();
 			while (iter.hasNext()) {
 				Pair<Document,Double> aScoredDoc = (Pair<Document,Double>)iter.next();
-				String json = mapper.writeValueAsString(aScoredDoc.getFirst());
-				fWriter.write(json+"\n");
+				if (intoSingleJsonFile) {
+					String json = mapper.writeValueAsString(aScoredDoc.getFirst());
+					fWriter.write(json+"\n");
+				} else {
+					writeToTextFile(aScoredDoc.getFirst(), outputFile.getAbsolutePath());
+				}
 			}
-			fWriter.close();
+			if (fWriter != null) fWriter.close();
 		} catch (Exception e) {
 			throw new ElasticSearchException(e);
 		}	
 	}
 
 
+	private void writeToTextFile(Document doc, String outputDir) throws IOException {
+		String docID = doc.getKey();
+		String docFilePath = outputDir+"/"+docID+".txt";
+		String docContent = doc.toString();
+		FileWriter writer = new FileWriter(new File(docFilePath));
+		writer.write(docContent);
+		writer.close();
+	}
+
 	public void createIndex(String emptytestindex) throws ElasticSearchException {
 		URL url = esUrlBuilder().build();
 		
 		put(url, null);
-	
-		int x = 0;
-		
 	}
 	
 	public void attachObserver(StreamlinedClientObserver _obs) {
