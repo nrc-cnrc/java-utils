@@ -1,9 +1,11 @@
 package ca.nrc.dtrc.elasticsearch;
 
 import java.lang.reflect.Field;
+import java.util.Map;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 public abstract class Document {
 	
@@ -30,6 +32,17 @@ public abstract class Document {
 		}
 		
 		return value;
+	}
+	
+	public String toString() {
+		String toStr = "";
+		ObjectMapper mapper = new ObjectMapper();
+		Map<String, Object> map = mapper.convertValue(this, Map.class);
+		for (String field: map.keySet()) {
+			toStr += "\n-------\n"+field+": "+map.get(field);
+		}
+		
+		return toStr;
 	}
 
 }
