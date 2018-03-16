@@ -255,14 +255,41 @@ public class AssertHelpers {
 		Assert.assertFalse(message, gotString.contains(unexpSubstring));
 	}	
 
+	public static void assertContainsAll(String message, Object[] supersetArr, Object[] subsetArr) {
+		Set<Object> superset = new HashSet<Object>();
+		for (Object elt: supersetArr) superset.add(elt);
+		
+		int ii = 0;
+		for (Object elt: subsetArr) {
+			if (!superset.contains(elt)) {
+				message += 
+						  "\nElement "+ii+"("+elt+") of the second collection is absent from the first collection\n"
+						+ "First collection:\n"+PrettyPrinter.print(supersetArr)+"\n"
+						+ "\n"
+						+ "Second collection:\n"+PrettyPrinter.print(subsetArr)+"\n"
+						;
+					Assert.fail(message);
+
+			}
+			ii++;
+		}
+		
+		Set<Object> subset = new HashSet<Object>();
+		for (Object elt: subsetArr) subset.add(elt);
+		
+		if (!superset.containsAll(subset)) {
+		}
+	}
+	
 	/**
 	 * Indicates if elements in two collections are the same, ignoring the order of elements
 	 * Assumes that objects inside the collection can be tested for equality through their equals function.
 	 * @param failMessageStart Beginning of the message displayed when the assert fails
 	 * @param exp array containing the expected results
 	 * @param got array containing the actual results
+	 * @throws IOException 
 	 */
-	public static <T> void assertUnOrderedSameElements(String failMessageStart, T[] exp, T[] got){
+	public static <T> void assertUnOrderedSameElements(String failMessageStart, T[] exp, T[] got) throws IOException{
 		List<T> lstExp = new ArrayList<T>();
 		for(T e: exp){
 			lstExp.add(e);
@@ -280,9 +307,11 @@ public class AssertHelpers {
 	 * @param failMessageStart Beginning of the message displayed when the assert fails
 	 * @param exp List containing the expected results
 	 * @param got List containing the actual results
+	 * @throws IOException 
 	 */
-	public static <T,U> void assertUnOrderedSameElements(String failMessageStart, List<T> exp, List<U> got){
-		if(exp.size() != got.size()){
+	public static <T,U> void assertUnOrderedSameElements(String failMessageStart, List<T> exp, List<U> got) throws IOException{
+
+		 if(exp.size() != got.size()){
 			StringBuffer sizeMessage = new StringBuffer(failMessageStart);
 			sizeMessage.append("Different number of elements: <");
 			sizeMessage.append(exp.size());

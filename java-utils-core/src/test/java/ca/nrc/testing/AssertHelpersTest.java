@@ -91,7 +91,7 @@ public class AssertHelpersTest {
 	}
 	
 	@Test
-	public void test__assertUnOrderedSameElements_Synopsis(){
+	public void test__assertUnOrderedSameElements_Synopsis() throws Exception{
 		//With two lists containing the same elements, in a different order
 		List<String> a = new ArrayList<String>();
 		a.add("one");
@@ -177,9 +177,23 @@ public class AssertHelpersTest {
 		
 		assertStringEquals(expected, got);
 	}
+	
+	@Test
+	public void test__assertContainsAll__SucceedsHappyPath() {
+		String[] expSuperset = new String[] {"Marge", "Homer", "Maggy", "Bart", "Lisa"};
+		String[] expSubset = new String[] {"Lisa", "Homer"};
+		AssertHelpers.assertContainsAll("", expSuperset, expSubset);
+	}
 
 	@Test(expected=AssertionError.class)
-	public void test__assertUnOrderedSameElements_SameElementsSomeRepeated_AndDifferentSize__ShouldRaiseException() {
+	public void test__assertContainsAll__FailsHappyPath() {
+		String[] expSuperset = new String[] {"Marge", "Homer", "Maggy", "Bart", "Lisa"};
+		String[] expSubset = new String[] {"Lisa", "Homer", "Snoopy"};
+		AssertHelpers.assertContainsAll("", expSuperset, expSubset);
+	}
+
+	@Test(expected=AssertionError.class)
+	public void test__assertUnOrderedSameElements_SameElementsSomeRepeated_AndDifferentSize__ShouldRaiseException() throws Exception {
 		//Even though the two lists contain the same elements, some are duplicated so they do not contain the same elements
 		//Also tests if different sized lists are considered equal
 		List<String> first = new ArrayList<String>();
@@ -193,7 +207,7 @@ public class AssertHelpersTest {
 	}
 	
 	@Test(expected=AssertionError.class)
-	public void test__assertUnOrderedSameElements_SameElementsSomeRepeated_AndDifferentSize_Array__ShouldRaiseException() {
+	public void test__assertUnOrderedSameElements_SameElementsSomeRepeated_AndDifferentSize_Array__ShouldRaiseException() throws Exception {
 		//Even though the two lists contain the same elements, some are duplicated so they do not contain the same elements
 		//Also tests if different sized lists are considered equal
 		String[] first = {"one","one", "two"};
@@ -202,7 +216,7 @@ public class AssertHelpersTest {
 	}
 	
 	@Test(expected=AssertionError.class)
-	public void test__assertUnOrderedSameElements_DifferentElements__ShouldRaiseException() {
+	public void test__assertUnOrderedSameElements_DifferentElements__ShouldRaiseException() throws Exception {
 		//Two lists containing different elements
 		List<String> first = new ArrayList<String>();
 		first.add("one");
@@ -214,7 +228,7 @@ public class AssertHelpersTest {
 	}
 	
 	@Test(expected=AssertionError.class)
-	public void test__assertUnOrderedSameElements_DifferentElements_Array__ShouldRaiseException() {
+	public void test__assertUnOrderedSameElements_DifferentElements_Array__ShouldRaiseException() throws Exception {
 		//Two lists containing different elements
 		String[] first = new String[]{"one", "two"};
 		String[] second = new String[]{"one", "three"};
