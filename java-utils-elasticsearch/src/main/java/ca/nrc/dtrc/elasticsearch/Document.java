@@ -44,5 +44,9 @@ public abstract class Document {
 		
 		return toStr;
 	}
+	
+	public String fingerprint() throws DocumentException {
+		return null;
+	}
 
 }
