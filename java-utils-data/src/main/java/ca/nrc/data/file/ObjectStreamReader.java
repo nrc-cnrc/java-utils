@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.HashMap;
@@ -72,12 +74,14 @@ public class ObjectStreamReader implements Closeable {
 		initialize(_reader);
 	}
 	
+	public ObjectStreamReader(InputStream _stream) {
+		initialize(new InputStreamReader(_stream));
+	}
 
 
 	private void initialize(Reader _reader) {
 		this.buffReader = new BufferedReader(_reader);
 	}
-
 
 	public Object readObject() throws IOException, ClassNotFoundException {		
 		Logger tLogger = LogManager.getLogger("ca.nrc.json.ObjectStreamReader.readObject");
