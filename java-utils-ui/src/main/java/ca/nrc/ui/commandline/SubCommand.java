@@ -95,6 +95,22 @@ public abstract class SubCommand {
 		this.cmdLine = _cmdLine;
 	}
 	
+	public static void setCmdLineOptions(SubCommand cmd, Map<String,String> options) {
+		MockCommandLine mockCmdLine = new MockCommandLine(new String[] {}, options);
+		cmd.setCommandLine(mockCmdLine);
+	}
+	
+	public static void setCmdLineOptions(SubCommand cmd, String... options) {
+		if ((options.length % 2) != 0) {
+			throw new IllegalArgumentException("List of options should contain an even number of elements. It was: "+String.join(", ", options));
+		}
+		Map<String,String> optHash = new HashMap<String,String>();
+		for (int ii = 0; ii < options.length / 2; ii++) {
+			optHash.put(options[ii], options[ii+1]);
+		}
+		setCmdLineOptions(cmd, optHash);
+	}	
+	
 	protected void usage(String errMessage) {
 		error(errMessage);
 
