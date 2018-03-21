@@ -485,7 +485,17 @@ public class StreamlinedClient {
 		return clusters;
 	}	
 
-	public <T extends Document> List<Pair<T,Double>> scroll(String scrollID, T docPrototype) throws ElasticSearchException {
+	public <T extends Document> List<T> scroll(String scrollID, T docPrototype) throws ElasticSearchException {
+		List<Pair<T,Double>> scoredHits = scrollScoredHits(scrollID, docPrototype);
+		List<T> unscoredHits = new ArrayList<T>();
+		for (Pair<T,Double> aScoredHit: scoredHits) {
+			unscoredHits.add(aScoredHit.getFirst());
+		}
+		
+		return unscoredHits;
+	}
+	
+	public <T extends Document> List<Pair<T,Double>> scrollScoredHits(String scrollID, T docPrototype) throws ElasticSearchException {
 		URL url = esUrlBuilder().forEndPoint("_search/scroll").build();
 		
 		Map<String,String> postJson = new HashMap<String,String>();

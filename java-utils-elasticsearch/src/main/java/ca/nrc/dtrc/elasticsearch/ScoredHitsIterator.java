@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import ca.nrc.datastructure.Pair;
 
-public class SearchResultsIterator<T extends Document> implements Iterator<Pair<T,Double>> {
+public class ScoredHitsIterator<T extends Document> implements Iterator<Pair<T,Double>> {
 
 	private T docPrototype = null;
 
@@ -29,7 +29,7 @@ public class SearchResultsIterator<T extends Document> implements Iterator<Pair<
 	@JsonIgnore
 	StreamlinedClient esClient = null;	
 	
-	public SearchResultsIterator(List<Pair<T,Double>> firstResultsBatch, String _scrollID, T _docPrototype, StreamlinedClient _esClient) throws ElasticSearchException {
+	public ScoredHitsIterator(List<Pair<T,Double>> firstResultsBatch, String _scrollID, T _docPrototype, StreamlinedClient _esClient) throws ElasticSearchException {
 			this.documentsBatch = firstResultsBatch;
 			this.scrollID = _scrollID;
 			this.docPrototype = _docPrototype;
@@ -72,7 +72,7 @@ public class SearchResultsIterator<T extends Document> implements Iterator<Pair<
 	}
 	
 	private void retrieveNewBatch() throws ElasticSearchException {
-		documentsBatch = esClient.scroll(scrollID, docPrototype);
+		documentsBatch = esClient.scrollScoredHits(scrollID, docPrototype);
 		batchCursor = 0;
 	}
 	

@@ -26,8 +26,9 @@ public class SearchResults<T extends Document> implements Iterable<Pair<T,Double
 		public Long getTotalHits() {return totalHits;}
 		public void setTotalHits(Long _totalHits) {this.totalHits = _totalHits;}
 		
-	private  List<Pair<T,Double>> documentsBatch = new ArrayList<Pair<T,Double>>();		
-		public List<Pair<T,Double>> getFirstDocumentsBatch() {return documentsBatch;}
+	private  List<Pair<T,Double>> scoredHitsBatch = new ArrayList<Pair<T,Double>>();	
+		@JsonIgnore
+		public List<Pair<T,Double>> getScoredHitsBatch() {return scoredHitsBatch;}
 		
 	private int batchCursor = 0;
 		
@@ -42,7 +43,7 @@ public class SearchResults<T extends Document> implements Iterable<Pair<T,Double
 			return topHits;
 		}
 		public void addHit(T doc, Double score) {
-			documentsBatch.add(Pair.of(doc,  score));
+			scoredHitsBatch.add(Pair.of(doc,  score));
 		}
 		
 	// Client that was used to retrieve the results.
@@ -69,7 +70,7 @@ public class SearchResults<T extends Document> implements Iterable<Pair<T,Double
 	}
 	
 	public void initialize(List<Pair<T,Double>> firstResultsBatch, String _scrollID, Long _totalHits, T _docPrototype, StreamlinedClient _esClient) {
-		this.documentsBatch = firstResultsBatch;
+		this.scoredHitsBatch = firstResultsBatch;
 		this.scrollID = _scrollID;
 		this.docPrototype = _docPrototype;
 		this.esClient = _esClient;
@@ -104,14 +105,32 @@ public class SearchResults<T extends Document> implements Iterable<Pair<T,Double
 	
 	@Override
 	public Iterator<Pair<T, Double>> iterator() {
-		SearchResultsIterator<T> iter = null;
+		ScoredHitsIterator<T> iter = null;
 		try {
-			iter = new SearchResultsIterator<T>(documentsBatch, scrollID, docPrototype, esClient);
+			iter = new ScoredHitsIterator<T>(scoredHitsBatch, scrollID, docPrototype, esClient);
 		} catch (ElasticSearchException e) {
 			logger.error(e);
 		}
 		return iter;
 	}
+	
+	public UnscoredHitsIterator<T> unscoredHitsIterator() {
+		UnscoredHitsIterator<T> iter = null;
+		List<T> unscoredHitsBatch = new ArrayList<T>();
+		for (Pair<T,Double> scoredHit: scoredHitsBatch) {
+			unscoredHitsBatch.add(scoredHit.getFirst());
+		}
+		
+		try {
+			iter = new UnscoredHitsIterator<T>(unscoredHitsBatch, scrollID, docPrototype, esClient);
+		} catch (ElasticSearchException e) {
+			logger.error(e);
+		}
+		
+		return iter;
+	}
+	
+	
 	public List<T> getDocs(int nMax) {
 		List<T> docs = new ArrayList<T>();
 		Iterator<Pair<T,Double>> iter = iterator();
