@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -171,7 +172,8 @@ public class StreamlinedClient {
 		URL url = esUrlBuilder().forClass(docClass).forEndPoint("_search").scroll().build();
 		String jsonResponse = post(url, "{}");
 		
-		Pair<Pair<Long,String>,List<Pair<T,Double>>> parsedResults = parseJsonSearchResponse(jsonResponse, docPrototype);		
+		Pair<Pair<Long,String>,List<Pair<T,Double>>> parsedResults 
+						= parseJsonSearchResponse(jsonResponse, docPrototype);		
 		@SuppressWarnings({ "unchecked", "rawtypes" })
 		
 		Long totalHits = parsedResults.getFirst().getFirst();
@@ -361,19 +363,6 @@ public class StreamlinedClient {
 	}
 	
 	public <T extends Document> SearchResults<T> search(String jsonQuery, T docPrototype) throws ElasticSearchException {
-		
-//		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.search");
-//		URL url = esUrlBuilder()
-//					.forClass(docPrototype.getClass()).forEndPoint("_search")
-//					.scroll().build();
-//		tLogger.trace("url="+url+", jsonQuery="+jsonQuery);
-//		String jsonResponse = post(url, jsonQuery);
-//		
-//		@SuppressWarnings({ "unchecked", "rawtypes" })
-//		Pair<String,List<Pair<T,Double>>> parsedResults = parseJsonSearchResponse(jsonResponse, docPrototype);		
-//		SearchResults results = new SearchResults(parsedResults.getSecond(), parsedResults.getFirst(), docPrototype, this);
-//		
-//		return results;
 		String docTypeName = docPrototype.getClass().getName();
 		SearchResults<T> hits = search(jsonQuery, docTypeName, docPrototype);
 		
@@ -515,8 +504,8 @@ public class StreamlinedClient {
  		
 		return parsedResults.getSecond();
 	}
-	
-	private <T extends Document> Pair<Pair<Long,String>,List<Pair<T, Double>>> parseJsonSearchResponse(String jsonSearchResponse, T docPrototype) throws ElasticSearchException {
+
+	private <T extends Document> Pair<Pair<Long,String>,List<Pair<T, Double>>> parseJsonSearchResponse(String jsonSearchResponse, T docPrototype) throws ElasticSearchException {	
 		List<Pair<T, Double>> scoredDocuments = new ArrayList<Pair<T,Double>>();
 		String scrollID = null;
 		ObjectMapper mapper = new ObjectMapper();
@@ -816,7 +805,6 @@ public class StreamlinedClient {
 		return getDocumentWithID(docID, docClass, null);
 	}
 	
-	
 	public Document getDocumentWithID(String docID, Class<?extends Document> docClass, String esDocType) throws ElasticSearchException {
 		if (esDocType == null) {
 			esDocType = docClass.getName();
@@ -958,7 +946,7 @@ public class StreamlinedClient {
 		ESUrlBuilder builder = new ESUrlBuilder(indexName, serverName, port);
 		return builder;
 	}
-	
+		
 	public <T extends Document> void dumpToFile(File outputFile, String freeformQuery, String docTypeName, T docPrototype, Boolean intoSingleJsonFile) throws ElasticSearchException {
 		try {			
 			SearchResults<T> results = searchFreeform(freeformQuery, docTypeName, docPrototype);
@@ -966,6 +954,12 @@ public class StreamlinedClient {
 		} catch (Exception e) {
 			throw new ElasticSearchException(e);
 		}
+	}
+	
+	public <T extends Document> void dumpToFile(File outputFile, Class<T> docClass) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ElasticSearchException {
+		Document docPrototype = docClass.getConstructor().newInstance();
+		SearchResults<T> allDocs = (SearchResults<T>) listAll(docPrototype);
+		dumpToFile(outputFile, allDocs, true);
 	}
 	
 	private void dumpToFile(File outputFile, SearchResults<? extends Document> results, Boolean intoSingleJsonFile) throws ElasticSearchException {
@@ -1016,5 +1010,4 @@ public class StreamlinedClient {
 	public void attachObserver(StreamlinedClientObserver _obs) {
 		observers.add(_obs);
 	}
-
 }
