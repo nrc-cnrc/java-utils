@@ -27,7 +27,20 @@ public class SeparatedFields2Document_DynTyped {
 	int counter = 0;
 	int badLines = 0;
 	Integer verbosity = null;
+	protected int firstIDNum = 0;
+
+	public SeparatedFields2Document_DynTyped(int _firstIDNum) {
+		initialize(_firstIDNum);
+	}
 	
+	public SeparatedFields2Document_DynTyped() {
+		initialize(1);
+	}
+	
+	public void initialize(int _firstIDNum) {
+		this.firstIDNum = _firstIDNum;		
+	}
+
 	public SeparatedFields2Document_DynTyped setSeparator(char _sep) {
 		this.separator = _sep;
 		return this;
@@ -106,7 +119,7 @@ public class SeparatedFields2Document_DynTyped {
 				if (idGeneratorPrefix != null) {
 					// We need to generate the ID, instead of getting it
 					// from the list of fields
-					fields.put(idGeneratorPrefix, idGeneratorPrefix+"_"+counter);
+					fields.put(idGeneratorPrefix, idGeneratorPrefix+"_"+(firstIDNum+counter-1));
 				}
 				
 				List<Document_DynTyped> docList = documentsForLine(idField, fields);
