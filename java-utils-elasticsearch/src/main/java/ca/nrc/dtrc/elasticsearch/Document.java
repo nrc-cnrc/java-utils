@@ -46,6 +46,10 @@ public abstract class Document {
 	}
 	
 	public String fingerprint() throws DocumentException {
+		return fingerprint(100);
+	}
+
+	public String fingerprint(Integer minLength) throws DocumentException {
 		return null;
 	}
 
