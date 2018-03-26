@@ -58,6 +58,9 @@ public abstract class SubCommand {
 		initialize(_cmdName, _sysexitOnBadUsage);
 	}
 	
+	public SubCommand() {
+	}
+
 	private void initialize(String _cmdName, boolean _sysexitOnBadUsage) {
 		this.name = _cmdName;
 		this.sysexitOnBadUsage = _sysexitOnBadUsage;
