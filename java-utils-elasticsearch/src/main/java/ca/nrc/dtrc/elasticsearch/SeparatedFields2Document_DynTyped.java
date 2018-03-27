@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -57,29 +58,36 @@ public class SeparatedFields2Document_DynTyped {
 	}
 
 	public void convert(File inputFile, File outputFile) throws Exception {
-		convert(inputFile, outputFile, null, null);
+		convert(new File[] {inputFile}, outputFile, null, null);
 	}
 	
 	public void convert(File inputFile, File outputFile, Integer _maxDocs, Integer _skipDocs) throws Exception {
-		FileReader input = new FileReader(inputFile);
-		FileWriter output = new FileWriter(outputFile);
-		convert(input, output, _maxDocs, _skipDocs);
+		convert(new File[] {inputFile}, outputFile, _maxDocs, _skipDocs);
 	}
+	
 
-	private static String escapeFieldName(String nameOrig) {
+	public void convert(File[] inputFiles, File outputFile, Integer _maxDocs, Integer _skipDocs) throws Exception {
+		counter = 0;
+		Writer output = null;
+		if (outputFile != null) {
+			output = new FileWriter(outputFile);
+		}
+		for (File inputFile: inputFiles) {
+			FileReader input = new FileReader(inputFile);
+			convert(input, output, _maxDocs, _skipDocs);			
+		}
 		
-		String nameEscaped = nameOrig;
-		
-		nameEscaped = nameEscaped.replaceAll("[^a-zA-Z0-9]+", "_");
-		nameEscaped = nameEscaped.replaceAll("^_+", "");
-		nameEscaped = nameEscaped.replaceAll("_+$", "");
-
-		return nameEscaped;
+		output.close();
 	}
-
+	
 	public void convert(Reader input, Writer output, Integer _maxDocs, Integer skipDocs) throws Exception {
 		setMaxDocs(_maxDocs);
-		counter = 0;
+		
+		boolean outputIsToStdout = false;
+		if (output == null) {
+			outputIsToStdout = true;
+			output = new PrintWriter(System.out);
+		}
 		badLines = 0;
 		@SuppressWarnings("deprecation")
 		CSVReader reader = new CSVReader(input, this.separator);
@@ -133,10 +141,27 @@ public class SeparatedFields2Document_DynTyped {
 			if (maxDocs != null && maxDocs < counter) break;
 		}
 		reader.close();
-		output.close();
+		if (outputIsToStdout) {
+			// Close the PrintWriter we opened to STDOUT
+			output.close();
+		}
 		
 		System.out.println("Found "+badLines+" bad lines out of "+counter);
+	}	
+	
+	
+	private static String escapeFieldName(String nameOrig) {
+		
+		String nameEscaped = nameOrig;
+		
+		nameEscaped = nameEscaped.replaceAll("[^a-zA-Z0-9]+", "_");
+		nameEscaped = nameEscaped.replaceAll("^_+", "");
+		nameEscaped = nameEscaped.replaceAll("_+$", "");
+
+		return nameEscaped;
 	}
+
+
 
 
 	private void echo(String message, int level) {
