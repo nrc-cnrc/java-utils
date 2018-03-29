@@ -169,11 +169,15 @@ public abstract class SubCommand {
 	public static void echo(String message, int indentLevelChange, Verbosity level, Boolean newline) {
 		if (newline == null) newline = true;
 		if (verbosityLevelIsMet(level)) {
+			
+			String indentPadding = indentation.get(currentIndentation);
 		
 			if (indentLevelChange > 0) currentIndentation += 1;
 			if (currentIndentation > 10) currentIndentation = 10;
 			
-			message = indentation.get(currentIndentation) + message;
+			message = message.replaceAll("\n", "\n"+indentPadding);
+			
+			message = indentPadding + message;
 			System.out.print(message);
 			
 			if (newline) {
