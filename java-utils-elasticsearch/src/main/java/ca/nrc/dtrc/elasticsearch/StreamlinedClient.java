@@ -625,37 +625,7 @@ public class StreamlinedClient {
 		results = search(mltBody, esDocTypeName, queryDoc);
 	
 		return results;
-	}		
-	
-	public <T extends Document> SearchResults<T> moreLikeThis(T queryDoc, Set<String> fieldsToUse, String esDocTypeName) throws ElasticSearchException, IOException, InterruptedException {
-		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.moreLikeThis_NEW");
-		
-		Map<String,Object> queryDocMap = null;
-		
-		if (queryDoc instanceof Map<?,?>) {
-			// The query document was specified as an "untyped" map.
-			// Just remove the fields to be ignored
-			queryDocMap = new HashMap<String,Object>();
-			Map<String,Object> queryDocCast = (Map<String,Object>) queryDoc;
-			for (String fieldName: queryDocCast.keySet()) {
-				queryDocMap.put(fieldName, queryDocCast.get(fieldName));
-			}
-		} else {
-			// The query document was specified as a typed object
-			// Convert it to a map a map
-			queryDocMap = filterFields(queryDoc);
-		}
-		
-		String esType = esDocTypeName;
-		if (esType == null) esType = queryDoc.getClass().getName();
-		String mltBody = moreLikeThisJsonBody(esType, queryDocMap);
-		if (tLogger.isTraceEnabled()) tLogger.trace("** queryDocMap="+PrettyPrinter.print(queryDocMap));
-		
-		SearchResults results = null;
-		results = search(mltBody, esDocTypeName, queryDoc);
-	
-		return results;
-	}			
+	}				
 	
 	protected String moreLikeThisJsonBody(String type, Map<String, Object> queryDoc) throws ElasticSearchException {
 		ObjectMapper mapper = new ObjectMapper(); 

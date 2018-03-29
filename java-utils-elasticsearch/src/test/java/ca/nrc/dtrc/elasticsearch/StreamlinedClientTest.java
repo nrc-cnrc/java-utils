@@ -459,6 +459,7 @@ public class StreamlinedClientTest {
 		AssertHelpers.assertDeepEquals("Negative filter did not produce expected field names", expFilteredFields, gotFilteredFields);
 	}
 	
+	
 	@Test
 	public void test__put_getDocument__HappyPath() throws Exception {
 		StreamlinedClient client = ESTestHelpers.makeEmptyTestClient();
