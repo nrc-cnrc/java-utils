@@ -376,9 +376,11 @@ public class StreamlinedClientTest {
 	
 	@Test
 	public void test__filterFields__ObjectWithPositiveFilter() throws Exception {
+		StreamlinedClient esClient = ESTestHelpers.makeEmptyTestClient();
 		IncludeFields filter = new IncludeFields("firstName");
 		Person pers = new Person("homer", "simpson");
-		Map<String, Object> gotFilteredFields = StreamlinedClient.filterFields(pers, filter);
+		esClient.putDocument(pers);
+		Map<String, Object> gotFilteredFields = esClient.filterFields(pers, filter);
 		Map<String,Object> expFilteredFields = new HashMap<String,Object>();
 		expFilteredFields.put("firstName", "homer");
 		AssertHelpers.assertDeepEquals("Positive filter did not produce expected field names", expFilteredFields, gotFilteredFields);
@@ -386,14 +388,14 @@ public class StreamlinedClientTest {
 
 	@Test
 	public void test__filterFields__ObjectWithNegativeFilter() throws Exception {
+		StreamlinedClient esClient = ESTestHelpers.makeEmptyTestClient();
 		ExcludeFields filter = new ExcludeFields("firstName");
 		Person pers = new Person("homer", "simpson");
-		Map<String, Object> gotFilteredFields = StreamlinedClient.filterFields(pers, filter);
+		esClient.putDocument(pers);
+		Map<String, Object> gotFilteredFields = esClient.filterFields(pers, filter);
 		Map<String,Object> expFilteredFields = new HashMap<String,Object>();
 		{
 			expFilteredFields.put("surname", "simpson");
-			expFilteredFields.put("birthDay", null);
-			expFilteredFields.put("_detect_language", true);
 			expFilteredFields.put("lang", "en");
 		}
 		AssertHelpers.assertDeepEquals("Negative filter did not produce expected field names", expFilteredFields, gotFilteredFields);
@@ -401,65 +403,162 @@ public class StreamlinedClientTest {
 
 	@Test
 	public void test__filterFields__ObjectWithNullFilter() throws Exception {
+		StreamlinedClient esClient = ESTestHelpers.makeEmptyTestClient();
 		ExcludeFields nullFilter = null;
 		Person pers = new Person("homer", "simpson");
-		Map<String, Object> gotFilteredFields = StreamlinedClient.filterFields(pers, nullFilter);
+		esClient.putDocument(pers);
+		Map<String, Object> gotFilteredFields = esClient.filterFields(pers, nullFilter);
 		Map<String,Object> expFilteredFields = new HashMap<String,Object>();
 		{
 			expFilteredFields.put("firstName", "homer");
 			expFilteredFields.put("surname", "simpson");
-			expFilteredFields.put("birthDay", null);
-			expFilteredFields.put("_detect_language", true);
+//			expFilteredFields.put("birthDay", null);
+//			expFilteredFields.put("_detect_language", true);
 			expFilteredFields.put("lang", "en");
 		}
 		AssertHelpers.assertDeepEquals("Negative filter did not produce expected field names", expFilteredFields, gotFilteredFields);
 	}
 
 	
-	@Test
-	public void test__filterFields__MapWithPositiveFilter() throws Exception {
-		IncludeFields filter = new IncludeFields("firstName");
-		Map<String,Object> map = new HashMap<String,Object>();
-		{
-			map.put("firstName", "homer");
-			map.put("surname", "simpson");
-		}
-		Map<String, Object> gotFilteredFields = StreamlinedClient.filterFields(map, filter);
-		Map<String,Object> expFilteredFields = new HashMap<String,Object>();
-		expFilteredFields.put("firstName", "homer");
-		AssertHelpers.assertDeepEquals("Positive filter did not produce expected field names", expFilteredFields, gotFilteredFields);
-	}
+//	@Test
+//	public void test__filterFields__MapWithPositiveFilter() throws Exception {
+//		IncludeFields filter = new IncludeFields("firstName");
+//		Map<String,Object> map = new HashMap<String,Object>();
+//		{
+//			map.put("firstName", "homer");
+//			map.put("surname", "simpson");
+//		}
+//		Map<String, Object> gotFilteredFields = StreamlinedClient.filterFields(map, filter);
+//		Map<String,Object> expFilteredFields = new HashMap<String,Object>();
+//		expFilteredFields.put("firstName", "homer");
+//		AssertHelpers.assertDeepEquals("Positive filter did not produce expected field names", expFilteredFields, gotFilteredFields);
+//	}
+//
+//	@Test
+//	public void test__filterFields__MapWithNegativeFilter() throws Exception {
+//		ExcludeFields filter = new ExcludeFields("firstName");
+//		Map<String,Object> map = new HashMap<String,Object>();
+//		{
+//			map.put("surname", "simpson");
+//			map.put("firstName", "homer");
+//		}
+//		Map<String, Object> gotFilteredFields = StreamlinedClient.filterFields(map, filter);
+//		Map<String,Object> expFilteredFields = new HashMap<String,Object>();
+//		expFilteredFields.put("surname", "simpson");
+//		AssertHelpers.assertDeepEquals("Negative filter did not produce expected field names", expFilteredFields, gotFilteredFields);
+//	}
+//
+//	@Test
+//	public void test__filterFields__MapWithNullFilter() throws Exception {
+//		ExcludeFields nullFilter = null;
+//		Map<String,Object> map = new HashMap<String,Object>();
+//		{
+//			map.put("firstName", "homer");
+//			map.put("surname", "simpson");
+//		}
+//		Map<String, Object> gotFilteredFields = StreamlinedClient.filterFields(map, nullFilter);
+//		Map<String,Object> expFilteredFields = new HashMap<String,Object>();
+//		expFilteredFields.put("firstName", "homer");
+//		expFilteredFields.put("surname", "simpson");
+//		AssertHelpers.assertDeepEquals("Negative filter did not produce expected field names", expFilteredFields, gotFilteredFields);
+//	}
 
 	@Test
-	public void test__filterFields__MapWithNegativeFilter() throws Exception {
-		ExcludeFields filter = new ExcludeFields("firstName");
-		Map<String,Object> map = new HashMap<String,Object>();
-		{
-			map.put("surname", "simpson");
-			map.put("firstName", "homer");
-		}
-		Map<String, Object> gotFilteredFields = StreamlinedClient.filterFields(map, filter);
-		Map<String,Object> expFilteredFields = new HashMap<String,Object>();
-		expFilteredFields.put("surname", "simpson");
-		AssertHelpers.assertDeepEquals("Negative filter did not produce expected field names", expFilteredFields, gotFilteredFields);
-	}
-
-	@Test
-	public void test__filterFields__MapWithNullFilter() throws Exception {
+	public void test__filterFields__DynamicallyTypedDocument() throws Exception {
+		StreamlinedClient esClient = ESTestHelpers.makeEmptyTestClient();
 		ExcludeFields nullFilter = null;
-		Map<String,Object> map = new HashMap<String,Object>();
-		{
-			map.put("firstName", "homer");
-			map.put("surname", "simpson");
-		}
-		Map<String, Object> gotFilteredFields = StreamlinedClient.filterFields(map, nullFilter);
+		Document_DynTyped homer = new Document_DynTyped("name", "homer");
+		homer.setField("birthDay", "1993-01-26");
+		esClient.putDocument(homer);
+		Map<String, Object> gotFilteredFields = esClient.filterFields(homer);
 		Map<String,Object> expFilteredFields = new HashMap<String,Object>();
-		expFilteredFields.put("firstName", "homer");
-		expFilteredFields.put("surname", "simpson");
+		{
+			expFilteredFields.put("fields.name", "homer");
+			expFilteredFields.put("lang", "en");
+		}
 		AssertHelpers.assertDeepEquals("Negative filter did not produce expected field names", expFilteredFields, gotFilteredFields);
+	}	
+	
+	@Test
+	public void test__getFieldTypes__DynamicallyTypedDocsOnly() throws Exception {
+		StreamlinedClient esClient = ESTestHelpers.makeEmptyTestClient();
+		Document_DynTyped homer = new Document_DynTyped("name", "homer");
+		homer.setField("birthDay", "1993-01-26");
+		String type = "CartoonCharacters";
+		esClient.putDocument(type, homer);
+		
+		Map<String, String> gotTypes = esClient.getFieldTypes(type);
+		Map<String,String> expTypes = new HashMap<String,String>();
+		{
+			expTypes.put("_detect_language", "boolean");
+			expTypes.put("idFieldName", "text");
+			expTypes.put("lang", "text");
+			expTypes.put("fields.birthDay", "date");
+			expTypes.put("fields.name", "text");
+		}
+		AssertHelpers.assertDeepEquals("Field types not as expected for type: "+type, 
+				expTypes, gotTypes);
 	}
 	
-	
+	@Test
+	public void test__getFieldTypes__StaticallyTypedDocsOnly() throws Exception {
+		// This ES doc type will contain both statically typed and dynamically typed
+		// documents representing people.
+		String type = "CartoonCharacters";
+		
+		// This person is statically typed
+		StreamlinedClient esClient = ESTestHelpers.makeEmptyTestClient();
+		Person homer = new Person("homer", "simpson").setBirthDay("1993-01-26");
+		esClient.putDocument(type, homer);
+		
+		// This other person is dynamically typed
+		Document_DynTyped marge = new Document_DynTyped("name", "marge");
+		marge.setField("birthDay", "1993-01-26");
+		esClient.putDocument(type, marge);
+		
+		// The field types should be the union of the types for both
+		// the dynamically and statically typed docs
+		//
+		Map<String, String> gotTypes = esClient.getFieldTypes(type);
+		Map<String,String> expTypes = new HashMap<String,String>();
+		{
+			expTypes.put("_detect_language", "boolean");
+			expTypes.put("lang", "text");
+			expTypes.put("idFieldName", "text");
+
+			expTypes.put("birthDay", "date");
+			expTypes.put("fields.birthDay", "date");
+			
+			expTypes.put("firstName", "text");
+			expTypes.put("surname", "text");
+			expTypes.put("fields.name", "text");
+			
+		}
+		AssertHelpers.assertDeepEquals("Field types not as expected for type: "+type, 
+				expTypes, gotTypes);
+	}	
+
+	@Test
+	public void test__getFieldTypes__MixedDynamicallyAndStaticallyTypedDocs() throws Exception {
+		StreamlinedClient esClient = ESTestHelpers.makeEmptyTestClient();
+		Person homer = new Person("homer", "simpson").setBirthDay("1993-01-26");
+		String type = "CartoonCharacters";
+		esClient.putDocument(type, homer);
+		
+		Map<String, String> gotTypes = esClient.getFieldTypes(type);
+		Map<String,String> expTypes = new HashMap<String,String>();
+		{
+			expTypes.put("_detect_language", "boolean");
+			expTypes.put("lang", "text");
+			expTypes.put("birthDay", "date");
+			expTypes.put("firstName", "text");
+			expTypes.put("surname", "text");
+		}
+		AssertHelpers.assertDeepEquals("Field types not as expected for type: "+type, 
+				expTypes, gotTypes);
+	}	
+
+
 	@Test
 	public void test__put_getDocument__HappyPath() throws Exception {
 		StreamlinedClient client = ESTestHelpers.makeEmptyTestClient();
@@ -632,8 +731,6 @@ public class StreamlinedClientTest {
 		
 		AssertHelpers.assertDeepEquals(message+"\nUnscored hits were not as expected", 
 				expUnscoredHits, gotUnscoredHits);
-		// TODO Auto-generated method stub
-		
 	}
 
 }

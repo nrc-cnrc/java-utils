@@ -138,7 +138,7 @@ public class StreamlinedClient {
 		return jsonResponse;
 	}
 
-	public String putDocument(String type, Document_DynTyped dynDoc) throws ElasticSearchException {
+	public String putDocument(String type, Document dynDoc) throws ElasticSearchException {
 		String docID = dynDoc.getKey();
 		String jsonDoc;
 		try {
@@ -601,20 +601,7 @@ public class StreamlinedClient {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.moreLikeThis_NEW");
 		
 		Map<String,Object> queryDocMap = null;
-		
-		if (queryDoc instanceof Map<?,?>) {
-			// The query document was specified as an "untyped" map.
-			// Just remove the fields to be ignored
-			queryDocMap = new HashMap<String,Object>();
-			Map<String,Object> queryDocCast = (Map<String,Object>) queryDoc;
-			for (String fieldName: queryDocCast.keySet()) {
-				queryDocMap.put(fieldName, queryDocCast.get(fieldName));
-			}
-		} else {
-			// The query document was specified as a typed object
-			// Convert it to a map a map
-			queryDocMap = filterFields(queryDoc, fldFilter);
-		}
+		queryDocMap = filterFields(queryDoc, esDocTypeName, fldFilter);
 		
 		String esType = esDocTypeName;
 		if (esType == null) esType = queryDoc.getClass().getName();
@@ -627,6 +614,12 @@ public class StreamlinedClient {
 		return results;
 	}				
 	
+//	protected Map<String, Object> filterNonTextFields(Map<String, Object> queryDocMap) {
+//		Map<String,Object> filterdQueryDocMap = queryDocMap;
+//		
+//		return filterdQueryDocMap;
+//	}
+
 	protected String moreLikeThisJsonBody(String type, Map<String, Object> queryDoc) throws ElasticSearchException {
 		ObjectMapper mapper = new ObjectMapper(); 
 		JsonNodeFactory nodeFactory = JsonNodeFactory.instance;
@@ -678,27 +671,37 @@ public class StreamlinedClient {
 		return jsonBody;
 	}
 
-	protected static Map<String, Object> filterFields(Document queryDoc) throws ElasticSearchException {
-		return filterFields(queryDoc, null);
-	}
+//	protected static Map<String, Object> filterFields(Document queryDoc) throws ElasticSearchException {
+//		return filterFields(queryDoc, null);
+//	}
+//
+//	protected static Map<String, Object> filterFields(Map<String,Object> queryDoc) throws ElasticSearchException {
+//		return filterFields(queryDoc, null);
+//	}
+	
+	
+//	protected static Map<String, Object> filterFields(Map<String,Object> queryDoc, FieldFilter filter) {
+//		Map<String,Object> objMap = new HashMap<String,Object>();
+//		for (String fieldName: queryDoc.keySet()) {
+//			if (filter == null || filter.keepField(fieldName)) {
+//				objMap.put(fieldName, queryDoc.get(fieldName));
+//			}
+//		}
+//		
+//		return objMap;
+//	}
 
-	protected static Map<String, Object> filterFields(Map<String,Object> queryDoc) throws ElasticSearchException {
-		return filterFields(queryDoc, null);
+	protected Map<String, Object> filterFields(Document queryDoc) throws ElasticSearchException {
+		return filterFields(queryDoc, null, null);
 	}
 	
 	
-	protected static Map<String, Object> filterFields(Map<String,Object> queryDoc, FieldFilter filter) {
-		Map<String,Object> objMap = new HashMap<String,Object>();
-		for (String fieldName: queryDoc.keySet()) {
-			if (filter == null || filter.keepField(fieldName)) {
-				objMap.put(fieldName, queryDoc.get(fieldName));
-			}
-		}
-		
-		return objMap;
+	protected Map<String, Object> filterFields(Document queryDoc, FieldFilter filter) throws ElasticSearchException {
+		return filterFields(queryDoc, null, filter);
 	}
 
-	protected static Map<String, Object> filterFields(Document queryDoc, FieldFilter filter) throws ElasticSearchException {
+	protected Map<String, Object> filterFields(Document queryDoc, String esDocType, FieldFilter filter) throws ElasticSearchException {
+		if (esDocType == null) esDocType = queryDoc.defaultESDocType();
 		Map<String,Object> objMap = new HashMap<String,Object>();
 		
 		Field[] fields = queryDoc.getClass().getFields();
@@ -708,6 +711,7 @@ public class StreamlinedClient {
 			Field aField = fields[ii];
 			String fieldName = aField.getName();
 			if (filter == null || filter.keepField(fieldName)) {
+				if (!isTextField(esDocType, fieldName)) continue;
 				try {
 					objMap.put(fieldName, aField.get(queryDoc));
 				} catch (IllegalArgumentException | IllegalAccessException exc) {
@@ -718,17 +722,16 @@ public class StreamlinedClient {
 		
 		// Possibly filter dynamic fields
 		if (queryDoc instanceof Document_DynTyped) {
-//			Map<String,Object> objMapDynFields = new HashMap<String,Object>();
-//			objMap.put("fields", objMapDynFields);
-			
 			Document_DynTyped queryDocDyn = (Document_DynTyped) queryDoc;
 			Map<String,Object> dynamicFields = queryDocDyn.getFields();
-			for (String dynFldName: dynamicFields.keySet()) {
-				if (filter == null || filter.keepField(dynFldName)) {
-					try {
-						objMap.put("fields."+dynFldName, queryDocDyn.getField(dynFldName));
-					} catch (DocumentException exc) {
-						throw new ElasticSearchException(exc);
+			for (String dynFldKey: dynamicFields.keySet()) {
+				if (filter == null || filter.keepField(dynFldKey)) {
+					if (isTextField(esDocType, "fields."+dynFldKey)) {
+						try {
+							objMap.put("fields."+dynFldKey, queryDocDyn.getField(dynFldKey));
+						} catch (DocumentException exc) {
+							throw new ElasticSearchException(exc);
+						}
 					}
 				}				
 			}
@@ -737,6 +740,15 @@ public class StreamlinedClient {
 		return objMap;
 	}
 	
+
+	protected boolean isTextField(String esDocType, String fieldName) throws ElasticSearchException {
+		boolean isText = false;
+		String fieldType = getFieldType(fieldName, esDocType);
+		if (fieldType != null && fieldType.equals("text")) {
+			isText = true;
+		}
+		return isText;
+	}
 
 	public void sleep()  {
 		try {
@@ -912,14 +924,18 @@ public class StreamlinedClient {
 			while (iterator.hasNext()) {
 				Entry<String, JsonNode> entry = iterator.next();
 			    String aFldName = entry.getKey();
-			    JsonNode aFldProps = entry.getValue();
-			    String aFldType = null;
-			    if (aFldProps.has("type")) {
-			    	aFldType = aFldProps.get("type").asText();
+			    JsonNode aFldProps = entry.getValue();			    
+			    if (aFldName.equals("fields")) {
+			    	fieldTypes = collectDynamicFields(aFldProps, fieldTypes);
 			    } else {
-			    	aFldType = "_EMBEDDED_STRUCTURE";
+				    String aFldType = null;
+				    if (aFldProps.has("type")) {
+				    	aFldType = aFldProps.get("type").asText();
+				    } else {
+				    	aFldType = "_EMBEDDED_STRUCTURE";
+				    }
+				    fieldTypes.put(aFldName, aFldType);
 			    }
-			    fieldTypes.put(aFldName, aFldType);
 			}
 			
 			cacheFieldTypes(fieldTypes, type);
@@ -928,6 +944,25 @@ public class StreamlinedClient {
 		return fieldTypes;
 	}
 	
+	private Map<String, String> collectDynamicFields(JsonNode dynFieldsMapping, Map<String, String> fieldTypes) {
+		ObjectNode props = (ObjectNode) dynFieldsMapping.get("properties");
+		Iterator<Entry<String, JsonNode>> iterator = props.fields();
+		while (iterator.hasNext()) {
+			Entry<String, JsonNode> entry = iterator.next();
+		    String aFldName = entry.getKey();
+		    JsonNode aFldProps = entry.getValue();			    
+		    String aFldType = null;
+		    if (aFldProps.has("type")) {
+		    	aFldType = aFldProps.get("type").asText();
+		    } else {
+		    	aFldType = "_EMBEDDED_STRUCTURE";
+		    }
+		    fieldTypes.put("fields."+aFldName, aFldType);			
+		}
+		
+		return fieldTypes;
+	}
+
 	private static Map<String,String> uncacheFieldTypes(String docClassName) {
 		Map<String,String> fieldTypes = null;
 		if (fieldTypesCache != null && fieldTypesCache.containsKey(docClassName)) {
