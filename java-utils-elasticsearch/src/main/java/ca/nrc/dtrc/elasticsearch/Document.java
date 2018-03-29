@@ -34,6 +34,10 @@ public abstract class Document {
 		return value;
 	}
 	
+	public String defaultESDocType() {
+		return this.getClass().getName();
+	}
+	
 	public String toString() {
 		return toString(null);
 	}
