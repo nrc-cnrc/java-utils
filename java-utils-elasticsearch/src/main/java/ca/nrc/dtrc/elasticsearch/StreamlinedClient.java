@@ -16,6 +16,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.FileUtils;
@@ -593,6 +594,10 @@ public class StreamlinedClient {
 	}
 	
 	public <T extends Document> SearchResults<T> moreLikeThis(T queryDoc, FieldFilter fldFilter) throws ElasticSearchException, IOException, InterruptedException {
+		return moreLikeThis(queryDoc, fldFilter, null);
+	}
+
+	public <T extends Document> SearchResults<T> moreLikeThis(T queryDoc, FieldFilter fldFilter, String esDocTypeName) throws ElasticSearchException, IOException, InterruptedException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.moreLikeThis_NEW");
 		
 		Map<String,Object> queryDocMap = null;
@@ -611,15 +616,46 @@ public class StreamlinedClient {
 			queryDocMap = filterFields(queryDoc, fldFilter);
 		}
 		
-		String esType = queryDoc.getClass().getName();
+		String esType = esDocTypeName;
+		if (esType == null) esType = queryDoc.getClass().getName();
 		String mltBody = moreLikeThisJsonBody(esType, queryDocMap);
 		if (tLogger.isTraceEnabled()) tLogger.trace("** queryDocMap="+PrettyPrinter.print(queryDocMap));
 		
 		SearchResults results = null;
-		results = search(mltBody, queryDoc);
+		results = search(mltBody, esDocTypeName, queryDoc);
 	
 		return results;
 	}		
+	
+	public <T extends Document> SearchResults<T> moreLikeThis(T queryDoc, Set<String> fieldsToUse, String esDocTypeName) throws ElasticSearchException, IOException, InterruptedException {
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.moreLikeThis_NEW");
+		
+		Map<String,Object> queryDocMap = null;
+		
+		if (queryDoc instanceof Map<?,?>) {
+			// The query document was specified as an "untyped" map.
+			// Just remove the fields to be ignored
+			queryDocMap = new HashMap<String,Object>();
+			Map<String,Object> queryDocCast = (Map<String,Object>) queryDoc;
+			for (String fieldName: queryDocCast.keySet()) {
+				queryDocMap.put(fieldName, queryDocCast.get(fieldName));
+			}
+		} else {
+			// The query document was specified as a typed object
+			// Convert it to a map a map
+			queryDocMap = filterFields(queryDoc);
+		}
+		
+		String esType = esDocTypeName;
+		if (esType == null) esType = queryDoc.getClass().getName();
+		String mltBody = moreLikeThisJsonBody(esType, queryDocMap);
+		if (tLogger.isTraceEnabled()) tLogger.trace("** queryDocMap="+PrettyPrinter.print(queryDocMap));
+		
+		SearchResults results = null;
+		results = search(mltBody, esDocTypeName, queryDoc);
+	
+		return results;
+	}			
 	
 	protected String moreLikeThisJsonBody(String type, Map<String, Object> queryDoc) throws ElasticSearchException {
 		ObjectMapper mapper = new ObjectMapper(); 
@@ -672,7 +708,7 @@ public class StreamlinedClient {
 		return jsonBody;
 	}
 
-	protected static Map<String, Object> filterFields(Object queryDoc) throws ElasticSearchException {
+	protected static Map<String, Object> filterFields(Document queryDoc) throws ElasticSearchException {
 		return filterFields(queryDoc, null);
 	}
 
@@ -692,11 +728,12 @@ public class StreamlinedClient {
 		return objMap;
 	}
 
-	protected static Map<String, Object> filterFields(Object queryDoc, FieldFilter filter) throws ElasticSearchException {
+	protected static Map<String, Object> filterFields(Document queryDoc, FieldFilter filter) throws ElasticSearchException {
 		Map<String,Object> objMap = new HashMap<String,Object>();
 		
 		Field[] fields = queryDoc.getClass().getFields();
 
+		// Filter static fields
 		for (int ii=0; ii < fields.length; ii++) {
 			Field aField = fields[ii];
 			String fieldName = aField.getName();
@@ -706,6 +743,24 @@ public class StreamlinedClient {
 				} catch (IllegalArgumentException | IllegalAccessException exc) {
 					throw new ElasticSearchException(exc);
 				}
+			}
+		}
+		
+		// Possibly filter dynamic fields
+		if (queryDoc instanceof Document_DynTyped) {
+//			Map<String,Object> objMapDynFields = new HashMap<String,Object>();
+//			objMap.put("fields", objMapDynFields);
+			
+			Document_DynTyped queryDocDyn = (Document_DynTyped) queryDoc;
+			Map<String,Object> dynamicFields = queryDocDyn.getFields();
+			for (String dynFldName: dynamicFields.keySet()) {
+				if (filter == null || filter.keepField(dynFldName)) {
+					try {
+						objMap.put("fields."+dynFldName, queryDocDyn.getField(dynFldName));
+					} catch (DocumentException exc) {
+						throw new ElasticSearchException(exc);
+					}
+				}				
 			}
 		}
 			

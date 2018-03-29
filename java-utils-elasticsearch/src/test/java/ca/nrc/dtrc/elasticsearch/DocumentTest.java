@@ -33,7 +33,7 @@ public class DocumentTest {
 	@Test
 	public void test__getFieldByName__HappyPath() throws Exception {
 		Person homer = new Person("homer", "simpson");
-		String first = (String) homer.getFieldValueByName("first");
+		String first = (String) homer.getField("first");
 		Assert.assertEquals("homer", first);
 	}
 
