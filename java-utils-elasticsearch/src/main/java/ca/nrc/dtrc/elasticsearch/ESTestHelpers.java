@@ -48,12 +48,22 @@ public class ESTestHelpers {
 	public static class SimpleDoc extends Document {
 		public String id = null;
 		public String content = null;
+		public String category = null;
 		
         public SimpleDoc() {}
         
         public SimpleDoc(String _id, String _content) {
+        	initialize(_id, _content, null);
+        }
+        
+        public SimpleDoc(String _id, String _content, String _category) {
+        	initialize(_id, _content, _category);
+        }
+        
+        public void initialize(String _id, String _content, String _category) {
         	this.id = _id;
         	this.content = _content;
+        	this.category = _category;
         }
 
 		@Override
