@@ -67,14 +67,28 @@ public class SeparatedFields2Document_DynTyped {
 	
 
 	public void convert(File[] inputFiles, File outputFile, Integer _maxDocs, Integer _skipDocs) throws Exception {
+		if (verbosity > 0) {
+			System.out.print("Converting the following files:\n");
+			for (File aFile: inputFiles) {
+				System.out.println("  "+aFile.getAbsolutePath());
+			}
+		}
+		
 		counter = 0;
 		Writer output = null;
 		if (outputFile != null) {
 			output = new FileWriter(outputFile);
 		}
 		for (File inputFile: inputFiles) {
+			if (verbosity > 0) {
+				System.out.println("\n\n== Converting file: "+inputFile.getAbsolutePath()+"\n\n");
+			}
 			FileReader input = new FileReader(inputFile);
-			convert(input, output, _maxDocs, _skipDocs);			
+			convert(input, output, _maxDocs, _skipDocs);	
+			
+			if (verbosity > 0) {
+				System.out.println("\n\n== DONEConverting file: "+inputFile.getAbsolutePath()+"\n\n");
+			}
 		}
 		
 		output.close();
