@@ -21,7 +21,7 @@ public abstract class Document {
 	@JsonIgnore	
 	public abstract String getKey();
 	
-	public Object getFieldValueByName(String fldName) throws DocumentException {
+	public Object getField(String fldName) throws DocumentException {
 		Object value = null;
 		try {
 			Field fld = this.getClass().getDeclaredField(fldName);
@@ -35,10 +35,15 @@ public abstract class Document {
 	}
 	
 	public String toString() {
+		return toString(null);
+	}
+	
+	public String toString(Set<String> fieldsFilter) {
 		String toStr = "";
 		ObjectMapper mapper = new ObjectMapper();
 		Map<String, Object> map = mapper.convertValue(this, Map.class);
 		for (String field: map.keySet()) {
+			if (fieldsFilter.contains(field)) continue;
 			toStr += "\n-------\n"+field+": "+map.get(field);
 		}
 		

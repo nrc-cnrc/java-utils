@@ -1,7 +1,9 @@
 package ca.nrc.dtrc.elasticsearch;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 //import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 //import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -12,6 +14,8 @@ import java.util.Map;
  */
 
 public class Document_DynTyped extends Document {
+	
+	static Set<String> fieldsFilter = null;
 		
 	protected Map<String,Object> fields = null;
 		public void setFields(Map<String,Object> _fields) {this.fields = _fields;}
@@ -44,6 +48,11 @@ public class Document_DynTyped extends Document {
 	
 		
 	private void initialize(String _idFieldName, String _idValue, Map<String,Object> _fields) {
+		if (fieldsFilter == null) {
+			fieldsFilter = new HashSet<String>();
+			fieldsFilter.add("fields");
+		}
+		
 		this.idFieldName = _idFieldName;		
 
 		if (_fields == null) {
@@ -63,12 +72,18 @@ public class Document_DynTyped extends Document {
 		
 		fields.put(fldName, fldValue);
 	}
-
+	
+	@Override
 	public Object getField(String fldName) throws DocumentException {
-		if (!fields.containsKey(fldName)) {
-			throw new DocumentException("Document does not have a field with name: "+fldName);
+		Object value = null;
+		
+		if (fields.containsKey(fldName)) {
+			value = fields.get(fldName);
+		} else {
+			value = super.getField(fldName);
 		}
-		return fields.get(fldName);
+		
+		return value;
 	}
 	
 	@Override
@@ -79,5 +94,21 @@ public class Document_DynTyped extends Document {
 	@Override
 	public String getKey() {
 		return (String) this.fields.get(idFieldName);
+	}
+	
+	@Override
+	public String toString() {
+		String toS = super.toString(fieldsFilter);
+		if (toS == null) toS = "";
+		Map<String,Object> dynFields = getFields();
+		if (dynFields != null) {
+			for (String dynFldName: dynFields.keySet()) {
+				Object dynVal = dynFields.get(dynFldName);
+				String dynValStr = null;
+				if (dynVal != null) dynValStr = dynVal.toString();
+				toS += "\n----------\n"+dynFldName+": "+dynValStr;
+			}
+		}		
+		return toS;
 	}
 }
