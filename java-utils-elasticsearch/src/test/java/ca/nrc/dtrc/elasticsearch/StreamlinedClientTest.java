@@ -154,6 +154,15 @@ public class StreamlinedClientTest {
 		Person queryPerson = new Person("Lisa", "Simpson");
 		SearchResults<Person> searchResults = client.moreLikeThis(queryPerson);
 		
+		//
+		// You can also find documents that are similar to a list of
+		// documents.
+		//
+		List<Person> queryPeople = new ArrayList<Person>();
+		queryPeople.add(new Person("Lisa", "Simpson"));
+		queryPeople.add(new Person("Bart", "Simpson"));
+		searchResults = client.moreLikeThese(queryPeople);
+		
 		// You can then scroll through the hits as described above...
 		
 		//
@@ -258,7 +267,23 @@ public class StreamlinedClientTest {
 		ESTestHelpers.PlayLine queryLine = new ESTestHelpers.PlayLine("Something is rotten in the kingdom of England");
 		SearchResults<ESTestHelpers.PlayLine> gotSearchResults = client.moreLikeThis(queryLine, new IncludeFields("^text_entry$"));		
 		assertIsInFirstNHits("Something is rotten in the state of Denmark.", 3, "text_entry", gotSearchResults);
-	}		
+	}	
+	
+	@Test
+	public void test__moreLikeThese__HappyPath() throws Exception {
+		StreamlinedClient client = ESTestHelpers.makeHamletTestClient();	
+		Thread.sleep(1*1000);
+
+		List<ESTestHelpers.PlayLine> queryLines = new ArrayList<ESTestHelpers.PlayLine>();
+		
+		queryLines.add(new ESTestHelpers.PlayLine("Something is rotten in the kingdom of England"));
+		queryLines.add(new ESTestHelpers.PlayLine("To sing or not to sing that is the question"));
+		
+		SearchResults<ESTestHelpers.PlayLine> gotSearchResults = client.moreLikeThese(queryLines, new IncludeFields("^text_entry$"));		
+		assertIsInFirstNHits("I must to England; you know that?", 20, "text_entry", gotSearchResults);
+		assertIsInFirstNHits("To be, or not to be: that is the question:", 20, "text_entry", gotSearchResults);
+	}	
+	
 	
 	@Test
 	public void test__searchFreeform__HappyPath() throws Exception {

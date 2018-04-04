@@ -670,26 +670,84 @@ public class StreamlinedClient {
 		
 		return jsonBody;
 	}
+	
+	public <T extends Document> SearchResults<T> moreLikeThese(List<T> queryDocs) throws ElasticSearchException, IOException, InterruptedException {		
+		return moreLikeThese(queryDocs, null, null);
+	}
+	
+	public <T extends Document> SearchResults<T> moreLikeThese(List<T> queryDocs, FieldFilter fldFilter) throws ElasticSearchException, IOException, InterruptedException {
+		return moreLikeThese(queryDocs, fldFilter, null);
+	}
+	
+	public <T extends Document> SearchResults<T> moreLikeThese(List<T> queryDocs, FieldFilter fldFilter, String esDocTypeName) throws ElasticSearchException, IOException, InterruptedException {
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.moreLikeThisese");
+		
+		List<Map<String,Object>> queryDocMaps = null;
+		queryDocMaps = filterFields(queryDocs, esDocTypeName, fldFilter);
+		
+		String esType = esDocTypeName;
+		if (esType == null) esType = queryDocs.get(0).getClass().getName();
+		String mltBody = moreLikeTheseJsonBody(esType, queryDocMaps);
+		
+		
+		SearchResults results = null;
+		results = search(mltBody, esDocTypeName, queryDocs.get(0));
+	
+		return results;
+	}				
+	
 
-//	protected static Map<String, Object> filterFields(Document queryDoc) throws ElasticSearchException {
-//		return filterFields(queryDoc, null);
-//	}
-//
-//	protected static Map<String, Object> filterFields(Map<String,Object> queryDoc) throws ElasticSearchException {
-//		return filterFields(queryDoc, null);
-//	}
-	
-	
-//	protected static Map<String, Object> filterFields(Map<String,Object> queryDoc, FieldFilter filter) {
-//		Map<String,Object> objMap = new HashMap<String,Object>();
-//		for (String fieldName: queryDoc.keySet()) {
-//			if (filter == null || filter.keepField(fieldName)) {
-//				objMap.put(fieldName, queryDoc.get(fieldName));
-//			}
-//		}
-//		
-//		return objMap;
-//	}
+	private String moreLikeTheseJsonBody(String type, List<Map<String, Object>> queryDocMaps) throws ElasticSearchException {
+		ObjectMapper mapper = new ObjectMapper(); 
+		JsonNodeFactory nodeFactory = JsonNodeFactory.instance;
+
+		ObjectNode root = nodeFactory.objectNode();
+		try {
+			ObjectNode query = nodeFactory.objectNode();
+			root.set("query", query);
+			{
+				ObjectNode mlt = nodeFactory.objectNode();
+				query.set("more_like_this", mlt);
+				{
+					mlt.put("min_term_freq", 1);
+					mlt.put("max_query_terms",12);
+					
+					ArrayNode fields = nodeFactory.arrayNode();
+					mlt.set("fields", fields);
+					
+					ArrayNode like = nodeFactory.arrayNode();
+					mlt.set("like", like);
+					{
+						for (Map<String,Object> aQueryDoc: queryDocMaps) {
+							ObjectNode queryDocDef = nodeFactory.objectNode();
+							like.add(queryDocDef);
+							queryDocDef.put("_index", indexName);
+							queryDocDef.put("_type", type);
+							ObjectNode doc = nodeFactory.objectNode();
+							queryDocDef.set("doc", doc);
+							for (String fieldName: aQueryDoc.keySet()) {
+								// Ignore all but the 'text' fields
+								String fieldType = getFieldType(fieldName, type);
+								if (fieldType != null && fieldType.equals("text")) {
+									fields.add(fieldName);
+									Object fieldValue = aQueryDoc.get(fieldName);
+									String json = mapper.writeValueAsString(fieldValue);
+									JsonNode jsonNode = mapper.readTree(json);			
+									doc.set(fieldName, jsonNode);
+								}
+							}
+						}
+					}
+				}
+			}
+		
+		} catch (Exception exc) {
+			throw new ElasticSearchException(exc);
+		}
+		
+		String jsonBody = root.toString();
+		
+		return jsonBody;	}
 
 	protected Map<String, Object> filterFields(Document queryDoc) throws ElasticSearchException {
 		return filterFields(queryDoc, null, null);
@@ -700,7 +758,7 @@ public class StreamlinedClient {
 		return filterFields(queryDoc, null, filter);
 	}
 
-	protected Map<String, Object> filterFields(Document queryDoc, String esDocType, FieldFilter filter) throws ElasticSearchException {
+	protected <T extends Document> Map<String, Object> filterFields(T queryDoc, String esDocType, FieldFilter filter) throws ElasticSearchException {
 		if (esDocType == null) esDocType = queryDoc.defaultESDocType();
 		Map<String,Object> objMap = new HashMap<String,Object>();
 		
@@ -738,6 +796,16 @@ public class StreamlinedClient {
 		}
 			
 		return objMap;
+	}
+	
+	protected <T extends Document> List<Map<String, Object>> filterFields(List<T> queryDocs, String esDocType, FieldFilter filter) throws ElasticSearchException {
+		List<Map<String, Object>> maps = new ArrayList<Map<String, Object>>();
+		for (Document aDoc: queryDocs) {
+			Map<String,Object> aMap = filterFields(aDoc, esDocType, filter);
+			maps.add(aMap);
+		}
+		
+		return maps;
 	}
 	
 
@@ -1080,4 +1148,5 @@ public class StreamlinedClient {
 	public void attachObserver(StreamlinedClientObserver _obs) {
 		observers.add(_obs);
 	}
+
 }
