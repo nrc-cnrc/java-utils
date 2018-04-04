@@ -26,7 +26,7 @@ public class Document_DynTyped extends Document {
 		public String getIdFieldName() {return this.idFieldName; }
 
 
-	public Document_DynTyped() {};
+	public Document_DynTyped() {initialize(null, null, null);};
 		
 	public Document_DynTyped(String _idFieldName, String _idValue) throws ElasticSearchException {
 		if (_idFieldName == null) throw new ElasticSearchException("You must provide a non-null name for the ID field");
@@ -74,13 +74,24 @@ public class Document_DynTyped extends Document {
 	}
 	
 	@Override
-	public Object getField(String fldName) throws DocumentException {
-		Object value = null;
+	public Object getField(String fldName, boolean failIfNotFound, Object defaultVal) throws DocumentException {		
+		Object value = defaultVal;
 		
+		// First check if there is a dynamic field by that name
 		if (fields.containsKey(fldName)) {
 			value = fields.get(fldName);
 		} else {
-			value = super.getField(fldName);
+			// No dynamic field by that name. Is there a 
+			// static one?
+			try {
+				value = super.getField(fldName, true, null);
+			} catch (DocumentException exc){
+				// No static field by that name either.
+				// Should we raise an exception?
+				if (failIfNotFound) {
+					throw new DocumentException(exc);
+				}
+			}
 		}
 		
 		return value;
@@ -103,6 +114,7 @@ public class Document_DynTyped extends Document {
 		Map<String,Object> dynFields = getFields();
 		if (dynFields != null) {
 			for (String dynFldName: dynFields.keySet()) {
+				if (dynFldName.equals("fields")) continue;
 				Object dynVal = dynFields.get(dynFldName);
 				String dynValStr = null;
 				if (dynVal != null) dynValStr = dynVal.toString();

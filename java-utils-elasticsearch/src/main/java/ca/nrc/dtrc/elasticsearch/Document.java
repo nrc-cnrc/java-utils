@@ -22,13 +22,21 @@ public abstract class Document {
 	public abstract String getKey();
 	
 	public Object getField(String fldName) throws DocumentException {
-		Object value = null;
+		return getField(fldName, true, null);
+	}
+
+	public Object getField(String fldName, boolean failIfNotFound) throws DocumentException {
+		return getField(fldName, failIfNotFound, null);
+	}
+	
+	public Object getField(String fldName, boolean failIfNotFound, Object defaultVal) throws DocumentException {
+		Object value = defaultVal;
 		try {
 			Field fld = this.getClass().getDeclaredField(fldName);
 			fld.setAccessible(true);
 			value = (Object)fld.get(this);
 		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException exc) {
-			throw new DocumentException(exc);
+			if (failIfNotFound) throw new DocumentException(exc);
 		}
 		
 		return value;
@@ -47,7 +55,7 @@ public abstract class Document {
 		ObjectMapper mapper = new ObjectMapper();
 		Map<String, Object> map = mapper.convertValue(this, Map.class);
 		for (String field: map.keySet()) {
-			if (fieldsFilter.contains(field)) continue;
+			if (fieldsFilter != null && fieldsFilter.contains(field)) continue;
 			toStr += "\n-------\n"+field+": "+map.get(field);
 		}
 		
