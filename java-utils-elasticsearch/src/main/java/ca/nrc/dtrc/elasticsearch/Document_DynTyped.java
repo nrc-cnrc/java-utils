@@ -27,6 +27,11 @@ public class Document_DynTyped extends Document {
 
 
 	public Document_DynTyped() {initialize(null, null, null);};
+	
+	public Document_DynTyped(String _idFieldName) throws ElasticSearchException {
+		if (_idFieldName == null) throw new ElasticSearchException("You must provide a non-null name for the ID field");		
+		initialize(_idFieldName, null, null);
+	}
 		
 	public Document_DynTyped(String _idFieldName, String _idValue) throws ElasticSearchException {
 		if (_idFieldName == null) throw new ElasticSearchException("You must provide a non-null name for the ID field");
@@ -107,12 +112,21 @@ public class Document_DynTyped extends Document {
 		return (String) this.fields.get(idFieldName);
 	}
 	
+	public Document setKey(String key) throws DocumentException {
+		this.setField(getKeyFieldName(), key);
+		return this;
+	}
+	
 	@Override
 	public String toString() {
-		String toS = super.toString(fieldsFilter);
-		if (toS == null) toS = "";
+		String toS = null;
+		
 		Map<String,Object> dynFields = getFields();
 		if (dynFields != null) {
+			if (dynFields.containsKey(null)) {
+				// Map with null keys cause problem in super.toString();
+				dynFields.remove(null);
+			}			
 			for (String dynFldName: dynFields.keySet()) {
 				if (dynFldName.equals("fields")) continue;
 				Object dynVal = dynFields.get(dynFldName);
@@ -120,7 +134,12 @@ public class Document_DynTyped extends Document {
 				if (dynVal != null) dynValStr = dynVal.toString();
 				toS += "\n----------\n"+dynFldName+": "+dynValStr;
 			}
+			
 		}		
+		if (toS == null) toS = "";
+		
+		toS = super.toString(fieldsFilter) + toS;
+		
 		return toS;
 	}
 }
