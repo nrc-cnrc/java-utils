@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.After;
@@ -266,10 +267,15 @@ public abstract class SearchEngineTest {
 
 	private Boolean hitMatchesContent(SearchEngine.Query query, String wholeContent) {
 		Boolean matches = null;
-		if (query.fuzzyQuery != null) {
-			matches = hitMatchesContent_FuzzyQuery(query.fuzzyQuery, wholeContent);
+		if (wholeContent.contains("moved")) {
+			// Don't check keywords if the page was moved to a different location
+			matches = true;
 		} else {
-			matches = hitMatchesContent_TermsList(query.terms, wholeContent);
+			if (query.fuzzyQuery != null) {
+				matches = hitMatchesContent_FuzzyQuery(query.fuzzyQuery, wholeContent);
+			} else {
+				matches = hitMatchesContent_TermsList(query.terms, wholeContent);
+			}
 		}
 		return matches;
 	}
