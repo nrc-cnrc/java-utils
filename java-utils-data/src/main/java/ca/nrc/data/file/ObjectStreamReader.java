@@ -65,7 +65,7 @@ public class ObjectStreamReader implements Closeable {
 		initialize(fileReader);
 	}
 
-	public ObjectStreamReader(String streamContent) throws FileNotFoundException {
+	public ObjectStreamReader(String streamContent)  {
 		StringReader strReader = new StringReader(streamContent);
 		initialize(strReader);
 	}
@@ -112,6 +112,7 @@ public class ObjectStreamReader implements Closeable {
 				if (insideOfBody) {
 					return onObjectBodyEnd("");
 				} else {
+					close(); // close the reader when you reach the end
 					return null;
 				}
 			} else if (lineType.equals("class")) {
