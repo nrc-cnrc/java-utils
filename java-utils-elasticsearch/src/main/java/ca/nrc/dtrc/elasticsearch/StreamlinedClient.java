@@ -870,8 +870,11 @@ public class StreamlinedClient {
 			BufferedReader br = new BufferedReader(new FileReader(dataFile));
 			int currBatchSize = 0;
 			String jsonBatch = "";
-			String  jsonLine = br.readLine();
-			while (jsonLine != null) {
+			String jsonLine = null;
+			while (true) {
+				jsonLine = br.readLine();
+				if (jsonLine == null) break;
+				if (jsonLine.matches("^(class|bodyEndMarker)=.*$")) continue;
 				id = getLineID(jsonLine, verbose);
 				jsonBatch += 
 					"\n{\"index\": {\"_index\": \""+indexName+"\", \"_type\" : \""+docTypeName+"\", \"_id\": \""+id+"\"}}" +
@@ -889,7 +892,7 @@ public class StreamlinedClient {
 					currBatchSize++;
 				}
 				
-				jsonLine = br.readLine();
+//				jsonLine = br.readLine();
 			}
 		} catch (FileNotFoundException e) {
 			throw new ElasticSearchException("Could not open file "+dataFPath+" for bulk indexing.");
