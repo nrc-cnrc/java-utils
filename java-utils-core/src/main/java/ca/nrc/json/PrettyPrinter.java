@@ -308,7 +308,9 @@ public class PrettyPrinter {
 				boolean first = true;
 				for (Object aKey: map.keySet()) {
 					if (!first) json = json + ",\n";
-					json = json + subIndentation + "\"" + aKey.toString() + "\":\n";
+					String aKeyStr = "null";
+					if (aKey != null) aKeyStr = aKey.toString();
+					json = json + subIndentation + "\"" + aKeyStr + "\":\n";
 					json = json + prettyPrint(map.get(aKey), fieldsToIgnore, indentLevel+2);
 					first = false;
 				}
