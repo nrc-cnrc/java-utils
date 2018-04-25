@@ -35,6 +35,8 @@ import org.htmlcleaner.TagNode;
 
 import ca.nrc.data.harvesting.SearchEngine.SearchEngineException;
 
+import ca.nrc.data.harvesting.SearchEngine.SearchEngineException;
+
 /**
  * PageHarvester is a wrapper for Htmlcleaner for crawling a page, cleaning a
  * malformated HTMl page, finding the hyperlink in this page, and extracting the
