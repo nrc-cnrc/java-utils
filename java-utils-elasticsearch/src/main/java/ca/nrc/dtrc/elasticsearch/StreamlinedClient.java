@@ -164,6 +164,17 @@ public class StreamlinedClient {
 		return jsonResponse;
 	}	
 	
+	public void deleteDocumentWithID(String docID, Class<?extends Document> docClass) throws ElasticSearchException {
+		deleteDocumentWithID(docID, docClass.getName());
+	}
+	
+	public void deleteDocumentWithID(String docID, String esDocType) throws ElasticSearchException {
+		URL url = esUrlBuilder().forDocType(esDocType).forDocID(docID).build();
+		delete(url);
+		sleep();
+	}
+
+	
 	public <T extends Document> List<T> listFirstNDocuments(T docPrototype, Integer maxN) throws ElasticSearchException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.listAll");
 		@SuppressWarnings("unchecked")
@@ -1151,5 +1162,6 @@ public class StreamlinedClient {
 	public void attachObserver(StreamlinedClientObserver _obs) {
 		observers.add(_obs);
 	}
+
 
 }

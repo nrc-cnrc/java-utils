@@ -118,6 +118,9 @@ public class StreamlinedClientTest {
 		// Get a specific document by its ID
 		Person person = (Person) client.getDocumentWithID("Homer", Person.class);
 		
+		// Delete a document with a specific ID
+		client.deleteDocumentWithID("Homer", Person.class);
+		
 		
 		//
 		// Search for some objects. You can specify an arbitrary query as a JSON string
@@ -224,11 +227,10 @@ public class StreamlinedClientTest {
 		// For example...
 		//
 		Document_DynTyped retrievedDoc = (Document_DynTyped) client.getDocumentWithID("X18D98KL9", Document_DynTyped.class, docType);
-			
 	}
 	
 	/*********************************
-	 * VERIFICATINO TESTS
+	 * VERIFICATION TESTS
 	 *********************************/
 	
 	@Test
@@ -258,6 +260,35 @@ public class StreamlinedClientTest {
 		assertUnscoredHitsAre("", expHits, gotResults);
 	}	
 	
+	
+	@Test
+	public void test__deleteDocument__HappyPath() throws Exception {
+		StreamlinedClient client = ESTestHelpers.makeEmptyTestClient();
+		
+		ESTestHelpers.assertIndexIsEmpty(client);
+
+		final String PERSON = "person";
+		Person homer = new Person("Homer", "Simpson");
+		String jsonResponse = client.putDocument(homer);
+		Person marg = new Person("Marg", "Simpson");
+		jsonResponse = client.putDocument(marg);
+		
+		List<Person> gotPeople = client.listFirstNDocuments(homer, 3);
+		
+		Person[] expPeople = new Person[] {homer, marg};
+		AssertHelpers.assertDeepEquals("", expPeople, gotPeople);
+		
+		client.deleteDocumentWithID(homer.getKey(), Person.class.getName());		
+		expPeople = new Person[] {marg};
+		Thread.sleep(500);
+		gotPeople = client.listFirstNDocuments(homer, 3);
+		AssertHelpers.assertDeepEquals("Homer was not properly deleted from the index.", expPeople, gotPeople);
+		
+				
+		client.deleteDocumentWithID(homer.getKey(), Person.class.getName());		
+		AssertHelpers.assertDeepEquals("There was a problem when deleting the same document twice", expPeople, gotPeople);
+
+	}	
 
 	@Test
 	public void test__moreLikeThis__HappyPath() throws Exception {
