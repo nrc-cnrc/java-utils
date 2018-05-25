@@ -19,11 +19,31 @@
 	 </modules>
 	 
 	 
-	 <!--  Dependancies that are needed by all modules  -->
-	 <dependencies>
+	<build>
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<groupId>org.codehaus.mojo</groupId>
+					<artifactId>license-maven-plugin</artifactId>
+					<version>1.16</version>
+				</plugin>
+			</plugins>
+		</pluginManagement>		
+	
+	 	<plugins>	
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<version>1.16</version>
+			</plugin>
+	 	</plugins>
+	 </build>
+	 
+	<!--  Dependancies that are needed by all modules  -->
+	<dependencies>
 	 
 		<dependency>
-		    <groupId>junit</groupId>
+			<groupId>junit</groupId>
 		    <artifactId>junit</artifactId>
 		    <version>4.12</version>
 		    <scope>test</scope>
@@ -35,7 +55,16 @@
 		    <version>1.2.17</version>
 		</dependency>	 
 	 
-	 </dependencies>
+	</dependencies>
   
+	<reporting>
+		<plugins>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>license-maven-plugin</artifactId>
+				<version>1.16</version>
+			</plugin>
+		</plugins>
+	</reporting>	
   
 </project>
