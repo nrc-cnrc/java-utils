@@ -28,25 +28,33 @@ import ca.nrc.json.PrettyPrinter;
  */ 
 
 public class AssertHelpers {
-
+	
 	public static void assertDeepEquals(
 			String message, Object expObject, Object gotObject) throws IOException {
 		Set<String> emptyIgnoreFields = new HashSet<String>();
-		assertDeepEquals(message, expObject, gotObject, emptyIgnoreFields);
+		assertDeepEquals(message, expObject, gotObject, emptyIgnoreFields, null);
 	}
 	
 	public static void assertDeepEquals(
 			String message, Object expObject, Object gotObject, String[] ignoreFields) throws IOException {
 		Set<String> ignoreFieldsSet = new HashSet<String>();
 		for (String aFieldName: ignoreFields) ignoreFieldsSet.add(aFieldName);
-		assertDeepEquals(message, expObject, gotObject, ignoreFieldsSet);
+		assertDeepEquals(message, expObject, gotObject, ignoreFieldsSet, null);
 	}
 
 	public static void assertDeepEquals(
 			String message, Object expObject, Object gotObject,
-			Set<String> ignoreFields) throws IOException {
-		String expObjectJsonString = PrettyPrinter.print(expObject, ignoreFields);
-		assertEqualsJsonCompare(message, expObjectJsonString, gotObject, ignoreFields, true);		
+			Set<String> ignoreFields, Integer decimalsTolerance) throws IOException {
+		String expObjectJsonString = PrettyPrinter.print(expObject, ignoreFields, decimalsTolerance);
+		assertEqualsJsonCompare(message, expObjectJsonString, gotObject, ignoreFields, true, decimalsTolerance);		
+	}
+
+	public static void assertDeepEquals(
+			String message, Object expObject, Object gotObject,
+			Integer decimalsTolerance) throws IOException {
+		Set<String> ignoreFields = new HashSet<String>();
+		String expObjectJsonString = PrettyPrinter.print(expObject, ignoreFields, decimalsTolerance);
+		assertEqualsJsonCompare(message, expObjectJsonString, gotObject, ignoreFields, true, decimalsTolerance);		
 	}
 	
 	public static void assertDeepNotEqual(String message, Object expObject, Object gotObject) {
@@ -102,12 +110,12 @@ public class AssertHelpers {
 	public static void assertEqualsJsonCompare(String message, 
 			String expJsonString, Object gotObject,
 			Set<String> ignoreFields) throws  IOException {
-		assertEqualsJsonCompare(message, expJsonString, gotObject, ignoreFields, false);
+		assertEqualsJsonCompare(message, expJsonString, gotObject, ignoreFields, false, null);
 	}
 		
 	public static void assertEqualsJsonCompare(String message, 
 			String expJsonString, Object gotObject,
-			Set<String> ignoreFields, boolean expJsonIsAlreadyPretty) throws  IOException {
+			Set<String> ignoreFields, boolean expJsonIsAlreadyPretty, Integer decimalsTolerance) throws  IOException {
 		/*
 		 * Algorithm is as follows:
 		 * 
@@ -135,7 +143,7 @@ public class AssertHelpers {
 		 *  - Then we print that JsonNode into a string with keys sorted 
 		 *     alphabetically  
 		*/
-		String gotJsonStrKeysSorted = PrettyPrinter.print(gotObject, ignoreFields);
+		String gotJsonStrKeysSorted = PrettyPrinter.print(gotObject, ignoreFields, decimalsTolerance);
 		
 		/*
 		 *  Possibly "prettify" the expected json string

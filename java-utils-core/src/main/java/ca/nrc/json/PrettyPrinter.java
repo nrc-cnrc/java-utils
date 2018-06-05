@@ -19,12 +19,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class PrettyPrinter {
-//	private static class NaturalComparator<T extends Comparable<? super T>> implements Comparator<T> {
-//	    @Override
-//	    public int compare(T o1, T o2) {
-//	        return o1.compareTo(o2);
-//	    }
-//	}
 	
 	private Integer decimals = null;
 	
@@ -33,10 +27,9 @@ public class PrettyPrinter {
 	private Set<String> fieldsToIgnore = new HashSet<String>();	
 	
 	public PrettyPrinter() {
-		this.decimals = 4;
 	}
 	
-	public PrettyPrinter(int _decimals) {
+	public PrettyPrinter(Integer _decimals) {
 		this.decimals = _decimals;
 	}
 	
@@ -45,12 +38,19 @@ public class PrettyPrinter {
 		return json;
 	}
 	
-	public static String print(Object obj, int _decimals) {
+	public static String print(Object obj, Integer _decimals) {
 		PrettyPrinter printer = new PrettyPrinter(_decimals);
 		Set<String> fieldsToIgnoreSet = new HashSet<String>();
 		String json = printer.prettyPrint(obj, fieldsToIgnoreSet);
 		return json;		
 	}
+	
+	public static String print(Object obj, Set<String> ignoreFields, Integer _decimals) {
+		PrettyPrinter printer = new PrettyPrinter(_decimals);
+		String json = printer.prettyPrint(obj, ignoreFields);
+		return json;		
+	}
+	
 	
 	public static String print(Object obj, String[] fieldsToIgnore) {
 		PrettyPrinter printer = new PrettyPrinter();
@@ -71,7 +71,7 @@ public class PrettyPrinter {
 		return json;
 	}
 
-	private String prettyPrint(Object obj, Set<String>  fieldsToIgnore, int indentLevel) {
+	private String prettyPrint(Object obj, Set<String> fieldsToIgnore, int indentLevel) {
 		String json = "";
 
 		boolean loopFound = checkForLoops(obj);
@@ -96,10 +96,16 @@ public class PrettyPrinter {
 		} else if (obj instanceof Boolean) {
 			json = prettyPrintBoolean((Boolean)obj, indentLevel);
 		} else if ((num = isNumber(obj)) != null) {
-			json = prettyPrintNumber2(num, indentLevel);
-//		} else if (obj instanceof Number) {
-//			json = prettyPrintNumber((Number)obj, indentLevel);
-		} else if (obj instanceof Object[]) {
+			json = prettyPrintNumber(num, indentLevel);
+		} else if (obj instanceof int[]) {
+			json = prettyPrintIntArray((int[])obj, fieldsToIgnore, indentLevel);
+		} else if (obj instanceof long[]) {
+			json = prettyPrintLongArray((long[])obj, fieldsToIgnore, indentLevel);
+		} else if (obj instanceof double[]) {
+			json = prettyPrintDoubleArray((double[])obj, fieldsToIgnore, indentLevel);
+		} else if (obj instanceof float[]) {
+			json = prettyPrintFloatArray((float[])obj, fieldsToIgnore, indentLevel);
+		} else if (obj instanceof Object[] || obj instanceof double[] || obj instanceof int[] || obj instanceof long[]) {
 			json = prettyPrintArray((Object[])obj, fieldsToIgnore, indentLevel);			
 		} else if (obj instanceof JsonNode) {
 			json = prettyPrintJsonNode((JsonNode)obj, fieldsToIgnore, indentLevel);
@@ -114,10 +120,37 @@ public class PrettyPrinter {
 		return json;
 	}
 
+	private String prettyPrintLongArray(long[] arr, Set<String> fieldsToIgnore, int indentLevel) {
+		Long[] objArr = new Long[arr.length];
+		for (int ii=0; ii< arr.length; ii++) objArr[ii] = new Long(arr[ii]);
+		String json = prettyPrintArray(objArr, fieldsToIgnore, indentLevel);
+		return json;
+	}
 
-	private String prettyPrintNumber2(Number num, int indentLevel) {
+	private String prettyPrintIntArray(int[] arr, Set<String> fieldsToIgnore, int indentLevel) {
+		Integer[] objArr = new Integer[arr.length];
+		for (int ii=0; ii< arr.length; ii++) objArr[ii] = new Integer(arr[ii]);
+		String json = prettyPrintArray(objArr, fieldsToIgnore, indentLevel);
+		return json;
+	}
+
+	private String prettyPrintFloatArray(float[] arr, Set<String> fieldsToIgnore, int indentLevel) {
+		Float[] objArr = new Float[arr.length];
+		for (int ii=0; ii< arr.length; ii++) objArr[ii] = new Float(arr[ii]);
+		String json = prettyPrintArray(objArr, fieldsToIgnore, indentLevel);
+		return json;
+	}
+
+	private String prettyPrintDoubleArray(double[] arr, Set<String> fieldsToIgnore, int indentLevel) {
+		Double[] objArr = new Double[arr.length];
+		for (int ii=0; ii< arr.length; ii++) objArr[ii] = new Double(arr[ii]);
+		String json = prettyPrintArray(objArr, fieldsToIgnore, indentLevel);
+		return json;
+	}
+
+	private String prettyPrintNumber(Number num, int indentLevel) {
 		String numStr = null;
-		if (num instanceof Double || num instanceof Float) {
+		if (decimals != null && (num instanceof Double || num instanceof Float)) {
 			// Round the number to the given tolerance level.
 			numStr = String.format("%."+this.decimals.toString()+"f", num);
 		} else {
@@ -324,10 +357,6 @@ public class PrettyPrinter {
 		return json;
 	}
 
-	private String prettyPrintNumber(Number num, int indentLevel) {
-		String json = indentation(indentLevel) + num.toString();
-		return json;
-	}
 
 	private String prettyPrintString(String str, Set<String> fieldsToIgnore, int indentLevel) {
 		String baseIndentation = indentation(indentLevel);

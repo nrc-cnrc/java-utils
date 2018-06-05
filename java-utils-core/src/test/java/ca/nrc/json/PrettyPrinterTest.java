@@ -428,16 +428,15 @@ public class PrettyPrinterTest {
 	public void test_print__double() {
 		double num = 0.17437343;
 		
-		// By default, doubles are rounded to 4 decimals.
 		String gotJson = PrettyPrinter.print(num);
-		String expJson =  "0.1744";
+		String expJson =  "0.17437343";
 		Assert.assertEquals(expJson, gotJson);		
 
-		// Now we ask for 2 decimals;
-		int decimals = 2;
+		// Now we ask for 4 decimals;
+		int decimals = 4;
 		gotJson = PrettyPrinter.print(num, decimals);
 		// In th to 4 decimals
-		expJson =  "0.17";
+		expJson =  "0.1744";
 		Assert.assertEquals(expJson, gotJson);				
 	}	
 	
@@ -445,19 +444,128 @@ public class PrettyPrinterTest {
 	public void test_print__Double() {
 		Double num = 0.17437343;
 		
-		// By default, doubles are rounded to 4 decimals.
 		String gotJson = PrettyPrinter.print(num);
-		String expJson =  "0.1744";
+		String expJson =  "0.17437343";
+		Assert.assertEquals(expJson, gotJson);		
+
+		// Now we ask for 4 decimals;
+		int decimals = 4;
+		gotJson = PrettyPrinter.print(num, decimals);
+		// In th to 4 decimals
+		expJson =  "0.1744";
+		Assert.assertEquals(expJson, gotJson);				
+	}	
+
+	@Test
+	public void test_print__DoubleArray() {
+		Double[] arr = new Double[] {0.1744, 12.3427};
+		
+		String gotJson = PrettyPrinter.print(arr);
+		String expJson =  
+				  "[\n"
+				+ "  0.1744,\n"
+				+ "  12.3427\n"
+				+ "]"
+				  ;
 		Assert.assertEquals(expJson, gotJson);		
 
 		// Now we ask for 2 decimals;
 		int decimals = 2;
-		gotJson = PrettyPrinter.print(num, decimals);
+		gotJson = PrettyPrinter.print(arr, decimals);
 		// In th to 4 decimals
-		expJson =  "0.17";
+		expJson = 
+				  "[\n"
+				+ "  0.17,\n"
+				+ "  12.34\n"
+				+ "]"
+				  ;
+				
 		Assert.assertEquals(expJson, gotJson);				
 	}	
+	
+	@Test
+	public void test_print__doubleArray() {
+		double[] arr = new double[] {0.1744, 12.3427};
+		
+		String gotJson = PrettyPrinter.print(arr);
+		String expJson =  
+				  "[\n"
+				+ "  0.1744,\n"
+				+ "  12.3427\n"
+				+ "]"
+				  ;
+		Assert.assertEquals(expJson, gotJson);		
 
+		// Now we ask for 2 decimals;
+		int decimals = 2;
+		gotJson = PrettyPrinter.print(arr, decimals);
+		// In th to 4 decimals
+		expJson = 
+				  "[\n"
+				+ "  0.17,\n"
+				+ "  12.34\n"
+				+ "]"
+				  ;
+				
+		Assert.assertEquals(expJson, gotJson);				
+	}	
+	
+	@Test
+	public void test_print__floatArray() {
+		float[] arr = new float[] {0.1744f, 12.3427f};
+		
+		String gotJson = PrettyPrinter.print(arr);
+		String expJson =  
+				  "[\n"
+				+ "  0.1744,\n"
+				+ "  12.3427\n"
+				+ "]"
+				  ;
+		Assert.assertEquals(expJson, gotJson);		
+
+		// Now we ask for 2 decimals;
+		int decimals = 2;
+		gotJson = PrettyPrinter.print(arr, decimals);
+		// In th to 4 decimals
+		expJson = 
+				  "[\n"
+				+ "  0.17,\n"
+				+ "  12.34\n"
+				+ "]"
+				  ;
+				
+		Assert.assertEquals(expJson, gotJson);				
+	}		
+	
+	@Test
+	public void test_print__intArray() {
+		int[] arr = new int[] {1, 2, 100};
+		
+		String gotJson = PrettyPrinter.print(arr);
+		String expJson =  
+				  "[\n"
+				+ "  1,\n"
+				+ "  2,\n"
+				+ "  100\n"
+				+ "]"
+				  ;
+		Assert.assertEquals(expJson, gotJson);		
+	}			
+
+	@Test
+	public void test_print__longArray() {
+		long[] arr = new long[] {1, 2, 100};
+		
+		String gotJson = PrettyPrinter.print(arr);
+		String expJson =  
+				  "[\n"
+				+ "  1,\n"
+				+ "  2,\n"
+				+ "  100\n"
+				+ "]"
+				  ;
+		Assert.assertEquals(expJson, gotJson);		
+	}				
 	@Test
 	public void test__checkForLoops__SequenceThatDoesNOTIntroduceALoop() {
 		Hello obj1 = new Hello("hi");
