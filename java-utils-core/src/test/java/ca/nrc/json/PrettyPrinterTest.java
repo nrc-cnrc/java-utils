@@ -416,8 +416,48 @@ public class PrettyPrinterTest {
 		Assert.assertEquals(expJson, gotJson);		
 	}
 	
+	@Test
+	public void test_print__int() {
+		int num = 10;
+		String gotJson = new PrettyPrinter().print(num);
+		String expJson =  "10";
+		Assert.assertEquals(expJson, gotJson);		
+	}	
 	
+	@Test
+	public void test_print__double() {
+		double num = 0.17437343;
+		
+		// By default, doubles are rounded to 4 decimals.
+		String gotJson = PrettyPrinter.print(num);
+		String expJson =  "0.1744";
+		Assert.assertEquals(expJson, gotJson);		
+
+		// Now we ask for 2 decimals;
+		int decimals = 2;
+		gotJson = PrettyPrinter.print(num, decimals);
+		// In th to 4 decimals
+		expJson =  "0.17";
+		Assert.assertEquals(expJson, gotJson);				
+	}	
 	
+	@Test
+	public void test_print__Double() {
+		Double num = 0.17437343;
+		
+		// By default, doubles are rounded to 4 decimals.
+		String gotJson = PrettyPrinter.print(num);
+		String expJson =  "0.1744";
+		Assert.assertEquals(expJson, gotJson);		
+
+		// Now we ask for 2 decimals;
+		int decimals = 2;
+		gotJson = PrettyPrinter.print(num, decimals);
+		// In th to 4 decimals
+		expJson =  "0.17";
+		Assert.assertEquals(expJson, gotJson);				
+	}	
+
 	@Test
 	public void test__checkForLoops__SequenceThatDoesNOTIntroduceALoop() {
 		Hello obj1 = new Hello("hi");

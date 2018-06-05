@@ -26,13 +26,30 @@ public class PrettyPrinter {
 //	    }
 //	}
 	
+	private Integer decimals = null;
+	
 	protected Set<Object> alreadySeen = new HashSet<Object>();
 	
 	private Set<String> fieldsToIgnore = new HashSet<String>();	
 	
+	public PrettyPrinter() {
+		this.decimals = 4;
+	}
+	
+	public PrettyPrinter(int _decimals) {
+		this.decimals = _decimals;
+	}
+	
 	public static String print(Object obj) {
 		String json = print(obj, new String[] {});
 		return json;
+	}
+	
+	public static String print(Object obj, int _decimals) {
+		PrettyPrinter printer = new PrettyPrinter(_decimals);
+		Set<String> fieldsToIgnoreSet = new HashSet<String>();
+		String json = printer.prettyPrint(obj, fieldsToIgnoreSet);
+		return json;		
 	}
 	
 	public static String print(Object obj, String[] fieldsToIgnore) {
@@ -62,6 +79,7 @@ public class PrettyPrinter {
 			return indentation(indentLevel) + "<OBJECT ALREADY SEEN. Not printing again to avoid infinite recursion>";
 		}
 
+		Number num = null;
 		
 		if (obj == null) {
 			json = indentation(indentLevel) + "null";
@@ -77,8 +95,10 @@ public class PrettyPrinter {
 		    json = prettyPrintString((String)obj, fieldsToIgnore, indentLevel);
 		} else if (obj instanceof Boolean) {
 			json = prettyPrintBoolean((Boolean)obj, indentLevel);
-		} else if (obj instanceof Number) {
-			json = prettyPrintNumber((Number)obj, indentLevel);
+		} else if ((num = isNumber(obj)) != null) {
+			json = prettyPrintNumber2(num, indentLevel);
+//		} else if (obj instanceof Number) {
+//			json = prettyPrintNumber((Number)obj, indentLevel);
 		} else if (obj instanceof Object[]) {
 			json = prettyPrintArray((Object[])obj, fieldsToIgnore, indentLevel);			
 		} else if (obj instanceof JsonNode) {
@@ -94,6 +114,61 @@ public class PrettyPrinter {
 		return json;
 	}
 
+
+	private String prettyPrintNumber2(Number num, int indentLevel) {
+		String numStr = null;
+		if (num instanceof Double || num instanceof Float) {
+			// Round the number to the given tolerance level.
+			numStr = String.format("%."+this.decimals.toString()+"f", num);
+		} else {
+			numStr = num.toString();
+		}
+		
+		String baseIndentation = indentation(indentLevel);
+		String json = baseIndentation +numStr;
+
+		return json;
+	}
+
+	private Number isNumber(Object obj) {
+		Number num = null;
+		if (obj instanceof Number) {
+			num = (Number)obj;
+		}
+		if (num == null) {
+			// Try parsing the objec as various raw number formats (ex: int, float, etc...)
+			String str = obj.toString();
+			try {
+				num = Integer.parseInt(str);
+			} catch (Exception e) {}
+			
+			if (num == null) {
+				try {
+					num = Long.parseLong(str);
+				} catch (Exception e) {}
+			}
+
+			if (num == null) {
+				try {
+					num = Double.parseDouble(str);
+				} catch (Exception e) {}
+			}
+			
+			if (num == null) {
+				try {
+					num = Float.parseFloat(str);
+				} catch (Exception e) {}
+				
+			}	
+		}
+		
+		return num;
+	}
+
+	private Class getNumberClass(Object obj) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 	private String PrettyPrintString(String aString, int indentLevel) {
 		String json = indentation(indentLevel);
