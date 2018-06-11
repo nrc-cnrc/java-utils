@@ -1,5 +1,9 @@
 package ca.nrc.testing;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -423,4 +427,19 @@ public class AssertHelpers {
 				gotValue <= maxValue);
 	}
 
+	public static void assertFileContentIs(String message, String expContent, String filePath) throws IOException {
+		BufferedReader reader = new BufferedReader(new FileReader(new File(filePath)));
+		
+		String gotContent = "";
+		while(true) {
+			String line = reader.readLine();
+			if (line == null) break;
+			if (!gotContent.isEmpty()) gotContent += "\n";
+			gotContent += line;
+		}
+		reader.close();
+		
+		assertStringEquals(message+"\nContent of file '"+filePath+"' was not as expected.", 
+				expContent, gotContent);
+	}
 }
