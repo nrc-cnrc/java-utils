@@ -319,7 +319,6 @@ public class PrettyPrinter {
 		boolean first = true;		
 		for (Field aField: sortedFields) {
 			String aFieldName = aField.getName();	
-//			System.out.println("--** prettyPrintObject: obj.getClass()="+obj.getClass()+", aFieldName="+aFieldName);
 			if (aFieldName.matches("this\\$\\d+")) {
 				// Reference to an inner class method or something...
 				// won't deal with those.
@@ -329,12 +328,10 @@ public class PrettyPrinter {
 				continue;
 			}
 			if (aField.isAnnotationPresent(JsonIgnore.class)) {
-//				System.out.println("--** prettyPrintObject: skipping JsonIgnore'd field");
 				continue;
 			}
 			if (fieldsToIgnore.contains(aField.getName())) {
 				// This is a field to be ignored
-//				System.out.println("--** prettyPrintObject: skipping field to ignore");
 				continue;
 			} 
 			if (!first) {
