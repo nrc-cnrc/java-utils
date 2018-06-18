@@ -1,9 +1,13 @@
 package ca.nrc.file;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.regex.Matcher;
+
+import org.apache.commons.io.FileUtils;
 
 /*
  * A class for accessing resource files and directories.
@@ -82,4 +86,17 @@ public class ResourceGetter {
 
 		return resStream;
 	}
+	
+	public static void createFileIfNotExist(String fPath) throws IOException {
+		if (fPath != null) {
+			File fl = new File(fPath);
+			if (!fl.exists()) {
+				FileUtils.forceMkdirParent(fl);
+				FileWriter fw = new FileWriter(fl);
+				fw.write("");
+				fw.close();
+			}
+		}
+	}
+	
 }
