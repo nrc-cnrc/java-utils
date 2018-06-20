@@ -121,9 +121,9 @@ public abstract class SearchEngineTest {
 	public void test__search__HappyPath() throws Exception {
 		SearchEngine engine = makeSearchEngine();
 		
-		SearchEngine.Query query = new SearchEngine.Query("learning");
+		SearchEngine.Query query = new SearchEngine.Query("learn");
 		List<SearchEngine.Hit> results = engine.search(query); 
-		Assert.assertEquals("max Hits", query.maxHits, results.size());
+		Assert.assertTrue("Found more hits than requested", results.size() <= query.maxHits);
 		assertResultsFitTheQuery(results, query);
 	}
 

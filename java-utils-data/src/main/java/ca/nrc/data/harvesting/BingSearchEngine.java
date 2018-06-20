@@ -74,7 +74,8 @@ public class BingSearchEngine extends SearchEngine {
 		
 		try {
 			parameters.put("q",
-					String.format("%s -pdf -ppt -doc -img -bmp -png -jpg -gif -zip -jar -mp3 -avi", queryString));
+//					String.format("%s -pdf -ppt -doc -img -bmp -png -jpg -gif -zip -jar -mp3 -avi", queryString));
+					String.format("%s -filetype:pdf -filetype:ppt -filetype:doc -filetype:img -filetype:bmp -filetype:png -filetype:jpg -filetype:gif -filetype:zip -filetype:jar -filetype:mp3 -filetype:avi", queryString));
 			if (seQuery.maxHits > 0) {
 				parameters.put("count", seQuery.maxHits);
 			}
