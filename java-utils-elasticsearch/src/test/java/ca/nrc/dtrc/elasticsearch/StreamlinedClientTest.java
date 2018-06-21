@@ -759,7 +759,7 @@ public class StreamlinedClientTest {
 		String clusterName = "Heaven";
 		String[] expIDs = new String[] {
 			"32778","32779","32820","33105","33156","33265","33355",
-			"34135","34304","34871","34879","34890","35071","36280",
+			"34135","34304", "34871","34879","34890","35071","36280",
 			"36590"		
 		};
 		String[] gotIDs = clusters.getCluster("Heaven").getDocIDs().toArray(new String[]{});
