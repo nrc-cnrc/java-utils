@@ -151,7 +151,7 @@ public abstract class SubCommand {
 
 	
 	public static void echo(String message) {
-		echo(message, 0, Verbosity.Level0);
+		echo(message, 0, Verbosity.Level1);
 	}
 	
 	public static void echo(String message, Verbosity level) {
@@ -159,7 +159,7 @@ public abstract class SubCommand {
 	}
 	
 	public static void echo(String message, int indentLevelChange) {
-		echo(message, indentLevelChange, Verbosity.Level0);
+		echo(message, indentLevelChange, Verbosity.Level1);
 	}
 
 	public static void echo(String message, int indentLevelChange, Verbosity level) {

@@ -120,7 +120,7 @@ public class ESTestHelpers {
 		
 		return client;
 	}
-
+	
 	public static StreamlinedClient makeHamletTestClient() throws IOException, ElasticSearchException, InterruptedException {
 		// Put a two second delay after each transaction, to give ES time to synchronize all the nodes.
 		double sleepSecs = 2.0;

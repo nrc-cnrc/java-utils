@@ -793,11 +793,11 @@ public class StreamlinedClient {
 	}
 
 	protected <T extends Document> Map<String, Object> filterFields(T queryDoc, String esDocType, FieldFilter filter) throws ElasticSearchException {
-		if (esDocType == null) esDocType = queryDoc.defaultESDocType();
 		Map<String,Object> objMap = new HashMap<String,Object>();
-		
+		if (esDocType == null) esDocType = queryDoc.defaultESDocType();
+			
 		Field[] fields = queryDoc.getClass().getFields();
-
+	
 		// Filter static fields
 		for (int ii=0; ii < fields.length; ii++) {
 			Field aField = fields[ii];
@@ -828,7 +828,7 @@ public class StreamlinedClient {
 				}				
 			}
 		}
-			
+		
 		return objMap;
 	}
 	
@@ -1185,6 +1185,4 @@ public class StreamlinedClient {
 	public void attachObserver(StreamlinedClientObserver _obs) {
 		observers.add(_obs);
 	}
-
-
 }
