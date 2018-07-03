@@ -124,7 +124,7 @@ public class StreamlinedClient {
 	
 	public String putDocument(Document doc) throws ElasticSearchException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.putDocument");
-		tLogger.trace("putting document: "+doc.getKey());
+		tLogger.trace("putting document: "+doc.keyValue());
 		String jsonDoc;
 		try {
 			jsonDoc = new ObjectMapper().writeValueAsString(doc);
@@ -132,14 +132,14 @@ public class StreamlinedClient {
 			throw new ElasticSearchException(e);
 		}	
 		String docType = doc.getClass().getName();
-		String docID = doc.getKey();
+		String docID = doc.keyValue();
 		String jsonResponse = putDocument(docType, docID, jsonDoc);
 		
 		return jsonResponse;
 	}
 
 	public String putDocument(String type, Document dynDoc) throws ElasticSearchException {
-		String docID = dynDoc.getKey();
+		String docID = dynDoc.keyValue();
 		String jsonDoc;
 		try {
 			jsonDoc = new ObjectMapper().writeValueAsString(dynDoc);
@@ -943,12 +943,12 @@ public class StreamlinedClient {
 		try {
 			doc = (Document_DynTyped) new ObjectMapper().readValue(jsonLine, Document_DynTyped.class);
 			if (verbose) {
-				System.out.println("Indexing doc with ID "+doc.getKey());
+				System.out.println("Indexing doc with ID "+doc.keyValue());
 			}
 		} catch (IOException e) {
 			throw new ElasticSearchException(e);
 		}		
-		String id =  doc.getKey();
+		String id =  doc.keyValue();
 		
 		return id;
 	}
@@ -1168,7 +1168,7 @@ public class StreamlinedClient {
 
 
 	private void writeToTextFile(Document doc, String outputDir) throws IOException {
-		String docID = doc.getKey();
+		String docID = doc.keyValue();
 		String docFilePath = outputDir+"/"+docID+".txt";
 		String docContent = doc.toString();
 		FileWriter writer = new FileWriter(new File(docFilePath));

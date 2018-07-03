@@ -40,7 +40,7 @@ public class Document_DynTypedTest {
 		//
 		// You can then ask the document for its key
 		//
-		String key = doc.getKey();
+		String key = doc.keyValue();
 		
 		// 
 		// Or the value of some of its fields
@@ -79,7 +79,7 @@ public class Document_DynTypedTest {
 		doc.setField("name", "6in screw");
 		doc.setField("weight_grams", 0.4);
 		
-		String key = doc.getKey();
+		String key = doc.keyValue();
 		AssertHelpers.assertDeepEquals("", key, "X18D98KL9");
 
 		String name = (String) doc.getField("name");
@@ -98,7 +98,7 @@ public class Document_DynTypedTest {
 		
 		Document_DynTyped doc = new Document_DynTyped("part_number", fields);
 		
-		String key = doc.getKey();
+		String key = doc.keyValue();
 		AssertHelpers.assertDeepEquals("", key, "X18D98KL9");
 
 		String name = (String) doc.getField("name");

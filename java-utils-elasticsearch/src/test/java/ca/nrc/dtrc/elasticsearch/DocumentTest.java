@@ -20,12 +20,12 @@ public class DocumentTest {
 		}
 
 		@Override
-		public String getKeyFieldName() {
+		public String keyFieldName() {
 			return "first";
 		}
 
 		@Override
-		public String getKey() {
+		public String keyValue() {
 			return first;
 		}
 	}

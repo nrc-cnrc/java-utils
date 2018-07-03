@@ -11,15 +11,50 @@ import java.util.Set;
 /*
  * This class of Document does not require the fields to be defined at 
  * compile time.
+ * 
+ * Instead, all fields are defined at run time in a hashmap.
+ * 
+ * The class does however include compile time attributes that correspond
+ * to those fields that are expected to always be present in the document:
+ * 
+ * - ID (aka key)
+ * - Document creation date
+ * - possibly others
+ * 
+ * The method for manipulating those garantee that their values will always
+ * be in synch with the values provided in the run-time defined values.
  */
 
 public class Document_DynTyped extends Document {
 	
+	// The run-time defined fields of the document
+	private Map<String,Object> fields = null;
+		public void setFields(Map<String,Object> _fields) {
+			this.fields = _fields;
+		}
+		public Map<String,Object> getFields() {
+			return this.fields;
+		}
+	
 	static Set<String> fieldsFilter = null;
+	
+	// Methods for manipulating the key field
+	
+	// Notice how we repeat the key's value as a compile-tme attribute
+	// eventhough it is already 
+	public String key = null; 
+		public String keyValue() { return this.key;};
+		public void setKey(String _key) throws DocumentException {
+			this.key = _key;
+//			this.setField(this.getKeyFieldName(), key);
+		}
+		// Name of the runtime field that corresponds to this.key.
+		@Override
+		public String keyFieldName() {
+			return idFieldName;
+		}		
 		
-	protected Map<String,Object> fields = null;
-		public void setFields(Map<String,Object> _fields) {this.fields = _fields;}
-		public Map<String,Object> getFields() {return this.fields;}
+		
 		
 	private String idFieldName = null;
 		public void setIdFieldName(String _idFieldName) {this.idFieldName = _idFieldName;}
@@ -66,6 +101,8 @@ public class Document_DynTyped extends Document {
 		this.fields = _fields;
 
 		this.fields.put(_idFieldName, _idValue);
+		
+		this.key = (String)_fields.get(idFieldName);
 	}
 
 
@@ -102,20 +139,7 @@ public class Document_DynTyped extends Document {
 		return value;
 	}
 	
-	@Override
-	public String getKeyFieldName() {
-		return idFieldName;
-	}
 
-	@Override
-	public String getKey() {
-		return (String) this.fields.get(idFieldName);
-	}
-	
-	public Document setKey(String key) throws DocumentException {
-		this.setField(getKeyFieldName(), key);
-		return this;
-	}
 	
 	@Override
 	public String toString() {

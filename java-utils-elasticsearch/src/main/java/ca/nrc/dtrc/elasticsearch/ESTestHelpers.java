@@ -35,12 +35,12 @@ public class ESTestHelpers {
         }
 
 		@Override
-		public String getKeyFieldName() {
+		public String keyFieldName() {
 			return "line_number";
 		}
 
 		@Override
-		public String getKey() {
+		public String keyValue() {
 			return line_number;
 		}
 	}	
@@ -67,12 +67,12 @@ public class ESTestHelpers {
         }
 
 		@Override
-		public String getKeyFieldName() {
+		public String keyFieldName() {
 			return "id";
 		}
 
 		@Override
-		public String getKey() {
+		public String keyValue() {
 			return id;
 		}
 	}		
@@ -183,7 +183,7 @@ public class ESTestHelpers {
 
 	public static void assertIndexContainsDoc(String indexName, String esDocType, Document expDoc) throws ElasticSearchException, IOException, InterruptedException {
 		StreamlinedClient client = new StreamlinedClient(indexName);
-		Document gotDoc = client.getDocumentWithID(expDoc.getKey(), expDoc.getClass());
+		Document gotDoc = client.getDocumentWithID(expDoc.keyValue(), expDoc.getClass());
 		AssertHelpers.assertDeepEquals("Index "+indexName+" did not contain the expected document", expDoc, gotDoc);
 	}
 

@@ -15,11 +15,11 @@ public abstract class Document {
 	
 	public String lang = "en";
 		
-	@JsonIgnore
-	public abstract String getKeyFieldName();
+//	@JsonIgnore
+	public abstract String keyFieldName();
 
-	@JsonIgnore	
-	public abstract String getKey();
+//	@JsonIgnore	
+	public abstract String keyValue();
 	
 	public Object getField(String fldName) throws DocumentException {
 		return getField(fldName, true, null);

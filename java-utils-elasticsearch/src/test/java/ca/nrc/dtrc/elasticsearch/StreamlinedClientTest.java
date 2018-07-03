@@ -54,10 +54,10 @@ public class StreamlinedClientTest {
 		} 
 
 		@Override
-		public String getKeyFieldName() {return "firstName";}
+		public String keyFieldName() {return "firstName";}
 
 		@Override
-		public String getKey() {return firstName;}
+		public String keyValue() {return firstName;}
 	}	
 	
 	public static class Movie {
@@ -104,7 +104,8 @@ public class StreamlinedClientTest {
 		//
 		// For example, add some objects to the index...
 		//
-		String jsonResponse = client.putDocument(new Person("Homer", "Simpson"));
+		Person homer = new Person("Homer", "Simpson");
+		String jsonResponse = client.putDocument(homer);
 		jsonResponse = client.putDocument(new Person("Marg", "Simpson"));
 		jsonResponse = client.putDocument(new Person("Moe", "Szyslak"));
 		
@@ -278,14 +279,14 @@ public class StreamlinedClientTest {
 		Person[] expPeople = new Person[] {homer, marg};
 		AssertHelpers.assertDeepEquals("", expPeople, gotPeople);
 		
-		client.deleteDocumentWithID(homer.getKey(), Person.class.getName());		
+		client.deleteDocumentWithID(homer.keyValue(), Person.class.getName());		
 		expPeople = new Person[] {marg};
 		Thread.sleep(500);
 		gotPeople = client.listFirstNDocuments(homer, 3);
 		AssertHelpers.assertDeepEquals("Homer was not properly deleted from the index.", expPeople, gotPeople);
 		
 				
-		client.deleteDocumentWithID(homer.getKey(), Person.class.getName());		
+		client.deleteDocumentWithID(homer.keyValue(), Person.class.getName());		
 		AssertHelpers.assertDeepEquals("There was a problem when deleting the same document twice", expPeople, gotPeople);
 
 	}	
@@ -531,6 +532,7 @@ public class StreamlinedClientTest {
 		{
 			expFilteredFields.put("fields.name", "homer");
 			expFilteredFields.put("lang", "en");
+			expFilteredFields.put("key", "homer");
 		}
 		AssertHelpers.assertDeepEquals("Negative filter did not produce expected field names", expFilteredFields, gotFilteredFields);
 	}	
@@ -551,6 +553,7 @@ public class StreamlinedClientTest {
 			expTypes.put("lang", "text");
 			expTypes.put("fields.birthDay", "date");
 			expTypes.put("fields.name", "text");
+			expTypes.put("key", "text");
 		}
 		AssertHelpers.assertDeepEquals("Field types not as expected for type: "+type, 
 				expTypes, gotTypes);
@@ -581,6 +584,7 @@ public class StreamlinedClientTest {
 			expTypes.put("_detect_language", "boolean");
 			expTypes.put("lang", "text");
 			expTypes.put("idFieldName", "text");
+			expTypes.put("key", "text");
 
 			expTypes.put("birthDay", "date");
 			expTypes.put("fields.birthDay", "date");
@@ -646,7 +650,7 @@ public class StreamlinedClientTest {
 		client.putDocument(esDocType, corolla2009);
 		
 		gotCar = (Document_DynTyped) client.getDocumentWithID(modelID, Document_DynTyped.class, esDocType);
-		AssertHelpers.assertDeepEquals("Homer SHOULD have been in the index after being added", corolla2009, gotCar);
+		AssertHelpers.assertDeepEquals("Corolla have been in the index after being added", corolla2009, gotCar);
 	}
 	
 	
