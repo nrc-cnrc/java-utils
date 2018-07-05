@@ -171,7 +171,7 @@ public class ESTestHelpers {
 		SearchResults<T> gotResults = client.listAll(docPrototype);		
 		
 		int gotNumDocs = 0;
-		Iterator<Pair<T,Double>> iter = gotResults.iterator();		
+		Iterator<Hit<T>> iter = gotResults.iterator();		
 		while (iter.hasNext()) {
 			gotNumDocs++;
 			iter.next();

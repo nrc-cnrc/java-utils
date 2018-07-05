@@ -184,22 +184,22 @@ public class StreamlinedClient {
 		URL url = esUrlBuilder().forClass(docClass).forEndPoint("_search").scroll().build();
 		String jsonResponse = post(url, "{}");
 		
-		Pair<Pair<Long,String>,List<Pair<T,Double>>> parsedResults 
+		Pair<Pair<Long,String>,List<Hit<T>>> parsedResults 
 						= parseJsonSearchResponse(jsonResponse, docPrototype);		
 		@SuppressWarnings({ "unchecked", "rawtypes" })
 		
 		Long totalHits = parsedResults.getFirst().getFirst();
-		List<Pair<T,Double>> firstBatch = parsedResults.getSecond();
+		List<Hit<T>> firstBatch = parsedResults.getSecond();
 		String scrollID = parsedResults.getFirst().getSecond();
 		
 		SearchResults results = new SearchResults(firstBatch, scrollID, totalHits, docPrototype, this);
 		
 		int count = 0;
 		List<T> docs = new ArrayList<T>();
-		Iterator<Pair<T,Double>> iter = results.iterator();
+		Iterator<Hit<T>> iter = results.iterator();
 		while (iter.hasNext()) {
 			@SuppressWarnings("unchecked")
-			T nextDoc = (T) iter.next().getFirst();
+			T nextDoc = (T) iter.next().getDocument();
 			docs.add(nextDoc);
 			count++;
 			if (maxN != null && count > maxN) break;
@@ -498,16 +498,16 @@ public class StreamlinedClient {
 	}	
 
 	public <T extends Document> List<T> scroll(String scrollID, T docPrototype) throws ElasticSearchException {
-		List<Pair<T,Double>> scoredHits = scrollScoredHits(scrollID, docPrototype);
+		List<Hit<T>> scoredHits = scrollScoredHits(scrollID, docPrototype);
 		List<T> unscoredHits = new ArrayList<T>();
-		for (Pair<T,Double> aScoredHit: scoredHits) {
-			unscoredHits.add(aScoredHit.getFirst());
+		for (Hit<T> aScoredHit: scoredHits) {
+			unscoredHits.add(aScoredHit.getDocument());
 		}
 		
 		return unscoredHits;
 	}
 	
-	public <T extends Document> List<Pair<T,Double>> scrollScoredHits(String scrollID, T docPrototype) throws ElasticSearchException {
+	public <T extends Document> List<Hit<T>> scrollScoredHits(String scrollID, T docPrototype) throws ElasticSearchException {
 		URL url = esUrlBuilder().forEndPoint("_search/scroll").build();
 		
 		Map<String,String> postJson = new HashMap<String,String>();
@@ -522,13 +522,13 @@ public class StreamlinedClient {
 			throw new ElasticSearchException(e);
 		}
 		
-		Pair<Pair<Long,String>,List<Pair<T,Double>>> parsedResults = parseJsonSearchResponse(jsonResponse, docPrototype);
+		Pair<Pair<Long,String>,List<Hit<T>>> parsedResults = parseJsonSearchResponse(jsonResponse, docPrototype);
  		
 		return parsedResults.getSecond();
 	}
 
-	private <T extends Document> Pair<Pair<Long,String>,List<Pair<T, Double>>> parseJsonSearchResponse(String jsonSearchResponse, T docPrototype) throws ElasticSearchException {	
-		List<Pair<T, Double>> scoredDocuments = new ArrayList<Pair<T,Double>>();
+	private <T extends Document> Pair<Pair<Long,String>,List<Hit<T>>> parseJsonSearchResponse(String jsonSearchResponse, T docPrototype) throws ElasticSearchException {	
+		List<Hit<T>> scoredDocuments = new ArrayList<>();
 		String scrollID = null;
 		ObjectMapper mapper = new ObjectMapper();
 		ObjectNode jsonRespNode;
@@ -544,7 +544,7 @@ public class StreamlinedClient {
 				T hitObject = (T) mapper.readValue(hitJson, docPrototype.getClass());
 				Double hitScore = hitsArrNode.get(ii).get("_score").asDouble();
 				
-				scoredDocuments.add(Pair.of(hitObject, hitScore));
+				scoredDocuments.add(new Hit<T>(hitObject, hitScore, hitsArrNode.get(ii).get("highlight")));
 			}
 		} catch (IOException e) {
 			throw new ElasticSearchException(e);
@@ -644,6 +644,7 @@ public class StreamlinedClient {
 				query.set("more_like_this", mlt);
 				{
 					mlt.put("min_term_freq", 1);
+					mlt.put("min_doc_freq", 1);
 					mlt.put("max_query_terms",12);
 					
 					ArrayNode fields = nodeFactory.arrayNode();
@@ -669,6 +670,28 @@ public class StreamlinedClient {
 								}
 							}
 						}
+					}
+				}
+			}
+			//Snippets
+			ObjectNode highlight = nodeFactory.objectNode();
+			root.set("highlight", highlight);
+			{
+				highlight.put("order", "score");
+				
+				ObjectNode fields = nodeFactory.objectNode();
+				highlight.set("fields", fields);
+				{
+					ObjectNode description = nodeFactory.objectNode();
+					fields.set("description", description);
+					{
+						description.put("type", "plain");						
+					}
+					
+					ObjectNode shortDesc = nodeFactory.objectNode();
+					fields.set("short_desc", shortDesc);
+					{
+						shortDesc.put("type", "plain");
 					}
 				}
 			}
@@ -1129,12 +1152,12 @@ public class StreamlinedClient {
 			ObjectMapper mapper = new ObjectMapper();
 			Iterator<?> iter = results.iterator();
 			while (iter.hasNext()) {
-				Pair<Document,Double> aScoredDoc = (Pair<Document,Double>)iter.next();
+				Hit<Document> aScoredDoc = (Hit<Document>)iter.next();
 				if (intoSingleJsonFile) {
-					String json = mapper.writeValueAsString(aScoredDoc.getFirst());
+					String json = mapper.writeValueAsString(aScoredDoc.getDocument());
 					fWriter.write(json+"\n");
 				} else {
-					writeToTextFile(aScoredDoc.getFirst(), outputFile.getAbsolutePath());
+					writeToTextFile(aScoredDoc.getDocument(), outputFile.getAbsolutePath());
 				}
 			}
 			if (fWriter != null) fWriter.close();

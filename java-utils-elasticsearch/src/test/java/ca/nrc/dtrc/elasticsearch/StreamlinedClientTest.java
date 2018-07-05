@@ -110,9 +110,9 @@ public class StreamlinedClientTest {
 		
 		// Loop through all documents in the index
 		SearchResults<Person> results = client.listAll(personPrototype);
-		Iterator<Pair<Person,Double>> iter = results.iterator();
+		Iterator<Hit<Person>> iter = results.iterator();
 		while (iter.hasNext()) {
-			Person person = iter.next().getFirst();
+			Person person = iter.next().getDocument();
 		}
 		
 		// Get a specific document by its ID
@@ -138,9 +138,9 @@ public class StreamlinedClientTest {
 		// Scroll through list of scored hits
 		iter = hits.iterator();
 		while (iter.hasNext()) {
-			Pair<Person,Double> scoredHit = iter.next();
-			Person hitDocument = scoredHit.getFirst();
-			Double hitScore = scoredHit.getSecond();
+			Hit<Person> scoredHit = iter.next();
+			Person hitDocument = scoredHit.getDocument();
+			Double hitScore = scoredHit.getScore();
 		}		
 		
 		//
@@ -337,10 +337,10 @@ public class StreamlinedClientTest {
 		SearchResults<ESTestHelpers.PlayLine> hits = client.moreLikeThis(queryLine, new IncludeFields("^text_entry$"));
 		
 		int hitsCount = 0;
-		Iterator<Pair<PlayLine,Double>> iter = hits.iterator();
+		Iterator<Hit<PlayLine>> iter = hits.iterator();
 		while (iter.hasNext() && hitsCount < 26) {
-			Pair<ESTestHelpers.PlayLine,Double> scoredHit = iter.next();
-			AssertHelpers.assertStringContains("Hit did not fit query.", scoredHit.getFirst().text_entry, "say", false);
+			Hit<ESTestHelpers.PlayLine> scoredHit = iter.next();
+			AssertHelpers.assertStringContains("Hit did not fit query.", scoredHit.getDocument().text_entry, "say", false);
 			hitsCount++;
 		}
 		assertTrue("List of hits should have contained at least 25 hits, but only contained "+hitsCount, hitsCount >= 25);
@@ -365,9 +365,9 @@ public class StreamlinedClientTest {
 	private <T extends Document> List<Object> fieldForFirstNHits(int nHits, String fieldName, SearchResults<T> gotHits) 
 			throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
 		List<Object> gotValues = new ArrayList<Object>();
-		Iterator<Pair<T, Double>> iter = gotHits.iterator();
+		Iterator<Hit<T>> iter = gotHits.iterator();
 		while (iter.hasNext()) {
-			T aHit = iter.next().getFirst();
+			T aHit = iter.next().getDocument();
 			if (nHits <= 0) break;
 			Object fldValue = null;
 			if (aHit instanceof Map<?,?>) {
@@ -426,7 +426,7 @@ public class StreamlinedClientTest {
 		Map<String, Object> homerMap = new ObjectMapper().convertValue(homer, Map.class);
 		String gotJson = client.moreLikeThisJsonBody(homer.getClass().getName(), homerMap);
 		String expJson = 
-				"{\"query\":{\"more_like_this\":{\"min_term_freq\":1,\"max_query_terms\":12,\"fields\":[\"lang\",\"firstName\",\"surname\"],\"like\":{\"_index\":\"es-test\",\"_type\":\"ca.nrc.dtrc.elasticsearch.StreamlinedClientTest$Person\",\"doc\":{\"lang\":\"en\",\"firstName\":\"homer\",\"surname\":\"simpson\"}}}}}";
+				"{\"query\":{\"more_like_this\":{\"min_term_freq\":1,\"min_doc_freq\":1,\"max_query_terms\":12,\"fields\":[\"lang\",\"firstName\",\"surname\"],\"like\":{\"_index\":\"es-test\",\"_type\":\"ca.nrc.dtrc.elasticsearch.StreamlinedClientTest$Person\",\"doc\":{\"lang\":\"en\",\"firstName\":\"homer\",\"surname\":\"simpson\"}}}},\"highlight\":{\"order\":\"score\",\"fields\":{\"description\":{\"type\":\"plain\"},\"short_desc\":{\"type\":\"plain\"}}}}";
 		AssertHelpers.assertStringEquals(expJson, gotJson);
 	}
 	
@@ -779,10 +779,10 @@ public class StreamlinedClientTest {
 	
 	private void assertUnscoredHitsAre(String message, Document[] expUnscoredHits, SearchResults gotSearchResults) throws IOException {
 		List<Document> gotUnscoredHits = new ArrayList<Document>();
-		Iterator<Pair<Document,Double>> iter = gotSearchResults.iterator();
+		Iterator<Hit<Document>> iter = gotSearchResults.iterator();
 		while (iter.hasNext()) {
-			Pair<Document,Double> scoredHit = iter.next();
-			gotUnscoredHits.add(scoredHit.getFirst());
+			Hit<Document> scoredHit = iter.next();
+			gotUnscoredHits.add(scoredHit.getDocument());
 		}
 		
 		AssertHelpers.assertDeepEquals(message+"\nUnscored hits were not as expected", 

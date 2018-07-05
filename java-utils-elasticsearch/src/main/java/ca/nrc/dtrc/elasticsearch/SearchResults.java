@@ -2,19 +2,22 @@ package ca.nrc.dtrc.elasticsearch;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import ca.nrc.datastructure.Pair;
 
-public class SearchResults<T extends Document> implements Iterable<Pair<T,Double>> {
+public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 	
 	final static Logger logger = Logger.getLogger(SearchResults.class);
 	
@@ -26,9 +29,9 @@ public class SearchResults<T extends Document> implements Iterable<Pair<T,Double
 		public Long getTotalHits() {return totalHits;}
 		public void setTotalHits(Long _totalHits) {this.totalHits = _totalHits;}
 		
-	private  List<Pair<T,Double>> scoredHitsBatch = new ArrayList<Pair<T,Double>>();	
+	private  List<Hit<T>> scoredHitsBatch = new ArrayList<>();	
 		@JsonIgnore
-		public List<Pair<T,Double>> getScoredHitsBatch() {return scoredHitsBatch;}
+		public List<Hit<T>> getScoredHitsBatch() {return scoredHitsBatch;}
 		
 	private int batchCursor = 0;
 		
@@ -38,12 +41,12 @@ public class SearchResults<T extends Document> implements Iterable<Pair<T,Double
 			this.maxScore = _maxScore;
 		}
 	
-	private List<Pair<T,Double>> topHits = new ArrayList<Pair<T,Double>>();
-		public List<Pair<T,Double>> getTopScoredDocuments() {
+	private List<Hit<T>> topHits = new ArrayList<>();
+		public List<Hit<T>> getTopScoredDocuments() {
 			return topHits;
 		}
-		public void addHit(T doc, Double score) {
-			scoredHitsBatch.add(Pair.of(doc,  score));
+		public void addHit(T doc, Double score, JsonNode snippets) {
+			scoredHitsBatch.add(new Hit<T>(doc,  score, snippets));
 		}
 		
 	// Client that was used to retrieve the results.
@@ -56,20 +59,20 @@ public class SearchResults<T extends Document> implements Iterable<Pair<T,Double
 		
 	}
 
-	public SearchResults(List<Pair<T,Double>> firstResultsBatch, String _scrollID, Long _totalHits, T _docPrototype, StreamlinedClient _esClient) throws ElasticSearchException {
+	public SearchResults(List<Hit<T>> firstResultsBatch, String _scrollID, Long _totalHits, T _docPrototype, StreamlinedClient _esClient) throws ElasticSearchException {
 		initialize(firstResultsBatch, _scrollID, _totalHits, _docPrototype, _esClient);
 	}	
 	
 	public SearchResults(String jsonResponse, T _docPrototype, StreamlinedClient _esClient) throws ElasticSearchException {
-		Pair<Pair<Long, String>, List<Pair<T, Double>>> parsedResults = parseJsonSearchResponse(jsonResponse, _docPrototype);
+		Pair<Pair<Long, String>, List<Hit<T>>> parsedResults = parseJsonSearchResponse(jsonResponse, _docPrototype);
 		Long _totalHits = parsedResults.getFirst().getFirst();
-		List<Pair<T,Double>> firstBatch = parsedResults.getSecond();
+		List<Hit<T>> firstBatch = parsedResults.getSecond();
 		String scrollID = parsedResults.getFirst().getSecond();
 
 		initialize(firstBatch, scrollID, _totalHits, _docPrototype, _esClient);
 	}
 	
-	public void initialize(List<Pair<T,Double>> firstResultsBatch, String _scrollID, Long _totalHits, T _docPrototype, StreamlinedClient _esClient) {
+	public void initialize(List<Hit<T>> firstResultsBatch, String _scrollID, Long _totalHits, T _docPrototype, StreamlinedClient _esClient) {
 		this.scoredHitsBatch = firstResultsBatch;
 		this.scrollID = _scrollID;
 		this.docPrototype = _docPrototype;
@@ -77,8 +80,8 @@ public class SearchResults<T extends Document> implements Iterable<Pair<T,Double
 		this.totalHits = _totalHits;		
 	}
 	
-	private Pair<Pair<Long,String>,List<Pair<T, Double>>> parseJsonSearchResponse(String jsonSearchResponse, T docPrototype) throws ElasticSearchException {
-		List<Pair<T, Double>> scoredDocuments = new ArrayList<Pair<T,Double>>();
+	private Pair<Pair<Long,String>,List<Hit<T>>> parseJsonSearchResponse(String jsonSearchResponse, T docPrototype) throws ElasticSearchException {
+		List<Hit<T>> scoredDocuments = new ArrayList<>();
 		String scrollID = null;
 		ObjectMapper mapper = new ObjectMapper();
 		ObjectNode jsonRespNode;
@@ -94,7 +97,7 @@ public class SearchResults<T extends Document> implements Iterable<Pair<T,Double
 				T hitObject = (T) mapper.readValue(hitJson, docPrototype.getClass());
 				Double hitScore = hitsArrNode.get(ii).get("_score").asDouble();
 				
-				scoredDocuments.add(Pair.of(hitObject, hitScore));
+				scoredDocuments.add(new Hit<T>(hitObject, hitScore, hitsArrNode.get(ii).get("highlight")));
 			}
 		} catch (IOException e) {
 			throw new ElasticSearchException(e);
@@ -103,8 +106,10 @@ public class SearchResults<T extends Document> implements Iterable<Pair<T,Double
 		return Pair.of(Pair.of(totalHits, scrollID), scoredDocuments);
 	}	
 	
+
+	
 	@Override
-	public Iterator<Pair<T, Double>> iterator() {
+	public Iterator<Hit<T>> iterator() {
 		ScoredHitsIterator<T> iter = null;
 		try {
 			iter = new ScoredHitsIterator<T>(scoredHitsBatch, scrollID, docPrototype, esClient);
@@ -117,8 +122,8 @@ public class SearchResults<T extends Document> implements Iterable<Pair<T,Double
 	public UnscoredHitsIterator<T> unscoredHitsIterator() {
 		UnscoredHitsIterator<T> iter = null;
 		List<T> unscoredHitsBatch = new ArrayList<T>();
-		for (Pair<T,Double> scoredHit: scoredHitsBatch) {
-			unscoredHitsBatch.add(scoredHit.getFirst());
+		for (Hit<T> scoredHit: scoredHitsBatch) {
+			unscoredHitsBatch.add(scoredHit.getDocument());
 		}
 		
 		try {
@@ -133,10 +138,10 @@ public class SearchResults<T extends Document> implements Iterable<Pair<T,Double
 	
 	public List<T> getDocs(int nMax) {
 		List<T> docs = new ArrayList<T>();
-		Iterator<Pair<T,Double>> iter = iterator();
+		Iterator<Hit<T>> iter = iterator();
 		int count = 0;
 		while (iter.hasNext()) {
-			docs.add(iter.next().getFirst());
+			docs.add(iter.next().getDocument());
 			count++;
 			if (count > nMax) break;
 		}

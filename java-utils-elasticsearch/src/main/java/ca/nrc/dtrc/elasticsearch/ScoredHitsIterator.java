@@ -6,9 +6,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import ca.nrc.datastructure.Pair;
-
-public class ScoredHitsIterator<T extends Document> implements Iterator<Pair<T,Double>> {
+public class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> {
 
 	private T docPrototype = null;
 
@@ -18,8 +16,8 @@ public class ScoredHitsIterator<T extends Document> implements Iterator<Pair<T,D
 		public Long getTotalHits() {return totalHits;}
 		public void setTotalHits(Long _totalHits) {this.totalHits = _totalHits;}
 		
-	private  List<Pair<T,Double>> documentsBatch = new ArrayList<Pair<T,Double>>();		
-		public List<Pair<T,Double>> getFirstDocumentsBatch() {return documentsBatch;}
+	private  List<Hit<T>> documentsBatch = new ArrayList<>();		
+		public List<Hit<T>> getFirstDocumentsBatch() {return documentsBatch;}
 		
 	private int batchCursor = 0;	
 	
@@ -29,7 +27,7 @@ public class ScoredHitsIterator<T extends Document> implements Iterator<Pair<T,D
 	@JsonIgnore
 	StreamlinedClient esClient = null;	
 	
-	public ScoredHitsIterator(List<Pair<T,Double>> firstResultsBatch, String _scrollID, T _docPrototype, StreamlinedClient _esClient) throws ElasticSearchException {
+	public ScoredHitsIterator(List<Hit<T>> firstResultsBatch, String _scrollID, T _docPrototype, StreamlinedClient _esClient) throws ElasticSearchException {
 			this.documentsBatch = firstResultsBatch;
 			this.scrollID = _scrollID;
 			this.docPrototype = _docPrototype;
@@ -77,8 +75,8 @@ public class ScoredHitsIterator<T extends Document> implements Iterator<Pair<T,D
 	}
 	
 	@Override
-	public Pair<T,Double> next() {
-		Pair<T,Double> nextItem = null;
+	public Hit<T> next() {
+		Hit<T> nextItem = null;
 		if (hasNext()) {
 			// Get next item in current batch.
 			//
