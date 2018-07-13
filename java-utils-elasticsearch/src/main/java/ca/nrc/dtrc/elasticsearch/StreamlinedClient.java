@@ -33,6 +33,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import ca.nrc.json.PrettyPrinter;
 import ca.nrc.datastructure.Pair;
 import ca.nrc.dtrc.elasticsearch.ESUrlBuilder;
+import okhttp3.Call;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -249,7 +250,6 @@ public class StreamlinedClient {
 	        .post(body)
 	        .build();
 	    
-	    tLogger.trace("url="+url+", body="+body.toString());
 	    Response response;
 		try {
 			response = httpClient.newCall(request).execute();
