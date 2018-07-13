@@ -35,7 +35,7 @@ public class ESUrlBuilder {
 	}
 	
 	public ESUrlBuilder forDocument(Document doc) {
-		this.docID = doc.keyValue();
+		this.docID = doc.getId();
 		this.docType = doc.getClass().getName();
 		return this;
 	}

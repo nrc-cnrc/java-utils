@@ -43,7 +43,7 @@ public class Document_DynTyped extends Document {
 	// Notice how we repeat the key's value as a compile-tme attribute
 	// eventhough it is already 
 	public String key = null; 
-		public String keyValue() { return this.key;};
+		public String getId() { return this.key;};
 		public void setKey(String _key) throws DocumentException {
 			this.key = _key;
 //			this.setField(this.getKeyFieldName(), key);
@@ -88,6 +88,7 @@ public class Document_DynTyped extends Document {
 	
 		
 	private void initialize(String _idFieldName, String _idValue, Map<String,Object> _fields) {
+		this.id = _idValue;
 		if (fieldsFilter == null) {
 			fieldsFilter = new HashSet<String>();
 			fieldsFilter.add("fields");

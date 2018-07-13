@@ -25,7 +25,7 @@ public class DocumentTest {
 		}
 
 		@Override
-		public String keyValue() {
+		public String getId() {
 			return first;
 		}
 	}

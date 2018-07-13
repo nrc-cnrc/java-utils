@@ -125,7 +125,7 @@ public class StreamlinedClient {
 	
 	public String putDocument(Document doc) throws ElasticSearchException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.putDocument");
-		tLogger.trace("putting document: "+doc.keyValue());
+		tLogger.trace("putting document: "+doc.getId());
 		String jsonDoc;
 		try {
 			jsonDoc = new ObjectMapper().writeValueAsString(doc);
@@ -133,14 +133,16 @@ public class StreamlinedClient {
 			throw new ElasticSearchException(e);
 		}	
 		String docType = doc.getClass().getName();
-		String docID = doc.keyValue();
+		String docID = doc.getId();
 		String jsonResponse = putDocument(docType, docID, jsonDoc);
 		
 		return jsonResponse;
 	}
 
 	public String putDocument(String type, Document dynDoc) throws ElasticSearchException {
-		String docID = dynDoc.keyValue();
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.putDocument");
+		tLogger.trace("type="+type);
+		String docID = dynDoc.getId();
 		String jsonDoc;
 		try {
 			jsonDoc = new ObjectMapper().writeValueAsString(dynDoc);
@@ -156,11 +158,17 @@ public class StreamlinedClient {
 		@SuppressWarnings("unused")
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.putDocument");
 		URL url = esUrlBuilder().forDocType(type).forDocID(docID).build();
+		tLogger.trace("posting url="+url+",jsonDoc=\n"+jsonDoc);
+		
 		String jsonResponse = post(url, jsonDoc);
+		tLogger.trace("** post finished, jsonResponse=\n"+jsonResponse);
 		
 		clearFieldTypesCache(type);		
+		tLogger.trace("** After clearFieldTypesCache");
 		
 		sleep();
+
+		tLogger.trace("** After sleep(), returning jsonResponse=\n"+jsonResponse);
 		
 		return jsonResponse;
 	}	
@@ -241,6 +249,7 @@ public class StreamlinedClient {
 	
 	private String post(URL url, String json) throws ElasticSearchException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.post");
+		tLogger.trace("posting url="+url+", with json=\n"+json);
 		
 		if (json == null) json = "";
 	    RequestBody body = RequestBody.create(JSON, json);
@@ -252,8 +261,11 @@ public class StreamlinedClient {
 	    
 	    Response response;
 		try {
+			tLogger.trace("** executing http request");
 			response = httpClient.newCall(request).execute();
+			tLogger.trace("** DONEexecuting http request");
 		} catch (IOException e) {
+			tLogger.trace("** Caught exception e="+e.getLocalizedMessage());
 			throw new ElasticSearchException("Could not execute ElasticSearch request", e);
 		}
 	    String jsonResponse;
@@ -264,7 +276,7 @@ public class StreamlinedClient {
 		}
 
 	    checkForESErrorResponse(jsonResponse);
-	    
+
 	    return jsonResponse;
 	  }
 	
@@ -297,6 +309,7 @@ public class StreamlinedClient {
 	
 	private String put(URL url, String json) throws ElasticSearchException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.put");
+		tLogger.trace("putting url="+url+", with json=\n"+json);
 		
 		if (json == null) json = "";
 	    RequestBody body = RequestBody.create(JSON, json);
@@ -307,13 +320,15 @@ public class StreamlinedClient {
 	        .put(body)
 	        .build();
 	    
-	    if (tLogger.isTraceEnabled()) tLogger.trace("url="+url);
 	    Response response;
 	    String jsonResponse;
 		try {
+			tLogger.trace("** making the http call");
 			response = httpClient.newCall(request).execute();
+			tLogger.trace("** DONEmaking the http call");
 		    jsonResponse = response.body().string();			
 		} catch (IOException exc) {
+			tLogger.trace("** There was an exception making the call: exc="+exc.getLocalizedMessage());
 			throw new ElasticSearchException(exc);
 		}
 
@@ -943,12 +958,12 @@ public class StreamlinedClient {
 		try {
 			doc = (Document_DynTyped) new ObjectMapper().readValue(jsonLine, Document_DynTyped.class);
 			if (verbose) {
-				System.out.println("Indexing doc with ID "+doc.keyValue());
+				System.out.println("Indexing doc with ID "+doc.getId());
 			}
 		} catch (IOException e) {
 			throw new ElasticSearchException(e);
 		}		
-		String id =  doc.keyValue();
+		String id =  doc.getId();
 		
 		return id;
 	}
@@ -1168,7 +1183,7 @@ public class StreamlinedClient {
 
 
 	private void writeToTextFile(Document doc, String outputDir) throws IOException {
-		String docID = doc.keyValue();
+		String docID = doc.getId();
 		String docFilePath = outputDir+"/"+docID+".txt";
 		String docContent = doc.toString();
 		FileWriter writer = new FileWriter(new File(docFilePath));

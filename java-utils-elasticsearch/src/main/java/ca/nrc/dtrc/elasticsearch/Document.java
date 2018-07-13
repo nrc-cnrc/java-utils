@@ -19,7 +19,9 @@ public abstract class Document {
 	public abstract String keyFieldName();
 
 //	@JsonIgnore	
-	public abstract String keyValue();
+	String id = null;
+		public String getId() {return this.id;}
+		public void setId(String _id) {this.id = _id;}
 	
 	public Object getField(String fldName) throws DocumentException {
 		return getField(fldName, true, null);
@@ -27,6 +29,14 @@ public abstract class Document {
 
 	public Object getField(String fldName, boolean failIfNotFound) throws DocumentException {
 		return getField(fldName, failIfNotFound, null);
+	}
+	
+	private Map<String,Object> additionalFields = null;
+	public void setAdditionalFields(Map<String,Object> _fields) {
+		this.additionalFields = _fields;
+	}
+	public Map<String,Object> additionalFields() {
+		return this.additionalFields;
 	}
 	
 	public Object getField(String fldName, boolean failIfNotFound, Object defaultVal) throws DocumentException {

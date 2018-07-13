@@ -79,8 +79,8 @@ public class SeparatedFields2Document_DynTypedTest {
 		
 		String gotOutput = output.toString();
 		String expOutput = 
-				   "{\"_detect_language\":true,\"lang\":\"en\",\"fields\":{\"Year\":\"2009\",\"Manufacturer\":\"Toyota\",\"Model\":\"Corolla\",\"ModelID\":\"TOY242p\"},\"key\":\"TOY242p\",\"idFieldName\":\"ModelID\"}\n"
-				 + "{\"_detect_language\":true,\"lang\":\"en\",\"fields\":{\"Year\":\"2011\",\"Manufacturer\":\"Hyundai\",\"Model\":\"Elentra\",\"ModelID\":\"Hyu9834\"},\"key\":\"Hyu9834\",\"idFieldName\":\"ModelID\"}\n"
+				   "{\"_detect_language\":true,\"lang\":\"en\",\"id\":\"TOY242p\",\"fields\":{\"Year\":\"2009\",\"Manufacturer\":\"Toyota\",\"Model\":\"Corolla\",\"ModelID\":\"TOY242p\"},\"key\":\"TOY242p\",\"idFieldName\":\"ModelID\"}\n"
+				 + "{\"_detect_language\":true,\"lang\":\"en\",\"id\":\"Hyu9834\",\"fields\":{\"Year\":\"2011\",\"Manufacturer\":\"Hyundai\",\"Model\":\"Elentra\",\"ModelID\":\"Hyu9834\"},\"key\":\"Hyu9834\",\"idFieldName\":\"ModelID\"}\n"
 						   ;
 		
 		AssertHelpers.assertDeepEquals("", expOutput, gotOutput);
@@ -106,8 +106,8 @@ public class SeparatedFields2Document_DynTypedTest {
 		
 		String gotOutput = output.toString();
 		String expOutput = 
-				   "{\"_detect_language\":true,\"lang\":\"en\",\"fields\":{\"CarModel\":\"CarModel_1\",\"Year\":\"2009\",\"Manufacturer\":\"Toyota\",\"Model\":\"Corolla\"},\"key\":\"CarModel_1\",\"idFieldName\":\"CarModel\"}\n"
-				 + "{\"_detect_language\":true,\"lang\":\"en\",\"fields\":{\"CarModel\":\"CarModel_2\",\"Year\":\"2011\",\"Manufacturer\":\"Hyundai\",\"Model\":\"Elentra\"},\"key\":\"CarModel_2\",\"idFieldName\":\"CarModel\"}\n"
+				   "{\"_detect_language\":true,\"lang\":\"en\",\"id\":\"CarModel_1\",\"fields\":{\"CarModel\":\"CarModel_1\",\"Year\":\"2009\",\"Manufacturer\":\"Toyota\",\"Model\":\"Corolla\"},\"key\":\"CarModel_1\",\"idFieldName\":\"CarModel\"}\n"
+				 + "{\"_detect_language\":true,\"lang\":\"en\",\"id\":\"CarModel_2\",\"fields\":{\"CarModel\":\"CarModel_2\",\"Year\":\"2011\",\"Manufacturer\":\"Hyundai\",\"Model\":\"Elentra\"},\"key\":\"CarModel_2\",\"idFieldName\":\"CarModel\"}\n"
 						   ;
 		
 		AssertHelpers.assertDeepEquals("", expOutput, gotOutput);

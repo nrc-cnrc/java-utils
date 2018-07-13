@@ -46,6 +46,7 @@ public class StreamlinedClientTest {
 		public Person(String _firstName, String _surname) {
 			this.firstName = _firstName;
 			this.surname = _surname;
+			this.setId(_firstName);
 		}
 		
 		public Person setBirthDay(String bDay) {
@@ -57,7 +58,7 @@ public class StreamlinedClientTest {
 		public String keyFieldName() {return "firstName";}
 
 		@Override
-		public String keyValue() {return firstName;}
+		public String getId() {return firstName;}
 	}	
 	
 	public static class Movie {
@@ -279,14 +280,14 @@ public class StreamlinedClientTest {
 		Person[] expPeople = new Person[] {homer, marg};
 		AssertHelpers.assertDeepEquals("", expPeople, gotPeople);
 		
-		client.deleteDocumentWithID(homer.keyValue(), Person.class.getName());		
+		client.deleteDocumentWithID(homer.getId(), Person.class.getName());		
 		expPeople = new Person[] {marg};
 		Thread.sleep(500);
 		gotPeople = client.listFirstNDocuments(homer, 3);
 		AssertHelpers.assertDeepEquals("Homer was not properly deleted from the index.", expPeople, gotPeople);
 		
 				
-		client.deleteDocumentWithID(homer.keyValue(), Person.class.getName());		
+		client.deleteDocumentWithID(homer.getId(), Person.class.getName());		
 		AssertHelpers.assertDeepEquals("There was a problem when deleting the same document twice", expPeople, gotPeople);
 
 	}	
@@ -427,7 +428,11 @@ public class StreamlinedClientTest {
 		Map<String, Object> homerMap = new ObjectMapper().convertValue(homer, Map.class);
 		String gotJson = client.moreLikeThisJsonBody(homer.getClass().getName(), homerMap);
 		String expJson = 
-				"{\"query\":{\"more_like_this\":{\"min_term_freq\":1,\"min_doc_freq\":1,\"max_query_terms\":12,\"fields\":[\"lang\",\"firstName\",\"surname\"],\"like\":{\"_index\":\"es-test\",\"_type\":\"ca.nrc.dtrc.elasticsearch.StreamlinedClientTest$Person\",\"doc\":{\"lang\":\"en\",\"firstName\":\"homer\",\"surname\":\"simpson\"}}}},\"highlight\":{\"order\":\"score\",\"fields\":{\"description\":{\"type\":\"plain\"},\"short_desc\":{\"type\":\"plain\"}}}}";
+//<<<<<<< HEAD
+//				"{\"query\":{\"more_like_this\":{\"min_term_freq\":1,\"min_doc_freq\":1,\"max_query_terms\":12,\"fields\":[\"lang\",\"firstName\",\"surname\"],\"like\":{\"_index\":\"es-test\",\"_type\":\"ca.nrc.dtrc.elasticsearch.StreamlinedClientTest$Person\",\"doc\":{\"lang\":\"en\",\"firstName\":\"homer\",\"surname\":\"simpson\"}}}},\"highlight\":{\"order\":\"score\",\"fields\":{\"description\":{\"type\":\"plain\"},\"short_desc\":{\"type\":\"plain\"}}}}";
+//=======
+				"{\"query\":{\"more_like_this\":{\"min_term_freq\":1,\"max_query_terms\":12,\"fields\":[\"lang\",\"id\",\"firstName\",\"surname\"],\"like\":{\"_index\":\"es-test\",\"_type\":\"ca.nrc.dtrc.elasticsearch.StreamlinedClientTest$Person\",\"doc\":{\"lang\":\"en\",\"id\":\"homer\",\"firstName\":\"homer\",\"surname\":\"simpson\"}}}}}";
+//>>>>>>> Refactoring Document class to add id field.
 		AssertHelpers.assertStringEquals(expJson, gotJson);
 	}
 	
@@ -548,6 +553,7 @@ public class StreamlinedClientTest {
 		Map<String, String> gotTypes = esClient.getFieldTypes(type);
 		Map<String,String> expTypes = new HashMap<String,String>();
 		{
+			expTypes.put("id", "text");
 			expTypes.put("_detect_language", "boolean");
 			expTypes.put("idFieldName", "text");
 			expTypes.put("lang", "text");
@@ -581,6 +587,7 @@ public class StreamlinedClientTest {
 		Map<String, String> gotTypes = esClient.getFieldTypes(type);
 		Map<String,String> expTypes = new HashMap<String,String>();
 		{
+			expTypes.put("id", "text");
 			expTypes.put("_detect_language", "boolean");
 			expTypes.put("lang", "text");
 			expTypes.put("idFieldName", "text");
@@ -608,6 +615,7 @@ public class StreamlinedClientTest {
 		Map<String, String> gotTypes = esClient.getFieldTypes(type);
 		Map<String,String> expTypes = new HashMap<String,String>();
 		{
+			expTypes.put("id", "text");
 			expTypes.put("_detect_language", "boolean");
 			expTypes.put("lang", "text");
 			expTypes.put("birthDay", "date");
@@ -664,6 +672,7 @@ public class StreamlinedClientTest {
 		
 		Map<String,Object> expFieldTypes = new HashMap<String,Object>();
 		{
+			expFieldTypes.put("id", "text");
 			expFieldTypes.put("firstName", "text");
 			expFieldTypes.put("surname", "text");
 			expFieldTypes.put("_detect_language", "boolean");			
