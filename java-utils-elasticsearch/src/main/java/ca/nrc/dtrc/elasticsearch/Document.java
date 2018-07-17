@@ -32,12 +32,12 @@ public abstract class Document {
 	}
 	
 	private Map<String,Object> additionalFields = null;
-	public void setAdditionalFields(Map<String,Object> _fields) {
-		this.additionalFields = _fields;
-	}
-	public Map<String,Object> additionalFields() {
-		return this.additionalFields;
-	}
+		public void setAdditionalFields(Map<String,Object> _fields) {
+			this.additionalFields = _fields;
+		}
+		public Map<String,Object> getAdditionalFields() {
+			return this.additionalFields;
+		}
 	
 	public Object getField(String fldName, boolean failIfNotFound, Object defaultVal) throws DocumentException {
 		Object value = defaultVal;
