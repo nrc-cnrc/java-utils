@@ -2,6 +2,7 @@ package ca.nrc.ui.web.testing;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.security.Principal;
 import java.util.ArrayList;
@@ -18,6 +19,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.collections.iterators.IteratorEnumeration;
+
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 //import org.apache.commons.collections.iterators.IteratorEnumeration;
 
@@ -92,6 +97,18 @@ public class MockHttpServletRequest implements HttpServletRequest {
 		String[] valuesArr = valuesList.toArray(new String[valuesList.size()]);
 		return valuesArr;
 	}	
+	
+	@Override
+	public BufferedReader getReader() throws IOException {
+		String jsonBody = new ObjectMapper().writeValueAsString(this.parameters);
+		BufferedReader reader = new BufferedReader(new StringReader(jsonBody));
+		return reader;
+	}
+	
+	public void setReaderContent(String json) throws JsonParseException, JsonMappingException, IOException {
+		this.parameters = new ObjectMapper().readValue(json, this.parameters.getClass());
+	}
+	
 
 	@Override
 	public String getCharacterEncoding() {
@@ -149,12 +166,6 @@ public class MockHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public String getProtocol() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public BufferedReader getReader() throws IOException {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -374,5 +385,5 @@ public class MockHttpServletRequest implements HttpServletRequest {
 		// TODO Auto-generated method stub
 		return false;
 	}
-
+	
 }
