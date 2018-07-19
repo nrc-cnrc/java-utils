@@ -431,7 +431,7 @@ public class StreamlinedClientTest {
 //<<<<<<< HEAD
 //				"{\"query\":{\"more_like_this\":{\"min_term_freq\":1,\"min_doc_freq\":1,\"max_query_terms\":12,\"fields\":[\"lang\",\"firstName\",\"surname\"],\"like\":{\"_index\":\"es-test\",\"_type\":\"ca.nrc.dtrc.elasticsearch.StreamlinedClientTest$Person\",\"doc\":{\"lang\":\"en\",\"firstName\":\"homer\",\"surname\":\"simpson\"}}}},\"highlight\":{\"order\":\"score\",\"fields\":{\"description\":{\"type\":\"plain\"},\"short_desc\":{\"type\":\"plain\"}}}}";
 //=======
-				"{\"query\":{\"more_like_this\":{\"min_term_freq\":1,\"max_query_terms\":12,\"fields\":[\"lang\",\"id\",\"firstName\",\"surname\"],\"like\":{\"_index\":\"es-test\",\"_type\":\"ca.nrc.dtrc.elasticsearch.StreamlinedClientTest$Person\",\"doc\":{\"lang\":\"en\",\"id\":\"homer\",\"firstName\":\"homer\",\"surname\":\"simpson\"}}}}}";
+				"{\"query\":{\"more_like_this\":{\"min_term_freq\":1,\"min_doc_freq\":1,\"max_query_terms\":12,\"fields\":[\"lang\",\"id\",\"firstName\",\"surname\"],\"like\":{\"_index\":\"es-test\",\"_type\":\"ca.nrc.dtrc.elasticsearch.StreamlinedClientTest$Person\",\"doc\":{\"lang\":\"en\",\"id\":\"homer\",\"firstName\":\"homer\",\"surname\":\"simpson\"}}}},\"highlight\":{\"order\":\"score\",\"fields\":{\"description\":{\"type\":\"plain\"},\"short_desc\":{\"type\":\"plain\"}}}}";
 //>>>>>>> Refactoring Document class to add id field.
 		AssertHelpers.assertStringEquals(expJson, gotJson);
 	}
