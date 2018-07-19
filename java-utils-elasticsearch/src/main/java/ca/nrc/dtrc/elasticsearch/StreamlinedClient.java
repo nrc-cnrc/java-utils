@@ -1118,7 +1118,23 @@ public class StreamlinedClient {
 	}
 
 	public void updateDocument(Class<? extends Document> docClass, String docID, Map<String, Object> partialDoc) throws ElasticSearchException {
-		URL url = esUrlBuilder().forClass(docClass).forDocID(docID)
+		updateDocument(docClass.getName(), docID, partialDoc);
+//		URL url = esUrlBuilder().forClass(docClass).forDocID(docID)
+//				    .forEndPoint("_update").build();
+//		String jsonBody = null;
+//		Map<String,Object> jsonData = new HashMap<String,Object>();
+//		jsonData.put("doc", partialDoc);
+//		try {
+//			jsonBody = new ObjectMapper().writeValueAsString(jsonData);
+//		} catch (JsonProcessingException exc) {
+//			throw new ElasticSearchException(exc);
+//		}
+//		
+//		post(url, jsonBody);
+	}
+
+	public void updateDocument(String esDocType, String docID, Map<String, Object> partialDoc) throws ElasticSearchException {
+		URL url = esUrlBuilder().forDocType(esDocType).forDocID(docID)
 				    .forEndPoint("_update").build();
 		String jsonBody = null;
 		Map<String,Object> jsonData = new HashMap<String,Object>();
