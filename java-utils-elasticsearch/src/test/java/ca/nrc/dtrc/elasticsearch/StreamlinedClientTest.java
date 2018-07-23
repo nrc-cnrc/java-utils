@@ -46,19 +46,13 @@ public class StreamlinedClientTest {
 		public Person(String _firstName, String _surname) {
 			this.firstName = _firstName;
 			this.surname = _surname;
-			this.setId(_firstName);
+			this.setId(_firstName+_surname);
 		}
 		
 		public Person setBirthDay(String bDay) {
 			birthDay = bDay;
 			return this;
 		} 
-
-		@Override
-		public String keyFieldName() {return "firstName";}
-
-		@Override
-		public String getId() {return firstName;}
 	}	
 	
 	public static class Movie {
@@ -206,7 +200,7 @@ public class StreamlinedClientTest {
 		}
 		
 		// In all of the above, we were using "statically typed" documents whose fields and 
-		// structure were known at compile time (ex: Person).
+		// structure were known at compile time (ex: DummyObject).
 		//
 		// But you can also use "dynamically typed" documents whose fields are not determined
 		// at compile time.
@@ -428,11 +422,7 @@ public class StreamlinedClientTest {
 		Map<String, Object> homerMap = new ObjectMapper().convertValue(homer, Map.class);
 		String gotJson = client.moreLikeThisJsonBody(homer.getClass().getName(), homerMap);
 		String expJson = 
-//<<<<<<< HEAD
-//				"{\"query\":{\"more_like_this\":{\"min_term_freq\":1,\"min_doc_freq\":1,\"max_query_terms\":12,\"fields\":[\"lang\",\"firstName\",\"surname\"],\"like\":{\"_index\":\"es-test\",\"_type\":\"ca.nrc.dtrc.elasticsearch.StreamlinedClientTest$Person\",\"doc\":{\"lang\":\"en\",\"firstName\":\"homer\",\"surname\":\"simpson\"}}}},\"highlight\":{\"order\":\"score\",\"fields\":{\"description\":{\"type\":\"plain\"},\"short_desc\":{\"type\":\"plain\"}}}}";
-//=======
-				"{\"query\":{\"more_like_this\":{\"min_term_freq\":1,\"min_doc_freq\":1,\"max_query_terms\":12,\"fields\":[\"lang\",\"id\",\"firstName\",\"surname\"],\"like\":{\"_index\":\"es-test\",\"_type\":\"ca.nrc.dtrc.elasticsearch.StreamlinedClientTest$Person\",\"doc\":{\"lang\":\"en\",\"id\":\"homer\",\"firstName\":\"homer\",\"surname\":\"simpson\"}}}},\"highlight\":{\"order\":\"score\",\"fields\":{\"description\":{\"type\":\"plain\"},\"short_desc\":{\"type\":\"plain\"}}}}";
-//>>>>>>> Refactoring Document class to add id field.
+				"{\"query\":{\"more_like_this\":{\"min_term_freq\":1,\"min_doc_freq\":1,\"max_query_terms\":12,\"fields\":[\"lang\",\"id\",\"firstName\",\"surname\"],\"like\":{\"_index\":\"es-test\",\"_type\":\"ca.nrc.dtrc.elasticsearch.StreamlinedClientTest$Person\",\"doc\":{\"lang\":\"en\",\"id\":\"homersimpson\",\"firstName\":\"homer\",\"surname\":\"simpson\"}}}},\"highlight\":{\"order\":\"score\",\"fields\":{\"description\":{\"type\":\"plain\"},\"short_desc\":{\"type\":\"plain\"}}}}";
 		AssertHelpers.assertStringEquals(expJson, gotJson);
 	}
 	
@@ -444,7 +434,9 @@ public class StreamlinedClientTest {
 		esClient.putDocument(pers);
 		Map<String, Object> gotFilteredFields = esClient.filterFields(pers, filter);
 		Map<String,Object> expFilteredFields = new HashMap<String,Object>();
-		expFilteredFields.put("firstName", "homer");
+		{
+			expFilteredFields.put("firstName", "homer");
+		}
 		AssertHelpers.assertDeepEquals("Positive filter did not produce expected field names", expFilteredFields, gotFilteredFields);
 	}
 
@@ -457,6 +449,7 @@ public class StreamlinedClientTest {
 		Map<String, Object> gotFilteredFields = esClient.filterFields(pers, filter);
 		Map<String,Object> expFilteredFields = new HashMap<String,Object>();
 		{
+			expFilteredFields.put("id", "homersimpson");			
 			expFilteredFields.put("surname", "simpson");
 			expFilteredFields.put("lang", "en");
 		}
@@ -472,81 +465,50 @@ public class StreamlinedClientTest {
 		Map<String, Object> gotFilteredFields = esClient.filterFields(pers, nullFilter);
 		Map<String,Object> expFilteredFields = new HashMap<String,Object>();
 		{
+			expFilteredFields.put("id", "homersimpson");
 			expFilteredFields.put("firstName", "homer");
 			expFilteredFields.put("surname", "simpson");
-//			expFilteredFields.put("birthDay", null);
-//			expFilteredFields.put("_detect_language", true);
 			expFilteredFields.put("lang", "en");
 		}
 		AssertHelpers.assertDeepEquals("Negative filter did not produce expected field names", expFilteredFields, gotFilteredFields);
 	}
 
 	
-//	@Test
-//	public void test__filterFields__MapWithPositiveFilter() throws Exception {
-//		IncludeFields filter = new IncludeFields("firstName");
-//		Map<String,Object> map = new HashMap<String,Object>();
-//		{
-//			map.put("firstName", "homer");
-//			map.put("surname", "simpson");
-//		}
-//		Map<String, Object> gotFilteredFields = StreamlinedClient.filterFields(map, filter);
-//		Map<String,Object> expFilteredFields = new HashMap<String,Object>();
-//		expFilteredFields.put("firstName", "homer");
-//		AssertHelpers.assertDeepEquals("Positive filter did not produce expected field names", expFilteredFields, gotFilteredFields);
-//	}
-//
-//	@Test
-//	public void test__filterFields__MapWithNegativeFilter() throws Exception {
-//		ExcludeFields filter = new ExcludeFields("firstName");
-//		Map<String,Object> map = new HashMap<String,Object>();
-//		{
-//			map.put("surname", "simpson");
-//			map.put("firstName", "homer");
-//		}
-//		Map<String, Object> gotFilteredFields = StreamlinedClient.filterFields(map, filter);
-//		Map<String,Object> expFilteredFields = new HashMap<String,Object>();
-//		expFilteredFields.put("surname", "simpson");
-//		AssertHelpers.assertDeepEquals("Negative filter did not produce expected field names", expFilteredFields, gotFilteredFields);
-//	}
-//
-//	@Test
-//	public void test__filterFields__MapWithNullFilter() throws Exception {
-//		ExcludeFields nullFilter = null;
-//		Map<String,Object> map = new HashMap<String,Object>();
-//		{
-//			map.put("firstName", "homer");
-//			map.put("surname", "simpson");
-//		}
-//		Map<String, Object> gotFilteredFields = StreamlinedClient.filterFields(map, nullFilter);
-//		Map<String,Object> expFilteredFields = new HashMap<String,Object>();
-//		expFilteredFields.put("firstName", "homer");
-//		expFilteredFields.put("surname", "simpson");
-//		AssertHelpers.assertDeepEquals("Negative filter did not produce expected field names", expFilteredFields, gotFilteredFields);
-//	}
 
 	@Test
-	public void test__filterFields__DynamicallyTypedDocument() throws Exception {
-		StreamlinedClient esClient = ESTestHelpers.makeEmptyTestClient();
-		ExcludeFields nullFilter = null;
-		Document_DynTyped homer = new Document_DynTyped("name", "homer");
-		homer.setField("birthDay", "1993-01-26");
+	public void test__filterFields__HappyPath() throws Exception {
+		StreamlinedClient esClient = ESTestHelpers.makeEmptyTestClient();		
+		Document homer = new Document("homersimpson");
+		homer.setAnAdditionalField("first", "Homer");
+		homer.setAnAdditionalField("last", "Simpson");
+		homer.setCreationDate("2018-03-19");
+		homer.setLongDescription("Homer is a character created created by Matt Groening in etc..");
+		homer.setShortDescription("Homer is a the father of the Simpsons family");
+		
 		esClient.putDocument(homer);
 		Map<String, Object> gotFilteredFields = esClient.filterFields(homer);
 		Map<String,Object> expFilteredFields = new HashMap<String,Object>();
 		{
-			expFilteredFields.put("fields.name", "homer");
+			expFilteredFields.put("id", "homersimpson");
 			expFilteredFields.put("lang", "en");
-			expFilteredFields.put("key", "homer");
+
+			expFilteredFields.put("longDescription", "Homer is a character created created by Matt Groening in etc..");
+			expFilteredFields.put("shortDescription", "Homer is a the father of the Simpsons family");
+
+			expFilteredFields.put("additionalFields.first", "Homer");
+			expFilteredFields.put("additionalFields.last", "Simpson");			
 		}
 		AssertHelpers.assertDeepEquals("Negative filter did not produce expected field names", expFilteredFields, gotFilteredFields);
-	}	
+		
+	}
 	
 	@Test
 	public void test__getFieldTypes__DynamicallyTypedDocsOnly() throws Exception {
 		StreamlinedClient esClient = ESTestHelpers.makeEmptyTestClient();
-		Document_DynTyped homer = new Document_DynTyped("name", "homer");
-		homer.setField("birthDay", "1993-01-26");
+		Document homer = new Document("homersimpson");
+		homer.setAnAdditionalField("first", "homer");
+		homer.setAnAdditionalField("last", "homer");
+		homer.setAnAdditionalField("birthDay", "1993-01-26");
 		String type = "CartoonCharacters";
 		esClient.putDocument(type, homer);
 		
@@ -555,11 +517,10 @@ public class StreamlinedClientTest {
 		{
 			expTypes.put("id", "text");
 			expTypes.put("_detect_language", "boolean");
-			expTypes.put("idFieldName", "text");
 			expTypes.put("lang", "text");
-			expTypes.put("fields.birthDay", "date");
-			expTypes.put("fields.name", "text");
-			expTypes.put("key", "text");
+			expTypes.put("additionalFields.birthDay", "date");
+			expTypes.put("additionalFields.first", "text");
+			expTypes.put("additionalFields.last", "text");
 		}
 		AssertHelpers.assertDeepEquals("Field types not as expected for type: "+type, 
 				expTypes, gotTypes);
@@ -577,8 +538,8 @@ public class StreamlinedClientTest {
 		esClient.putDocument(type, homer);
 		
 		// This other person is dynamically typed
-		Document_DynTyped marge = new Document_DynTyped("name", "marge");
-		marge.setField("birthDay", "1993-01-26");
+		Document marge = new Document("margesimpson");
+		marge.setAnAdditionalField("birthDay", "1993-01-26");
 		esClient.putDocument(type, marge);
 		
 		// The field types should be the union of the types for both
@@ -590,16 +551,12 @@ public class StreamlinedClientTest {
 			expTypes.put("id", "text");
 			expTypes.put("_detect_language", "boolean");
 			expTypes.put("lang", "text");
-			expTypes.put("idFieldName", "text");
-			expTypes.put("key", "text");
 
 			expTypes.put("birthDay", "date");
-			expTypes.put("fields.birthDay", "date");
+			expTypes.put("additionalFields.birthDay", "date");
 			
 			expTypes.put("firstName", "text");
 			expTypes.put("surname", "text");
-			expTypes.put("fields.name", "text");
-			
 		}
 		AssertHelpers.assertDeepEquals("Field types not as expected for type: "+type, 
 				expTypes, gotTypes);
@@ -637,7 +594,7 @@ public class StreamlinedClientTest {
 		Person homer = new Person("Homer", "Simpson");
 		client.putDocument(homer);
 		
-		gotPerson = (Person) client.getDocumentWithID("Homer", Person.class);
+		gotPerson = (Person) client.getDocumentWithID("HomerSimpson", Person.class);
 		AssertHelpers.assertDeepEquals("Homer SHOULD have been in the index after being added", homer, gotPerson);
 	}
 
@@ -704,13 +661,13 @@ public class StreamlinedClientTest {
 		// Then update his birth date
 		Map<String,Object> partialDoc = new HashMap<String,Object>();
 		partialDoc.put("birthDay", "1993-01-14");
-		client.updateDocument(Person.class, "Homer", partialDoc);
+		client.updateDocument(Person.class, "HomerSimpson", partialDoc);
 		
 		sleepABit();
 		
 		// Retrieve the doc from ES and it should now have a non-null
 		// birthDay value
-		Person gotPerson = (Person) client.getDocumentWithID("Homer", Person.class);
+		Person gotPerson = (Person) client.getDocumentWithID("HomerSimpson", Person.class);
 		Person expPerson = new Person("Homer", "Simpson").setBirthDay("1993-01-14");
 		AssertHelpers.assertDeepEquals("Birthday was not updated in the ES index", 
 				expPerson, gotPerson);

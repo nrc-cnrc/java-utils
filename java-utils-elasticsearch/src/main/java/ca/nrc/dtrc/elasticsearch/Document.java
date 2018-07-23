@@ -1,13 +1,14 @@
 package ca.nrc.dtrc.elasticsearch;
 
 import java.lang.reflect.Field;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public abstract class Document {
+public class Document {
 	
 	// This makes it possible for a document collection to 
 	// contain documents that are in different languages
@@ -15,7 +16,7 @@ public abstract class Document {
 	
 	public String lang = "en";
 		
-	public abstract String keyFieldName();
+	public String keyFieldName() {return "id";};
 
 	private String id = null;
 		public String getId() {return this.id;}
@@ -37,22 +38,50 @@ public abstract class Document {
 		public void setCreationDate(String _date) { this.creationDate = _date; }
 		public String getCreationDate() {return this.creationDate; }
 		
-	private Map<String,Object> additionalFields = null;
+	private Map<String,Object> additionalFields = new HashMap<String,Object>();
 		public void setAdditionalFields(Map<String,Object> _fields) {
 			this.additionalFields = _fields;
 		}
 		public Map<String,Object> getAdditionalFields() {
 			return this.additionalFields;
 		}
+		@JsonIgnore
+		public void setAnAdditionalField(String _fldName, Object _fldValue) {
+			this.additionalFields.put(_fldName, _fldValue);
+		}
+		@JsonIgnore
+		public Object getAnAdditionalField(String _fldName) {
+			Object value = this.additionalFields.get(_fldName);
+			return value;
+		}
+		
+	public Document() {
+		initialize(null);
+	}
+		
+	public Document(String _id) {
+		initialize(_id);
+	}
+	
+	private void initialize(String _id) {
+		this.setId(_id);
+	}
 	
 	public Object getField(String fldName, boolean failIfNotFound, Object defaultVal) throws DocumentException {
 		Object value = defaultVal;
-		try {
-			Field fld = this.getClass().getDeclaredField(fldName);
-			fld.setAccessible(true);
-			value = (Object)fld.get(this);
-		} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException exc) {
-			if (failIfNotFound) throw new DocumentException(exc);
+		if (fldName.startsWith("additionalFields.")) {
+			// This is a dynamically set, runtie field
+			fldName = fldName.substring(17);
+			value = additionalFields.get(fldName);
+		} else {
+			// This is a member attribute field
+			try {
+				Field fld = this.getClass().getDeclaredField(fldName);
+				fld.setAccessible(true);
+				value = (Object)fld.get(this);
+			} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException exc) {
+				if (failIfNotFound) throw new DocumentException(exc);
+			}
 		}
 		
 		return value;

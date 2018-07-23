@@ -1,5 +1,8 @@
 package ca.nrc.dtrc.elasticsearch;
 
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -8,6 +11,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -23,6 +27,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,6 +38,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import ca.nrc.json.PrettyPrinter;
 import ca.nrc.datastructure.Pair;
 import ca.nrc.dtrc.elasticsearch.ESUrlBuilder;
+import ca.nrc.introspection.Introspection;
 import okhttp3.Call;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -803,44 +809,41 @@ public class StreamlinedClient {
 	}
 	
 	
-	protected Map<String, Object> filterFields(Document queryDoc, FieldFilter filter) throws ElasticSearchException {
+	protected Map<String, Object> filterFields(Document queryDoc, FieldFilter filter) throws ElasticSearchException, DocumentException {
 		return filterFields(queryDoc, null, filter);
 	}
 
 	protected <T extends Document> Map<String, Object> filterFields(T queryDoc, String esDocType, FieldFilter filter) throws ElasticSearchException {
 		Map<String,Object> objMap = new HashMap<String,Object>();
 		if (esDocType == null) esDocType = queryDoc.defaultESDocType();
-			
-		Field[] fields = queryDoc.getClass().getFields();
-	
-		// Filter static fields
-		for (int ii=0; ii < fields.length; ii++) {
-			Field aField = fields[ii];
-			String fieldName = aField.getName();
+		
+		Map<String,Object> unfilteredMemberAttibutes = null;
+		try {
+			unfilteredMemberAttibutes = Introspection.publicFields(queryDoc);
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
+				| IntrospectionException e) {
+			throw new ElasticSearchException(e);
+		}
+		
+		// Filter member attributes
+		for (String fieldName: unfilteredMemberAttibutes.keySet()) {
+			if (fieldName.equals("additionalFields")) continue; 
 			if (filter == null || filter.keepField(fieldName)) {
 				if (!isTextField(esDocType, fieldName)) continue;
-				try {
-					objMap.put(fieldName, aField.get(queryDoc));
-				} catch (IllegalArgumentException | IllegalAccessException exc) {
-					throw new ElasticSearchException(exc);
-				}
+				objMap.put(fieldName, unfilteredMemberAttibutes.get(fieldName));
 			}
 		}
 		
-		// Possibly filter dynamic fields
-		if (queryDoc instanceof Document_DynTyped) {
-			Document_DynTyped queryDocDyn = (Document_DynTyped) queryDoc;
-			Map<String,Object> dynamicFields = queryDocDyn.getFields();
-			for (String dynFldKey: dynamicFields.keySet()) {
-				if (filter == null || filter.keepField(dynFldKey)) {
-					if (isTextField(esDocType, "fields."+dynFldKey)) {
-						try {
-							objMap.put("fields."+dynFldKey, queryDocDyn.getField(dynFldKey));
-						} catch (DocumentException exc) {
-							throw new ElasticSearchException(exc);
-						}
-					}
-				}				
+		// Filter additionalFields 
+		for (String fieldName: queryDoc.getAdditionalFields().keySet()) {
+			fieldName = "additionalFields."+fieldName;
+			if (filter == null || filter.keepField(fieldName)) {
+				if (!isTextField(esDocType, fieldName)) continue;
+				try {
+					objMap.put(fieldName, queryDoc.getField(fieldName));
+				} catch (DocumentException e) {
+					throw new ElasticSearchException(e);
+				}
 			}
 		}
 		
@@ -1076,8 +1079,8 @@ public class StreamlinedClient {
 				Entry<String, JsonNode> entry = iterator.next();
 			    String aFldName = entry.getKey();
 			    JsonNode aFldProps = entry.getValue();			    
-			    if (aFldName.equals("fields")) {
-			    	fieldTypes = collectDynamicFields(aFldProps, fieldTypes);
+			    if (aFldName.equals("additionalFields")) {
+			    	fieldTypes = collectAdditionalFields(aFldProps, fieldTypes);
 			    } else {
 				    String aFldType = null;
 				    if (aFldProps.has("type")) {
@@ -1095,20 +1098,22 @@ public class StreamlinedClient {
 		return fieldTypes;
 	}
 	
-	private Map<String, String> collectDynamicFields(JsonNode dynFieldsMapping, Map<String, String> fieldTypes) {
+	private Map<String, String> collectAdditionalFields(JsonNode dynFieldsMapping, Map<String, String> fieldTypes) {
 		ObjectNode props = (ObjectNode) dynFieldsMapping.get("properties");
-		Iterator<Entry<String, JsonNode>> iterator = props.fields();
-		while (iterator.hasNext()) {
-			Entry<String, JsonNode> entry = iterator.next();
-		    String aFldName = entry.getKey();
-		    JsonNode aFldProps = entry.getValue();			    
-		    String aFldType = null;
-		    if (aFldProps.has("type")) {
-		    	aFldType = aFldProps.get("type").asText();
-		    } else {
-		    	aFldType = "_EMBEDDED_STRUCTURE";
-		    }
-		    fieldTypes.put("fields."+aFldName, aFldType);			
+		if (props != null) {
+			Iterator<Entry<String, JsonNode>> iterator = props.fields();
+			while (iterator.hasNext()) {
+				Entry<String, JsonNode> entry = iterator.next();
+			    String aFldName = entry.getKey();
+			    JsonNode aFldProps = entry.getValue();			    
+			    String aFldType = null;
+			    if (aFldProps.has("type")) {
+			    	aFldType = aFldProps.get("type").asText();
+			    } else {
+			    	aFldType = "_EMBEDDED_STRUCTURE";
+			    }
+			    fieldTypes.put("additionalFields."+aFldName, aFldType);			
+			}
 		}
 		
 		return fieldTypes;
