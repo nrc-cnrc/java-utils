@@ -18,7 +18,7 @@ import ca.nrc.ui.commandline.SubCommand.Verbosity;
 public abstract class SubCommand {
 	
 	public static enum Verbosity {Levelnull, Level0, Level1, Level2, Level3, Level4, Level5};
-	protected static Verbosity verbosity = Verbosity.Level0;
+	protected static Verbosity verbosity = Verbosity.Level1;
 	
 	public static final String OPT_VERBOSITY = "verbosity";	
 	
