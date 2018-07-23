@@ -950,8 +950,39 @@ public class StreamlinedClient {
 		} catch (ElasticSearchException e) {
 			throw(e);
 		}
-		
 	}
+	
+	
+	public void bulkIndex(BufferedReader br, String docTypeName, int batchSize, boolean verbose) throws IOException, ElasticSearchException {
+		if (batchSize < 0) batchSize = 100;
+		int batchStart = 1;
+		int currBatchSize = 0;		
+		String jsonBatch = "";
+		String jsonLine = null;
+		while (true) {
+			jsonLine = br.readLine();
+			if (jsonLine == null) break;
+			if (jsonLine.matches("^(class|bodyEndMarker)=.*$")) continue;
+			String id = getLineID(jsonLine, verbose);
+			jsonBatch += 
+				"\n{\"index\": {\"_index\": \""+indexName+"\", \"_type\" : \""+docTypeName+"\", \"_id\": \""+id+"\"}}" +
+				"\n" + jsonLine;
+			
+			if (currBatchSize > batchSize) {
+				for (StreamlinedClientObserver obs: observers) {
+					obs.onBulkIndex(batchStart, batchStart+currBatchSize, indexName, docTypeName);
+				}
+				bulk(jsonBatch, docTypeName);
+				batchStart += currBatchSize;
+				currBatchSize = 0;
+				jsonBatch = "";
+			} else {
+				currBatchSize++;
+			}
+		}		
+	}
+	
+	
 	
 	private String getLineID(String jsonLine, boolean verbose) throws ElasticSearchException {
 		Document_DynTyped doc = null;
@@ -1163,10 +1194,17 @@ public class StreamlinedClient {
 	}
 	
 	public <T extends Document> void dumpToFile(File outputFile, Class<T> docClass) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ElasticSearchException {
-		Document docPrototype = docClass.getConstructor().newInstance();
-		SearchResults<T> allDocs = (SearchResults<T>) listAll(docPrototype);
+		T docPrototype = docClass.getConstructor().newInstance();
+		String esTypeName = docClass.getName();
+		SearchResults<T> allDocs = (SearchResults<T>) listAll(esTypeName, docPrototype);
 		dumpToFile(outputFile, allDocs, true);
 	}
+	
+	public <T extends Document> void dumpToFile(File outputFile, Class<T> docClass, String esTypeName) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ElasticSearchException {
+		Document docPrototype = docClass.getConstructor().newInstance();
+		SearchResults<T> allDocs = (SearchResults<T>) listAll(esTypeName, docPrototype);
+		dumpToFile(outputFile, allDocs, true);
+	}	
 	
 	private void dumpToFile(File outputFile, SearchResults<? extends Document> results, Boolean intoSingleJsonFile) throws ElasticSearchException {
 		if (intoSingleJsonFile == null) intoSingleJsonFile = true;

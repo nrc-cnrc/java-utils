@@ -88,7 +88,7 @@ public class Document_DynTyped extends Document {
 	
 		
 	private void initialize(String _idFieldName, String _idValue, Map<String,Object> _fields) {
-		this.id = _idValue;
+		setId(_idValue);
 		if (fieldsFilter == null) {
 			fieldsFilter = new HashSet<String>();
 			fieldsFilter.add("fields");

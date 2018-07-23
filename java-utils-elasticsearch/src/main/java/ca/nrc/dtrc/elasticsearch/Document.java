@@ -15,22 +15,28 @@ public abstract class Document {
 	
 	public String lang = "en";
 		
-//	@JsonIgnore
 	public abstract String keyFieldName();
 
-//	@JsonIgnore	
-	String id = null;
+	private String id = null;
 		public String getId() {return this.id;}
 		public void setId(String _id) {this.id = _id;}
+		
+	private String shortDescription = null;
+		public void setShortDescription(String _shortDescription) {
+			this.shortDescription = _shortDescription; 
+		}
+		public String getShortDescription() {return this.shortDescription; }
 	
-	public Object getField(String fldName) throws DocumentException {
-		return getField(fldName, true, null);
-	}
-
-	public Object getField(String fldName, boolean failIfNotFound) throws DocumentException {
-		return getField(fldName, failIfNotFound, null);
-	}
-	
+	private String longDescription = null;
+		public void setLongDescription(String _longDescription) {
+			this.longDescription = _longDescription;
+		}
+		public String getLongDescription() {return this.longDescription; }
+			
+	private String creationDate = null;
+		public void setCreationDate(String _date) { this.creationDate = _date; }
+		public String getCreationDate() {return this.creationDate; }
+		
 	private Map<String,Object> additionalFields = null;
 		public void setAdditionalFields(Map<String,Object> _fields) {
 			this.additionalFields = _fields;
@@ -51,6 +57,15 @@ public abstract class Document {
 		
 		return value;
 	}
+	
+	public Object getField(String fldName) throws DocumentException {
+		return getField(fldName, true, null);
+	}
+
+	public Object getField(String fldName, boolean failIfNotFound) throws DocumentException {
+		return getField(fldName, failIfNotFound, null);
+	}
+	
 	
 	public String defaultESDocType() {
 		return this.getClass().getName();
