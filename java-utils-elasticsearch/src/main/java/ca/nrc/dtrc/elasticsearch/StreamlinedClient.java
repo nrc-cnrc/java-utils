@@ -370,7 +370,7 @@ public class StreamlinedClient {
 		checkForESErrorResponse(jsonResponse);
 	}
 	
-	private void checkForESErrorResponse(String jsonResponse) throws ElasticSearchException {
+	public static void checkForESErrorResponse(String jsonResponse) throws ElasticSearchException {
 		ElasticSearchException exception = null;
 		
 		ObjectMapper mapper = new ObjectMapper();
@@ -646,12 +646,6 @@ public class StreamlinedClient {
 		return results;
 	}				
 	
-//	protected Map<String, Object> filterNonTextFields(Map<String, Object> queryDocMap) {
-//		Map<String,Object> filterdQueryDocMap = queryDocMap;
-//		
-//		return filterdQueryDocMap;
-//	}
-
 	protected String moreLikeThisJsonBody(String type, Map<String, Object> queryDoc) throws ElasticSearchException {
 		ObjectMapper mapper = new ObjectMapper(); 
 		JsonNodeFactory nodeFactory = JsonNodeFactory.instance;
