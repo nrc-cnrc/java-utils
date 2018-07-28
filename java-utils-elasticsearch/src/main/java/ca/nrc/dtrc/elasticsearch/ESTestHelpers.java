@@ -34,6 +34,11 @@ public class ESTestHelpers {
         	this.text_entry = _text_entry;
         }
 
+		public PlayLine(int _line_id, String _text_entry) {
+			setId(Integer.toString(line_id));
+        	this.text_entry = _text_entry;
+		}
+
 		@Override
 		public String keyFieldName() {
 			return "line_number";

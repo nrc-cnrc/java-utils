@@ -641,7 +641,7 @@ public class StreamlinedClient {
 		if (tLogger.isTraceEnabled()) tLogger.trace("** queryDocMap="+PrettyPrinter.print(queryDocMap));
 		
 		SearchResults results = null;
-		results = search(mltBody, esDocTypeName, queryDoc);
+		results = search(mltBody, esType, queryDoc);
 	
 		return results;
 	}				
