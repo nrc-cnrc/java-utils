@@ -9,22 +9,31 @@ import java.util.Map;
 import com.fasterxml.jackson.databind.JsonNode;
 
 public class Hit<T extends Document> {
-	private T document;
-	private Double score;
-	private Map<String, List<String>> snippets;
+	public T document;
+	public Double score;
+	public Map<String, List<String>> snippets;
 	
 	/**
 	 * Hit found by Elastic Search
-	 * @param document Document found
-	 * @param score Double score for the match
-	 * @param snippets JsonNode containing the highlights returned from ElasticSearch
+	 * @param _document Document found
+	 * @param _score Double score for the match
+	 * @param _snippets JsonNode containing the highlights returned from ElasticSearch
 	 */
-	public Hit(T document, Double score, JsonNode snippets) {		
-		this.document = document;
-		this.score = score;
-		this.snippets = getSnippets(snippets);
+	public Hit(T _document, Double _score, JsonNode _snippets) {		
+		initialize(_document, _score, _snippets);
 	}
 
+	private void initialize(T _document, Double _score, JsonNode _snippets) {
+		this.document = _document;
+		this.score = _score;
+		this.snippets = getSnippets(_snippets);
+	}
+
+	public Hit() {
+		initialize(null, null, null);
+	}
+	
+	
 	public T getDocument() {
 		return document;
 	}

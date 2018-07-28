@@ -72,6 +72,7 @@ public class StreamlinedClientTest {
 	@Before
     public void setUp() throws Exception {
         ESTestHelpers.skipTestsUnlessESIsRunning();
+        new StreamlinedClient("es-test").clearIndex();
     }
 	
 	/*********************************
