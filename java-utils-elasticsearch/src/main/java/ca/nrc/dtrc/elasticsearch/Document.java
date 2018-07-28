@@ -8,6 +8,8 @@ import java.util.Set;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import ca.nrc.json.PrettyPrinter;
+
 public class Document {
 	
 	// This makes it possible for a document collection to 
@@ -66,6 +68,13 @@ public class Document {
 	private void initialize(String _id) {
 		this.setId(_id);
 	}
+	
+	@JsonIgnore
+	public String getContent() {
+		String content = PrettyPrinter.print(this);
+		return content;
+	}
+
 	
 	public Object getField(String fldName, boolean failIfNotFound, Object defaultVal) throws DocumentException {
 		Object value = defaultVal;
