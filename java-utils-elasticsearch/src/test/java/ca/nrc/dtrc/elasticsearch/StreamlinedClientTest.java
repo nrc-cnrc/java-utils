@@ -224,6 +224,11 @@ public class StreamlinedClientTest {
 		// For example...
 		//
 		Document_DynTyped retrievedDoc = (Document_DynTyped) client.getDocumentWithID("X18D98KL9", Document_DynTyped.class, docType);
+		
+		//
+		// You can delete all documents for a given doc type
+		//
+		client.clearDocType(docType);
 	}
 	
 	/*********************************
@@ -617,6 +622,24 @@ public class StreamlinedClientTest {
 		
 		gotCar = (Document_DynTyped) client.getDocumentWithID(modelID, Document_DynTyped.class, esDocType);
 		AssertHelpers.assertDeepEquals("Corolla have been in the index after being added", corolla2009, gotCar);
+	}
+	
+	@Test @Ignore
+	public void test_clearDocType__HappyPath() throws Exception {
+		String docType1 = "doctype1";
+		String docType2 = "doctype2";
+		StreamlinedClient client = ESTestHelpers.makeEmptyTestClient();	
+		String indexName = client.getIndexName();
+		Person homer = new Person("homer", "simpson");
+		
+		ESTestHelpers.assertDocTypeIsEmpty("", indexName, docType1, homer);
+		client.putDocument(docType1, homer);
+		ESTestHelpers.assertDocTypeContainsDoc("", indexName, docType1, new String[] {"homersimpson"}, homer);
+
+		ESTestHelpers.assertDocTypeIsEmpty("", indexName, docType2, homer);
+		client.putDocument(docType2, homer);
+		ESTestHelpers.assertDocTypeContainsDoc("", indexName, docType2, new String[] {"homersimpson"}, homer);
+		
 	}
 	
 	

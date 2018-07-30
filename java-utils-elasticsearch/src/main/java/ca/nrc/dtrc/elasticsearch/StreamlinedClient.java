@@ -1253,4 +1253,9 @@ public class StreamlinedClient {
 	public void attachObserver(StreamlinedClientObserver _obs) {
 		observers.add(_obs);
 	}
+
+	public void clearDocType(String docType) {
+		// TODO Auto-generated method stub
+		
+	}
 }

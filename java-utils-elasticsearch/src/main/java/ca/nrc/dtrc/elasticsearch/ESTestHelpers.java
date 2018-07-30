@@ -2,8 +2,10 @@ package ca.nrc.dtrc.elasticsearch;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.Assert;
 
@@ -194,5 +196,27 @@ public class ESTestHelpers {
 
 	public static void assertIndexContainsDoc(String indexName, Document expDocument) {
 		Assert.fail("Implement this assertion");
+	}
+
+	public static void assertDocTypeIsEmpty(String message, String indexName, 
+			String docType, Document protoDoc) throws Exception {
+		StreamlinedClient client = new StreamlinedClient(indexName);
+		SearchResults<Document> results = client.listAll(docType, protoDoc);
+		long totalHits = results.getTotalHits();
+		Assert.assertEquals("Doc type "+docType+" of index "+indexName+" should have been empty.", 0, totalHits);
+		
+	}
+
+	public static void assertDocTypeContainsDoc(String message, String indexName, String docType, 
+			String[] expDocIDs, Document protoDoc)  throws Exception {
+		StreamlinedClient client = new StreamlinedClient(indexName);
+		SearchResults<Document> results = client.listAll(docType, protoDoc);
+		Set<String> gotDocIDs = new HashSet<String>();
+		Iterator<Hit<Document>> iter = results.iterator();
+		while (iter.hasNext()) {
+			gotDocIDs.add(iter.next().getDocument().getId());
+		}
+		AssertHelpers.assertDeepEquals(message+"Doc type "+docType+" of index "+indexName+" did not contain the expected document IDs.", 
+				expDocIDs, gotDocIDs);
 	}	
 }
