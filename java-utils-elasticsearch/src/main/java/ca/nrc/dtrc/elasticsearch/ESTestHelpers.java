@@ -22,6 +22,10 @@ public class ESTestHelpers {
 	
 	private static final PlayLine playLinePrototype = new PlayLine();
 	
+	public static final long SHORT_WAIT = 1000;
+	public static final long LONG_WAIT = 2*SHORT_WAIT;
+	public static final long EXTRA_LONG_WAIT = 4*LONG_WAIT;
+	
 	public static class PlayLine extends Document {
 		public Integer line_id = -1;
 		public String play_name = "";
@@ -218,5 +222,17 @@ public class ESTestHelpers {
 		}
 		AssertHelpers.assertDeepEquals(message+"Doc type "+docType+" of index "+indexName+" did not contain the expected document IDs.", 
 				expDocIDs, gotDocIDs);
+	}
+
+	public static void sleepShortTime() throws InterruptedException {
+		Thread.sleep(SHORT_WAIT);
+	}	
+
+	public static void sleepLongTime() throws InterruptedException {
+		Thread.sleep(LONG_WAIT);
+	}	
+
+	public static void sleepExtraLongTime() throws InterruptedException {
+		Thread.sleep(EXTRA_LONG_WAIT);
 	}	
 }

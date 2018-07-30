@@ -624,7 +624,7 @@ public class StreamlinedClientTest {
 		AssertHelpers.assertDeepEquals("Corolla have been in the index after being added", corolla2009, gotCar);
 	}
 	
-	@Test @Ignore
+	@Test
 	public void test_clearDocType__HappyPath() throws Exception {
 		String docType1 = "doctype1";
 		String docType2 = "doctype2";
@@ -632,13 +632,21 @@ public class StreamlinedClientTest {
 		String indexName = client.getIndexName();
 		Person homer = new Person("homer", "simpson");
 		
+		// Enter a doc in two doc types 
 		ESTestHelpers.assertDocTypeIsEmpty("", indexName, docType1, homer);
 		client.putDocument(docType1, homer);
 		ESTestHelpers.assertDocTypeContainsDoc("", indexName, docType1, new String[] {"homersimpson"}, homer);
-
 		ESTestHelpers.assertDocTypeIsEmpty("", indexName, docType2, homer);
 		client.putDocument(docType2, homer);
 		ESTestHelpers.assertDocTypeContainsDoc("", indexName, docType2, new String[] {"homersimpson"}, homer);
+		
+		// Now clear one of the two docTypes and check that all is as expected
+		client.clearDocType(docType1);
+		ESTestHelpers.sleepExtraLongTime();
+		ESTestHelpers.assertDocTypeIsEmpty("", indexName, docType1, homer);
+		ESTestHelpers.assertDocTypeContainsDoc("", indexName, docType2, new String[] {"homersimpson"}, homer);
+		
+		
 		
 	}
 	

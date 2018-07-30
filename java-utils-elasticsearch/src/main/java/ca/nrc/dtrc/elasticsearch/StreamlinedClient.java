@@ -1254,8 +1254,11 @@ public class StreamlinedClient {
 		observers.add(_obs);
 	}
 
-	public void clearDocType(String docType) {
-		// TODO Auto-generated method stub
-		
+	public String clearDocType(String docType) throws ElasticSearchException {
+		String body = "{\"query\": {\"match_all\": {}}}";
+		URL url = esUrlBuilder().forDocType(docType).forEndPoint("_delete_by_query").build();
+		String jsonResponse = post(url, body);
+	
+		return jsonResponse;	
 	}
 }
