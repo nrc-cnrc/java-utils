@@ -743,7 +743,7 @@ public class StreamlinedClientTest {
 		String[] expClusterNamesSuperset = new String[] {
 				"Other Topics", "Shall", "King", "Thou", "Sir", "Thee", "Know", 
 				"Mother", "Speak", "Play", "Love", "Heaven", "Tis", "Horatio", "Father", "Soul",
-				"Heaven", "Thy", "Eyes", "Matter"
+				"Heaven", "Thy", "Eyes", "Matter", "Enter"
 		};
 		Object[] gotClusterNames =  clusters.getClusterNames().toArray();
 		
