@@ -1182,7 +1182,7 @@ public class StreamlinedClient {
 		ESUrlBuilder builder = new ESUrlBuilder(indexName, serverName, port);
 		return builder;
 	}
-		
+
 	public <T extends Document> void dumpToFile(File outputFile, String freeformQuery, String docTypeName, T docPrototype, Boolean intoSingleJsonFile) throws ElasticSearchException {
 		try {			
 			SearchResults<T> results = searchFreeform(freeformQuery, docTypeName, docPrototype);
