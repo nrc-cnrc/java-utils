@@ -131,15 +131,23 @@ public class ESTestHelpers {
 		
 		return client;
 	}
-	
+
 	public static StreamlinedClient makeHamletTestClient() throws IOException, ElasticSearchException, InterruptedException {
+		return makeHamletTestClient(null);
+	}
+	
+	public static StreamlinedClient makeHamletTestClient(String collectionName) throws IOException, ElasticSearchException, InterruptedException {
 		// Put a two second delay after each transaction, to give ES time to synchronize all the nodes.
 		double sleepSecs = 2.0;
 		StreamlinedClient client = new StreamlinedClient(hamletTestIndex, sleepSecs);
 		client.clearIndex(false);
-		
+				
 		String fPath = ResourceGetter.getResourcePath("test_data/ca/nrc/dtrc/elasticsearch/hamlet.json");
-		client.bulk(fPath, PlayLine.class);
+		if (collectionName == null) {
+			client.bulk(fPath, PlayLine.class);
+		} else {
+			client.bulk(fPath, collectionName);
+		}
 		
 		// Sleep a bit to give the ES server to propagate the index to 
 		// all nodes in its cluster
