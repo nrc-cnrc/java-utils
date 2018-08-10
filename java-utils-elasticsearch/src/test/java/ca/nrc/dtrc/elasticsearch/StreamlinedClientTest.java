@@ -631,23 +631,21 @@ public class StreamlinedClientTest {
 		StreamlinedClient client = ESTestHelpers.makeEmptyTestClient();	
 		String indexName = client.getIndexName();
 		Person homer = new Person("homer", "simpson");
+		Person marge = new Person("marge", "simpson");
 		
 		// Enter a doc in two doc types 
 		ESTestHelpers.assertDocTypeIsEmpty("", indexName, docType1, homer);
 		client.putDocument(docType1, homer);
 		ESTestHelpers.assertDocTypeContainsDoc("", indexName, docType1, new String[] {"homersimpson"}, homer);
 		ESTestHelpers.assertDocTypeIsEmpty("", indexName, docType2, homer);
-		client.putDocument(docType2, homer);
-		ESTestHelpers.assertDocTypeContainsDoc("", indexName, docType2, new String[] {"homersimpson"}, homer);
+		client.putDocument(docType2, marge);
+		ESTestHelpers.assertDocTypeContainsDoc("", indexName, docType2, new String[] {"margesimpson"}, homer);
 		
 		// Now clear one of the two docTypes and check that all is as expected
 		client.clearDocType(docType1);
 		ESTestHelpers.sleepExtraLongTime();
 		ESTestHelpers.assertDocTypeIsEmpty("", indexName, docType1, homer);
-		ESTestHelpers.assertDocTypeContainsDoc("", indexName, docType2, new String[] {"homersimpson"}, homer);
-		
-		
-		
+		ESTestHelpers.assertDocTypeContainsDoc("", indexName, docType2, new String[] {"margesimpson"}, homer);
 	}
 	
 	
