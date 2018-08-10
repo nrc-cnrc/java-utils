@@ -87,6 +87,9 @@ public class ResourceGetter {
 	}
 
 	public static void createFileIfNotExist(String filePath) throws IOException {
-		FileOutputStream fStream = FileUtils.openOutputStream(new File(filePath));		
+		File f = new File(filePath);
+		if (!f.exists()) {
+			FileOutputStream fStream = FileUtils.openOutputStream(f);
+		}
 	}
 }
