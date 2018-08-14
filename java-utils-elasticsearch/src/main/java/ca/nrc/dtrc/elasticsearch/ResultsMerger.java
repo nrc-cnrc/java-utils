@@ -25,13 +25,20 @@ import ca.nrc.datastructure.Pair;
 public class ResultsMerger<T extends Document> {
 
 	public List<Hit<Document>> mergeHits(SearchResults<Document> hits1, SearchResults<Document> hits2) {
+		return mergeHits(hits1, hits2, null);
+	}
+	
+	public List<Hit<Document>> mergeHits(SearchResults<Document> hits1, SearchResults<Document> hits2, Integer maxHits) {
 		normalizeScores(hits1);
 		normalizeScores(hits2);
 		Map<String,Pair<Hit<Document>,Hit<Document>>> hitsWithID = new HashMap<String,Pair<Hit<Document>,Hit<Document>>>();
 		
 		// Compile hits in hits1
 		{
+			int counter = 0;
 			for (Hit<Document> aHit: hits1) {
+				counter++;
+				if (maxHits != null && counter > maxHits) break;
 				String docID = aHit.getDocument().getId();
 				Pair<Hit<Document>,Hit<Document>> entry = null;
 				if (!hitsWithID.containsKey(docID)) {
@@ -47,7 +54,10 @@ public class ResultsMerger<T extends Document> {
 
 		// Compile hits in hits2
 		{
+			int counter = 0;
 			for (Hit<Document> aHit: hits2) {
+				counter++;
+				if (maxHits != null && counter > maxHits) break;
 				String docID = aHit.getDocument().getId();
 				Pair<Hit<Document>,Hit<Document>> entry = null;
 				if (!hitsWithID.containsKey(docID)) {
@@ -97,7 +107,14 @@ public class ResultsMerger<T extends Document> {
 			Collections.sort(mergedHits, (h1, h2) -> h2.getScore().compareTo(h1.getScore()));
 		}
 		
-		return mergedHits;
+//		return mergedHits;
+		List<Hit<Document>> finalList;
+		if (maxHits == null) {
+			finalList = mergedHits;
+		} else {
+			finalList = mergedHits.subList(0, Math.min(maxHits, mergedHits.size()));
+		}
+		return finalList;
 	}
 
 	@JsonIgnore
