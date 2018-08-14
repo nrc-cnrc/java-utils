@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 public class Hit<T extends Document> {
 	public T document;
 	public Double score;
+		public void setScore(Double _score) {this.score = _score;}
 	public Map<String, List<String>> snippets;
 	
 	/**

@@ -70,7 +70,13 @@ public class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> 
 	}
 	
 	private void retrieveNewBatch() throws ElasticSearchException {
-		documentsBatch = esClient.scrollScoredHits(scrollID, docPrototype);
+		if (scrollID == null) {
+			// Note: scrollID == null may happen when we are creating 
+			//   dummy list of hits for testing purposes.
+			documentsBatch = null;
+		} else {
+			documentsBatch = esClient.scrollScoredHits(scrollID, docPrototype);
+		}
 		batchCursor = 0;
 	}
 	

@@ -741,7 +741,7 @@ public class StreamlinedClientTest {
 		String[] expClusterNamesSuperset = new String[] {
 				"Other Topics", "Shall", "King", "Thou", "Sir", "Thee", "Know", 
 				"Mother", "Speak", "Play", "Love", "Heaven", "Tis", "Horatio", "Father", "Soul",
-				"Heaven", "Thy", "Eyes", "Matter", "Enter"
+				"Heaven", "Thy", "Eyes", "Matter", "Enter", "Dost Thou"
 		};
 		Object[] gotClusterNames =  clusters.getClusterNames().toArray();
 		
@@ -763,7 +763,7 @@ public class StreamlinedClientTest {
 			"36590"		
 		};
 		String[] gotIDs = clusters.getCluster("Heaven").getDocIDs().toArray(new String[]{});
-		AssertHelpers.assertDeepEquals("Document IDs for cluster '"+clusterName+"' were not as expected.", 
+		AssertHelpers.assertDeepEquals("Document IDs for cluster '"+clusterName+"' were not as expected.\n  NOTE: This test is somewhat brittle and the results seem to change slightly from time to time. In most cases, if the test fails because a new cluster has appeared, just add the new cluster to the expectations.", 
 				expIDs, clusters.getCluster("Heaven").getDocIDs());
 		AssertHelpers.assertUnOrderedSameElements("Cluster IDs not as expected", expIDs, gotIDs);
 	}
