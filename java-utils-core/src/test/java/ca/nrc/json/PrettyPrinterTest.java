@@ -1,6 +1,6 @@
 package ca.nrc.json;
 
-//import static ca.nrc.ict.testingutils.Assert.assertEquals;
+//import static ca.nrc.testing.Assert.assertEquals;
 import static org.junit.Assert.*;
 
 import java.io.IOException;

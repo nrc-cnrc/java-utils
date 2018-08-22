@@ -140,11 +140,15 @@ public class PageHarvester {
 	}
 
 	public List<SearchEngine.Hit> crawlHits(SearchEngine.Query query, SearchEngine.IHitVisitor hitVisitor)
-			throws IOException, SearchEngineException {
+			throws IOException, SearchEngineException, PageHarvesterException {
 		SearchEngine engine = new BingSearchEngine();
 		List<SearchEngine.Hit> hits = engine.search(query);
 		for (SearchEngine.Hit aHit : hits) {
-			hitVisitor.visitHit(aHit);
+			try {
+				hitVisitor.visitHit(aHit);
+			} catch (Exception exc) {
+				throw new PageHarvesterException(exc);
+			}
 		}
 		return hits;
 	}

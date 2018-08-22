@@ -102,7 +102,7 @@ public abstract class SearchEngine {
 	}
 	
 	public interface IHitVisitor {
-		public void visitHit(Hit hit);
+		public void visitHit(Hit hit) throws Exception;
 	}
 	
 }
