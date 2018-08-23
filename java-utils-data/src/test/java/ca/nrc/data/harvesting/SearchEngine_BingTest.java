@@ -26,6 +26,11 @@ public class SearchEngine_BingTest extends SearchEngineTest {
 		super.tearDown();
 	}
 
+	@Override
+	protected Integer engineMaxHitsPerPage() {
+		return 50;
+	}
+	
 
 	@Override
 	protected SearchEngine makeSearchEngine() throws IOException, SearchEngineException {
@@ -107,7 +112,5 @@ public class SearchEngine_BingTest extends SearchEngineTest {
 			}			
 		}
 	}
-	
-	
 
 }

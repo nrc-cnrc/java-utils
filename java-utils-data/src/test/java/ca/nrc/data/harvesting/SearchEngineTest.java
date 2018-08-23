@@ -141,17 +141,18 @@ public abstract class SearchEngineTest {
 
 	@Test
 	public void test__search__OverrideDefaultMaxHits__ShouldReturnCorrectNumberOfHits() throws Exception {
+
 		SearchEngine engine = makeSearchEngine();
 		
 		SearchEngine.Query query = new SearchEngine.Query("wikipedia");
 		
 		
 		// Set the max number of hits to twice the default value;
+		int origMaxHits =query.maxHits;
 		query.setMaxHits(query.maxHits*2 + 5);
-		List<SearchEngine.Hit> results = engine.search(query); 
+		List<SearchEngine.Hit> results = engine.search(query); 		
 		
-		
-		Assert.assertEquals("max Hits", query.maxHits, results.size());
+		Assert.assertTrue("max Hits", results.size() > origMaxHits);
 		
 		// Note: We allow at most one of the hits to not match the query
 		//   (this is something that can happen, where we can't tell
@@ -161,6 +162,37 @@ public abstract class SearchEngineTest {
 		assertResultsFitTheQuery(results, query, maxNonMatching);
 	}
 	
+	@Test
+	public void test__search__maxHitsGreaterThanWhatEngineShowsOnFirstPageOfHits() throws Exception {
+		
+		Integer maxHitsPerPage = this.engineMaxHitsPerPage();
+		if (maxHitsPerPage != null) {
+			// This search engine requires that you download one page of hits at
+			// a time, where the max hits per page is maxHitsPerPage.
+			//
+			// Make sure that things work OK when we ask more hits than what
+			// can fit on the first page.
+			//
+			int numHits = 2*maxHitsPerPage + 3;
+			
+			SearchEngine engine = makeSearchEngine();
+			SearchEngine.Query query = 
+					new SearchEngine.Query("wikipedia")
+					.setMaxHits(numHits)
+					;
+			
+			
+			// Set the max number of hits to twice the default value;
+			List<SearchEngine.Hit> results = engine.search(query); 
+			Assert.assertEquals("Number of hits was not as expected",
+					numHits, results.size());
+			
+		}
+	}
+		
+	
+	protected abstract Integer engineMaxHitsPerPage();
+
 	@Test
 	public void test__search__TypeNEWS() throws IOException, SearchEngineException {
 		SearchEngine engine = makeSearchEngine();

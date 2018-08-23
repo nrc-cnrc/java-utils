@@ -30,6 +30,7 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.junit.experimental.max.MaxHistory;
 
 
 public class BingSearchEngine extends SearchEngine {
@@ -72,66 +73,89 @@ public class BingSearchEngine extends SearchEngine {
 		
 		String queryString = makeBingQueryString(seQuery);
 		
-		try {
-			parameters.put("q",
-//					String.format("%s -pdf -ppt -doc -img -bmp -png -jpg -gif -zip -jar -mp3 -avi", queryString));
-					String.format("%s -filetype:pdf -filetype:ppt -filetype:doc -filetype:img -filetype:bmp -filetype:png -filetype:jpg -filetype:gif -filetype:zip -filetype:jar -filetype:mp3 -filetype:avi", queryString));
-			if (seQuery.maxHits > 0) {
-				parameters.put("count", seQuery.maxHits);
-			}
-			
-			String url = bingSearchUrl;
-			String fullURL = addQueryStringToUrl(url, parameters);
-						
-			tLogger.trace("Getting hits from Bing fullURL="+fullURL);
-			HttpGet httpGet = new HttpGet(fullURL);
-	
-			String subscrKey = parameters.get("subscription-key").toString();
-			httpGet.addHeader("Ocp-Apim-Subscription-Key", subscrKey);
-			httpGet.addHeader("Accept", parameters.get("Accept").toString());
-	
-
-			int  MAX_TRIES = 2;
-			int ok = 0;
-			CloseableHttpResponse httpResponse = null;
-			for (int ii=0; ii < MAX_TRIES; ii++) {
-				httpResponse = httpClient.execute(httpGet);
-				ok = httpResponse.getStatusLine().getStatusCode();
-				if (ok == 429) {
-					// Too many requests...
-					// Sleep for a second and try again
-					Thread.sleep(1*1000);
-				} else {
-					break;
+		boolean keepGoing = true;
+		int hitsPageNum = 0;
+		while (keepGoing) {
+			try {
+				parameters.put("q",
+						String.format("%s -filetype:pdf -filetype:ppt -filetype:doc -filetype:img -filetype:bmp -filetype:png -filetype:jpg -filetype:gif -filetype:zip -filetype:jar -filetype:mp3 -filetype:avi", queryString));
+				if (seQuery.maxHits > 0) {
+					parameters.put("count", seQuery.maxHits);
 				}
-			}
-			if (ok == HttpURLConnection.HTTP_OK) {
-				final BufferedReader reader = new BufferedReader(
-						new InputStreamReader(httpResponse.getEntity().getContent()));
-				final StringBuffer response = new StringBuffer();
-				String inputLine;
-				while ((inputLine = reader.readLine()) != null) {
-					response.append(inputLine);
-				}
-				reader.close();
-				final JSONObject json = new JSONObject(response.toString());
-				if (json.has("webPages")) {
-					final JSONObject page = json.getJSONObject("webPages");
-					final JSONArray jsonResults = page.getJSONArray("value");
-					final int resultsLength = jsonResults.length();
-					tLogger.trace("resultsLength="+resultsLength);
-					for (int i = 0; i < resultsLength; i++) {
-						final JSONObject aResult = jsonResults.getJSONObject(i);						
-						String directURL = getHitDirectURL(aResult.getString("url"));
-						URL hitURL = new URL(directURL);
-						
-						results.add(new SearchEngine.Hit(hitURL, aResult.getString("name"),
-							aResult.getString("snippet")));
+				parameters.put("offset", hitsPageNum);
+				
+				String url = bingSearchUrl;
+				String fullURL = addQueryStringToUrl(url, parameters);
+							
+				tLogger.trace("Getting hits from Bing fullURL="+fullURL);
+				HttpGet httpGet = new HttpGet(fullURL);
+		
+				String subscrKey = parameters.get("subscription-key").toString();
+				httpGet.addHeader("Ocp-Apim-Subscription-Key", subscrKey);
+				httpGet.addHeader("Accept", parameters.get("Accept").toString());
+		
+	
+				int  MAX_TRIES = 2;
+				int ok = 0;
+				CloseableHttpResponse httpResponse = null;
+				for (int ii=0; ii < MAX_TRIES; ii++) {
+					httpResponse = httpClient.execute(httpGet);
+					ok = httpResponse.getStatusLine().getStatusCode();
+					if (ok == 429) {
+						// Too many requests...
+						// Sleep for a second and try again
+						Thread.sleep(1*1000);
+					} else {
+						break;
 					}
 				}
-				httpClient.close();
+				if (ok == HttpURLConnection.HTTP_OK) {
+					final BufferedReader reader = new BufferedReader(
+							new InputStreamReader(httpResponse.getEntity().getContent()));
+					final StringBuffer response = new StringBuffer();
+					String inputLine;
+					while ((inputLine = reader.readLine()) != null) {
+						response.append(inputLine);
+					}
+					reader.close();
+					final JSONObject json = new JSONObject(response.toString());
+					if (!json.has("webPages")) {
+						keepGoing = false;
+					} else {
+						final JSONObject page = json.getJSONObject("webPages");
+						final JSONArray jsonResults = page.getJSONArray("value");
+						final int resultsLength = jsonResults.length();
+						if (resultsLength == 0) {
+							keepGoing = false;
+						} else {
+							tLogger.trace("resultsLength="+resultsLength);
+							for (int i = 0; i < resultsLength; i++) {
+								final JSONObject aResult = jsonResults.getJSONObject(i);						
+								String directURL = getHitDirectURL(aResult.getString("url"));
+								URL hitURL = new URL(directURL);
+								
+								results.add(new SearchEngine.Hit(hitURL, aResult.getString("name"),
+									aResult.getString("snippet")));
+								if (results.size() == seQuery.maxHits) break;
+							}
+						}
+					}
+				}
+			} catch (Exception exc) {
+				throw new SearchEngineException(exc);
 			}
-		} catch (Exception exc) {
+			
+			if (results.size() >= seQuery.maxHits) {
+				keepGoing = false;
+			} else {
+				hitsPageNum++;
+			}			
+
+		}	
+		
+		try {
+			httpClient.close();
+		} catch (IOException exc) {
 			throw new SearchEngineException(exc);
 		}
 		
