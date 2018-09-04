@@ -2,6 +2,7 @@ package ca.nrc.web;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,8 +27,14 @@ public class Http {
 			.readTimeout(60,  TimeUnit.SECONDS)
 			.writeTimeout(60, TimeUnit.SECONDS)
 			.build();
+
+	public static Object post(String url, Map<String,Object> json, ResponseType respType) throws IOException {
+		String jsonStr = new ObjectMapper().writeValueAsString(json);
+		Object jsonResp = post(url, jsonStr, respType);
+		return jsonResp;
+	}
 	
-	public Object post(String url, String strBody, ResponseType respType) throws IOException {
+	public static Object post(String url, String strBody, ResponseType respType) throws IOException {
 		String strResponse = post(url, strBody);
 		Object response = strResponse;
 		ObjectMapper mapper = new ObjectMapper();
@@ -41,8 +48,15 @@ public class Http {
 		
 		return response;
 	}
+
+	public static String post(String url, Map<String,Object> json) throws IOException {
+		String jsonStr = new ObjectMapper().writeValueAsString(json);
+		String resp = post(url, jsonStr);
+		return resp;
+	}
 	
-	public String post(String url, String strBody) throws IOException {
+	
+	public static String post(String url, String strBody) throws IOException {
 		RequestBody body = RequestBody.create(JSON, strBody);
     
 	    Request request = requestBuilder
