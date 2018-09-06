@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ca.nrc.json.PrettyPrinter;
+import ca.nrc.testing.AssertHelpers.Comp;
 
 
 
@@ -32,6 +33,8 @@ import ca.nrc.json.PrettyPrinter;
  */ 
 
 public class AssertHelpers {
+	
+	public  enum Comp  {AT_LEAST, AT_MOST, EQUAL_TO, DIFFREENT_FROM};
 	
 	public static void assertDeepEquals(
 			String message, Object expObject, Object gotObject) throws IOException {
@@ -442,4 +445,28 @@ public class AssertHelpers {
 		assertStringEquals(message+"\nContent of file '"+filePath+"' was not as expected.", 
 				expContent, gotContent);
 	}
+
+	public static void compareNumbers(String mess, Number gotN, Comp comparison, Number nBeforeDate) {
+		if (comparison == Comp.AT_LEAST) {
+			assertAtLeast(mess, gotN, nBeforeDate);
+		} else if (comparison == Comp.AT_MOST) {
+			assertAtMost(mess, gotN, nBeforeDate);	
+		}
+		
+	}
+
+	private static void assertAtLeast(String mess, Number gotN, Number minN) {
+		mess += "\nNumber "+gotN+" should have been at least "+minN;
+		if (gotN instanceof Integer) {
+			Assert.assertTrue(mess, gotN.intValue() >= minN.intValue());			
+		}
+	}
+
+	private static void assertAtMost(String mess, Number gotN, Number maxN) {
+		mess += "\nNumber "+gotN+" should have been at most "+maxN;
+		if (gotN instanceof Integer) {
+			Assert.assertTrue(mess, gotN.intValue() <= maxN.intValue());			
+		}
+	}
+
 }
