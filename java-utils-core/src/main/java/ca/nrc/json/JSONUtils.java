@@ -10,6 +10,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -24,6 +25,15 @@ public class JSONUtils {
 		return objMap;
 	}
 
+	public static Map<String, Object> object2ObjectMap(Object obj) throws IOException {
+		ObjectMapper mapper = new ObjectMapper();
+		String json = mapper.writeValueAsString(obj);
+		Map<String, Object> map = (Map) mapper.readValue(json, Map.class);
+		
+		return map;
+	}
+
+	
 	@SuppressWarnings("unchecked")
 	public static <T> List<T> asList(JSONArray jsonArray, Class<T> type) throws JsonParseException, JsonMappingException, IOException {
 		String jsonString = jsonArray.toString();
@@ -45,4 +55,5 @@ public class JSONUtils {
 		
 		return obj;
 	}
+
 }
