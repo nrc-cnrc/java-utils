@@ -877,18 +877,19 @@ public class StreamlinedClient {
 		Thread.sleep(millis);
 	}
 
-	public void bulk(String jsonFPath, Class<? extends Document> docClass) throws ElasticSearchException, IOException {
-		bulk(new File(jsonFPath), docClass);
-	}
-
 
 	public void bulk(File jsonFile, Class<? extends Document> docClass) throws ElasticSearchException, IOException {
 		String docTypeName = docClass.getName();
+		bulk(jsonFile, docTypeName);
+	}
+
+	public void bulk(File jsonFile, String docTypeName) throws ElasticSearchException, IOException {
 		List<String> jsonLines = Files.readAllLines(jsonFile.toPath());
 		String json = String.join("\n", jsonLines);
 		bulk(json, docTypeName);
 	}
-
+	
+	
 	public void bulk(String jsonContent, String docTypeName) throws ElasticSearchException, IOException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.bulk");
 		URL url = esUrlBuilder().forDocType(docTypeName).forEndPoint("_bulk").build();

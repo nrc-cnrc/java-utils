@@ -1,5 +1,6 @@
 package ca.nrc.dtrc.elasticsearch;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -144,9 +145,9 @@ public class ESTestHelpers {
 				
 		String fPath = ResourceGetter.getResourcePath("test_data/ca/nrc/dtrc/elasticsearch/hamlet.json");
 		if (collectionName == null) {
-			client.bulk(fPath, PlayLine.class);
+			client.bulk(new File(fPath), PlayLine.class);
 		} else {
-			client.bulk(fPath, collectionName);
+			client.bulk(new File(fPath), collectionName);
 		}
 		
 		// Sleep a bit to give the ES server to propagate the index to 
