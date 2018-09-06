@@ -313,7 +313,7 @@ public class StreamlinedClientTest {
 		queryLines.add(new ESTestHelpers.PlayLine("To sing or not to sing that is the question"));
 		
 		SearchResults<ESTestHelpers.PlayLine> gotSearchResults = client.moreLikeThese(queryLines, new IncludeFields("^text_entry$"));		
-		assertIsInFirstNHits("I must to England; you know that?", 20, "text_entry", gotSearchResults);
+		assertIsInFirstNHits("To the ambassadors of England gives", 20, "text_entry", gotSearchResults);
 		assertIsInFirstNHits("To be, or not to be: that is the question:", 20, "text_entry", gotSearchResults);
 	}	
 	
@@ -758,9 +758,9 @@ public class StreamlinedClientTest {
 
 		String clusterName = "Heaven";
 		String[] expIDs = new String[] {
-			"32778","32779","32820","33105","33156","33265","33355",
-			"34135","34304", "34871","34879","34890","35071","36280",
-			"36590"		
+				"1.2.143", "1.2.184", "1.4.44", "1.5.109", "1.5.185", "1.5.97",
+				"2.2.595", "3.2.128", "3.3.81", "3.3.85", "3.3.96", "3.4.165",
+				"3.4.55", "5.2.344", "5.2.357"	
 		};
 		String[] gotIDs = clusters.getCluster("Heaven").getDocIDs().toArray(new String[]{});
 		AssertHelpers.assertDeepEquals("Document IDs for cluster '"+clusterName+"' were not as expected.\n  NOTE: This test is somewhat brittle and the results seem to change slightly from time to time. In most cases, if the test fails because a new cluster has appeared, just add the new cluster to the expectations.", 
