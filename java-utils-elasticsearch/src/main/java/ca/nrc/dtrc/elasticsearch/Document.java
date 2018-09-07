@@ -1,6 +1,7 @@
 package ca.nrc.dtrc.elasticsearch;
 
 import java.lang.reflect.Field;
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -131,6 +132,17 @@ public class Document {
 
 	public String fingerprint(Integer minLength) throws DocumentException {
 		return null;
+	}
+	
+	@JsonIgnore
+	public LocalDate getCreationLocalDate() {
+		LocalDate date = null;
+		String dateStr = getCreationDate();
+		if (dateStr != null) {
+			date = LocalDate.parse(dateStr);
+		}
+		
+		return date;
 	}
 
 }
