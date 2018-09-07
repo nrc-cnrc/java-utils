@@ -14,7 +14,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-
 public class JSONUtils {
 	public static enum STRUCT {List, Object};
 	
@@ -53,6 +52,13 @@ public class JSONUtils {
 		String jsonString = jsonObj.toString();
 		Object obj  = new ObjectMapper().readValue(jsonString, type);
 		
+		return obj;
+	}
+
+	public static Object map2Object(Map<String,Object> map, Class type) throws IOException {
+		ObjectMapper mapper = new ObjectMapper();
+		String json = mapper.writeValueAsString(map);
+		Object obj = mapper.readValue(json, type);
 		return obj;
 	}
 
