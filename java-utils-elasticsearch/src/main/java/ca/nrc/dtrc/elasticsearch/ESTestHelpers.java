@@ -187,8 +187,12 @@ public class ESTestHelpers {
 	}
 
 	public static <T extends Document> void  assertIndexSizeEquals(String indexName, int expNumDocs, T docPrototype) throws IOException, ElasticSearchException, InterruptedException {
+		assertIndexSizeEquals(indexName, expNumDocs, docPrototype, docPrototype.getClass().getName());
+	}
+
+	public static <T extends Document> void  assertIndexSizeEquals(String indexName, int expNumDocs, T docPrototype, String esTypeName) throws IOException, ElasticSearchException, InterruptedException {
 		StreamlinedClient client = new StreamlinedClient(indexName);
-		SearchResults<T> gotResults = client.listAll(docPrototype);		
+		SearchResults<T> gotResults = client.listAll(esTypeName, docPrototype);		
 		
 		int gotNumDocs = 0;
 		Iterator<Hit<T>> iter = gotResults.iterator();		
@@ -207,10 +211,20 @@ public class ESTestHelpers {
 		AssertHelpers.assertDeepEquals("Index "+indexName+" did not contain the expected document", expDoc, gotDoc);
 	}
 
-	public static void assertIndexContainsDoc(String indexName, Document expDocument) {
-		Assert.fail("Implement this assertion");
+	public static void assertIndexContainsDoc(String indexName, Document expDocument) throws ElasticSearchException, IOException {
+		assertIndexContainsDoc(indexName, expDocument, expDocument.getClass().getName());
 	}
 
+	public static void assertIndexContainsDoc(String indexName, Document expDocument, String collection) throws ElasticSearchException, IOException {
+		StreamlinedClient client = new StreamlinedClient(indexName);
+		String id = expDocument.getId();
+		Document gotDoc = client.getDocumentWithID(id, expDocument.getClass(), collection);
+		Assert.assertTrue("Collection "+collection+" of index "+indexName+" did not contain a document with ID="+id, gotDoc != null);
+		AssertHelpers.assertDeepEquals("Document id="+id+" for collection"+collection+" of index "+indexName+" was not as expected" , 
+				expDocument, gotDoc);
+	}
+	
+	
 	public static void assertDocTypeIsEmpty(String message, String indexName, 
 			String docType, Document protoDoc) throws Exception {
 		StreamlinedClient client = new StreamlinedClient(indexName);

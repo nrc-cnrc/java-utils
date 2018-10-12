@@ -1208,11 +1208,13 @@ public class StreamlinedClient {
 	
 	private void dumpToFile(File outputFile, SearchResults<? extends Document> results, Boolean intoSingleJsonFile) throws ElasticSearchException {
 		if (intoSingleJsonFile == null) intoSingleJsonFile = true;
+		System.out.println("=== dumpToFile: outputFile="+outputFile);
 		
 		try {
 			FileWriter fWriter = null;
 			if (intoSingleJsonFile) {
 				fWriter = new FileWriter(outputFile);
+				fWriter.write("bodyEndMarker=NEW_LINE\n");
 			} else {
 				// Clear the output directory
 				FileUtils.deleteDirectory(outputFile);
@@ -1241,6 +1243,7 @@ public class StreamlinedClient {
 		String docFilePath = outputDir+"/"+docID+".txt";
 		String docContent = doc.toString();
 		FileWriter writer = new FileWriter(new File(docFilePath));
+		writer.write("bodyEndMarker=NEW_LINE\n");
 		writer.write(docContent);
 		writer.close();
 	}
@@ -1258,8 +1261,19 @@ public class StreamlinedClient {
 	public String clearDocType(String docType) throws ElasticSearchException {
 		String body = "{\"query\": {\"match_all\": {}}}";
 		URL url = esUrlBuilder().forDocType(docType).forEndPoint("_delete_by_query").build();
-		String jsonResponse = post(url, body);
+		String jsonResponse = okResponseJson();
+		try {
+			jsonResponse = post(url, body);
+		} catch (Exception e) {
+			// If an exception is raised, it means that the docType does not exist
+			// In which case, we can consider it to be already cleared.
+		}
 	
 		return jsonResponse;	
+	}
+
+	private String okResponseJson() {
+		String json = "{\"err\": null, \"status\": \"ok\"}";
+		return json;
 	}
 }
