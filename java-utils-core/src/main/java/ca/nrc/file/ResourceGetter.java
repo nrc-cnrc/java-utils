@@ -5,6 +5,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.regex.Matcher;
 import org.apache.commons.io.FileUtils;
 
@@ -91,5 +93,13 @@ public class ResourceGetter {
 		if (!f.exists()) {
 			FileOutputStream fStream = FileUtils.openOutputStream(f);
 		}
+	}
+	
+	public static void createDirectoryIfNotExists(Path dir) throws IOException {
+		
+		if (!Files.exists(dir)) {
+			Files.createDirectories(dir);
+		}
+		return;
 	}
 }
