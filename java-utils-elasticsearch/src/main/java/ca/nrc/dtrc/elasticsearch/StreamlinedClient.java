@@ -1208,7 +1208,6 @@ public class StreamlinedClient {
 	
 	private void dumpToFile(File outputFile, SearchResults<? extends Document> results, Boolean intoSingleJsonFile) throws ElasticSearchException {
 		if (intoSingleJsonFile == null) intoSingleJsonFile = true;
-		System.out.println("=== dumpToFile: outputFile="+outputFile);
 		
 		try {
 			FileWriter fWriter = null;
