@@ -763,9 +763,7 @@ public class StreamlinedClientTest {
 				"3.4.55", "5.2.344", "5.2.357"	
 		};
 		String[] gotIDs = clusters.getCluster("Heaven").getDocIDs().toArray(new String[]{});
-		AssertHelpers.assertDeepEquals("Document IDs for cluster '"+clusterName+"' were not as expected.\n  NOTE: This test is somewhat brittle and the results seem to change slightly from time to time. In most cases, if the test fails because a new cluster has appeared, just add the new cluster to the expectations.", 
-				expIDs, clusters.getCluster("Heaven").getDocIDs());
-		AssertHelpers.assertUnOrderedSameElements("Cluster IDs not as expected", expIDs, gotIDs);
+		AssertHelpers.assertIsSubsetOf("Cluster IDs not as expected", expIDs, gotIDs);
 	}
 
 	/*************************

@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import ca.nrc.json.PrettyPrinter;
+import ca.nrc.config.ConfigException;
 import ca.nrc.datastructure.Pair;
 import ca.nrc.dtrc.elasticsearch.ESUrlBuilder;
 import ca.nrc.introspection.Introspection;
@@ -1179,8 +1180,13 @@ public class StreamlinedClient {
 		post(url, jsonBody);
 	}
 	
-	private ESUrlBuilder esUrlBuilder() {
-		ESUrlBuilder builder = new ESUrlBuilder(indexName, serverName, port);
+	private ESUrlBuilder esUrlBuilder() throws ElasticSearchException  {
+		ESUrlBuilder builder = null;
+		try {
+			builder = new ESUrlBuilder(indexName, ESConfig.host(), ESConfig.port());
+		} catch (ConfigException exc) {
+			throw new ElasticSearchException("Invalid ElasticSearch configuration.", exc);
+		}
 		return builder;
 	}
 

@@ -10,20 +10,14 @@ public class ESConfig extends Config {
 	
 	public static String host() throws ConfigException {
 		if (hostCached == null) {
-			hostCached = getConfigProperty("ca_nrc_javautils_elasticsearch_host");
-			if (hostCached == null) {
-				hostCached = "localhost";
-			}
+			hostCached = getConfigProperty("ca_nrc_javautils_elasticsearch_host", "localhost");
 		}
 		return hostCached;
 	}
 
 	public static int port() throws ConfigException {
 		if (portCached == null) {
-			portCached = getConfigProperty("ca_nrc_javautils_elasticsearch_port");
-			if (portCached == null) {
-				portCached = "9200";
-			}
+			portCached = getConfigProperty("ca_nrc_javautils_elasticsearch_port", "9200");
 		}
 		
 		int port = -1;
