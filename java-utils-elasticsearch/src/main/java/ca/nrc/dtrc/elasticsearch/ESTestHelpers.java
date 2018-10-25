@@ -2,9 +2,12 @@ package ca.nrc.dtrc.elasticsearch;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -26,6 +29,8 @@ public class ESTestHelpers {
 	public static final long SHORT_WAIT = 1000;
 	public static final long LONG_WAIT = 2*SHORT_WAIT;
 	public static final long EXTRA_LONG_WAIT = 4*LONG_WAIT;
+	
+	public static List<String> indicesToBeCleared = new ArrayList<String>();
 	
 	public static class PlayLine extends Document {
 		public Integer line_id = -1;
@@ -259,5 +264,16 @@ public class ESTestHelpers {
 
 	public static void sleepExtraLongTime() throws InterruptedException {
 		Thread.sleep(EXTRA_LONG_WAIT);
-	}	
+	}
+	
+	public static void addTestIndicesToBeCleared(String[] indices) {
+		indicesToBeCleared.addAll(Arrays.asList(indices));
+	}
+	
+	public static void clearTestIndices() throws IOException, ElasticSearchException, InterruptedException {
+		for (String index: indicesToBeCleared) {
+			new StreamlinedClient(index).clearIndex();
+		}
+	}
+
 }
