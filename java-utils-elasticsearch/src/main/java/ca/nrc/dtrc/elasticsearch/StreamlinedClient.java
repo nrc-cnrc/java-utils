@@ -273,7 +273,7 @@ public class StreamlinedClient {
 			tLogger.trace("** DONEexecuting http request");
 		} catch (IOException e) {
 			tLogger.trace("** Caught exception e="+e.getLocalizedMessage());
-			throw new ElasticSearchException("Could not execute ElasticSearch request", e);
+			throw new ElasticSearchException("Could not execute ElasticSearch request.\n  url="+url+"\n   body="+body.toString(), e);
 		}
 	    String jsonResponse;
 		try {
