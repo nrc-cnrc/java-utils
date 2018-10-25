@@ -275,6 +275,7 @@ public class StreamlinedClientTest {
 		Person marg = new Person("Marg", "Simpson");
 		jsonResponse = client.putDocument(marg);
 		
+		ESTestHelpers.sleepShortTime();
 		List<Person> gotPeople = client.listFirstNDocuments(homer, 3);
 		
 		Person[] expPeople = new Person[] {homer, marg};
@@ -282,7 +283,7 @@ public class StreamlinedClientTest {
 		
 		client.deleteDocumentWithID(homer.getId(), Person.class.getName());		
 		expPeople = new Person[] {marg};
-		Thread.sleep(500);
+		ESTestHelpers.sleepShortTime();
 		gotPeople = client.listFirstNDocuments(homer, 3);
 		AssertHelpers.assertDeepEquals("Homer was not properly deleted from the index.", expPeople, gotPeople);
 		
@@ -636,10 +637,13 @@ public class StreamlinedClientTest {
 		// Enter a doc in two doc types 
 		ESTestHelpers.assertDocTypeIsEmpty("", indexName, docType1, homer);
 		client.putDocument(docType1, homer);
+		ESTestHelpers.sleepShortTime();
 		ESTestHelpers.assertDocTypeContainsDoc("", indexName, docType1, new String[] {"homersimpson"}, homer);
 		ESTestHelpers.assertDocTypeIsEmpty("", indexName, docType2, homer);
 		client.putDocument(docType2, marge);
+		ESTestHelpers.sleepShortTime();
 		ESTestHelpers.assertDocTypeContainsDoc("", indexName, docType2, new String[] {"margesimpson"}, homer);
+		
 		
 		// Now clear one of the two docTypes and check that all is as expected
 		client.clearDocType(docType1);
@@ -741,7 +745,7 @@ public class StreamlinedClientTest {
 		String[] expClusterNamesSuperset = new String[] {
 				"Other Topics", "Shall", "King", "Thou", "Sir", "Thee", "Know", 
 				"Mother", "Speak", "Play", "Love", "Heaven", "Tis", "Horatio", "Father", "Soul",
-				"Heaven", "Thy", "Eyes", "Matter", "Enter", "Dost Thou"
+				"Heaven", "Thy", "Eyes", "Matter", "Enter", "Dost Thou", "Lord"
 		};
 		Object[] gotClusterNames =  clusters.getClusterNames().toArray();
 		
@@ -763,7 +767,7 @@ public class StreamlinedClientTest {
 				"3.4.55", "5.2.344", "5.2.357"	
 		};
 		String[] gotIDs = clusters.getCluster("Heaven").getDocIDs().toArray(new String[]{});
-		AssertHelpers.assertIsSubsetOf("Cluster IDs not as expected", expIDs, gotIDs);
+		AssertHelpers.assertContainsAll("Cluster IDs not as expected", expIDs, gotIDs);
 	}
 
 	/*************************
