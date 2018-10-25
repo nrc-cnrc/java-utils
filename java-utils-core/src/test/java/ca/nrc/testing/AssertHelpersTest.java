@@ -111,6 +111,41 @@ public class AssertHelpersTest {
 	}
 	
 	@Test
+	public void test__assertIsSubsetOf__CaseWhereItSucceeds() {
+		String[] list1 = new String[] {"a", "b"};
+		String[] list2 = new String[] {"c", "d", "a", "b"};
+		assertIsSubsetOf("", list1, list2);
+	}
+
+	@Test(expected=AssertionError.class)
+	public void test__assertIsSubsetOf__CaseWhereItFailes() {
+		String[] list1 = new String[] {"a", "b"};
+		String[] list2 = new String[] {"a", "c"};
+		assertIsSubsetOf("", list1, list2);
+	}
+
+	@Test(expected=AssertionError.class)
+	public void test__assertIsSubsetOf__FirstSetIsNullButNotSecond() {
+		String[] list1 = null;
+		String[] list2 = new String[] {"a", "b"};
+		assertIsSubsetOf("", list1, list2);
+	}
+	
+	@Test(expected=AssertionError.class)
+	public void test__assertIsSubsetOf__SecondSetIsNullButNotFirst() {
+		String[] list1 = new String[] {"a", "b"};
+		String[] list2 = null;
+		assertIsSubsetOf("", list1, list2);
+	}
+
+	@Test
+	public void test__assertIsSubsetOf__BothSetsAreNull() {
+		String[] list1 = null;
+		String[] list2 = null;
+		assertIsSubsetOf("", list1, list2);
+	}
+
+	@Test
 	public void test__assertHashMapsEqualUnOrdered_Synopsis() throws Exception {
 		//Two HashMaps containing the same content
 		HashMap<String, String> a = new HashMap<>();

@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -368,6 +369,44 @@ public class AssertHelpers {
 		}
 	}
 	
+	public static <T> void assertIsSubsetOf(String mess, T[] elts1, T[] elts2) {
+		assertBothNullOrNone(mess, elts1, elts2);
+		
+		Set<T> eltsSet1 = new HashSet<T>();
+		if (elts1 != null) {
+			eltsSet1.addAll(Arrays.asList(elts1));
+		}
+		
+		Set<T> eltsSet2 = new HashSet<T>();
+		if (elts2 != null) {
+			eltsSet2.addAll(Arrays.asList(elts2));
+		}
+		
+		assertIsSubsetOf(mess, eltsSet1, eltsSet2);
+	}
+	
+	private static void assertBothNullOrNone(String mess, Object obj1, Object obj2) {
+		if (obj1 == null && obj2 != null) {
+			Assert.fail(mess+"\n\nFirst object was null, but second was not");
+		}
+		if (obj1 != null && obj2 == null) {
+			Assert.fail(mess+"\n\nSecond object was null, but first was not");
+		}
+	}
+
+	public static <T> void assertIsSubsetOf(String mess, Set<T> set1, Set<T> set2) {
+		if (set1 == null && set1 != null) {
+			Assert.fail("First set was null, but not the second one.");
+		}
+		
+		for (T elt: set1) {
+			if (!set2.contains(elt)) {
+				Assert.fail(mess+"\n\nElement "+elt+" was present in the first set but not in the second one");
+			}
+		}
+	}
+
+	
 	/**
 	 * Indicates if contents of two HashMaps are the same.
 	 * When the value of the HashMap is a List, order is ignored
@@ -475,5 +514,6 @@ public class AssertHelpers {
 			Assert.fail(mess+"\nElapsed time of "+elapsed+"secs was longer than expected (max="+maxSecs+"secs).");
 		}
 	}
+
 
 }
