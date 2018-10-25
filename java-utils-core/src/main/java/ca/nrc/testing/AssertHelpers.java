@@ -469,4 +469,11 @@ public class AssertHelpers {
 		}
 	}
 
+	public static void assertElapsedLessThan(String mess, long start, long maxSecs) {
+		long elapsed = System.currentTimeMillis() - start;
+		if (elapsed > maxSecs) {
+			Assert.fail(mess+"\nElapsed time of "+elapsed+"secs was longer than expected (max="+maxSecs+"secs).");
+		}
+	}
+
 }
