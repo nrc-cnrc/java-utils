@@ -198,7 +198,7 @@ public class StreamlinedClient {
 		String type = docClass.getName();
 		tLogger.trace("searching for all type="+type);
 		URL url = esUrlBuilder().forClass(docClass).forEndPoint("_search").scroll().build();
-5		String jsonResponse = post(url, "{}");
+		String jsonResponse = post(url, "{}");
 		
 		Pair<Pair<Long,String>,List<Hit<T>>> parsedResults 
 						= parseJsonSearchResponse(jsonResponse, docPrototype);		
