@@ -98,6 +98,8 @@ public class ESTestHelpers {
 	// all lines from the play 'Hamlet' by Shakespeare
 	public static final String hamletTestIndex = "es-test-hamlet";
 	
+	public static final String hamletType = "hamlet_lines";
+	
 	public static void skipTestsUnlessESIsRunning() throws Exception {
 		if (skipTests == null) {
 			// Check to see of ElasticSearch is running.
