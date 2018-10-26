@@ -1,6 +1,8 @@
 package ca.nrc.dtrc.elasticsearch;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
@@ -143,6 +145,28 @@ public class Document {
 		}
 		
 		return date;
+	}
+
+	public static Document makeDocumentPrototype(String className) throws DocumentException {
+		Class clazz;
+		try {
+			clazz = Class.forName(className);
+		} catch (ClassNotFoundException e) {
+			throw new DocumentException("Could not generate prototype for document class: "+className, e);
+		}
+		return makeDocumentPrototype(clazz);
+	}
+	
+	public static Document makeDocumentPrototype(Class clazz) throws DocumentException {
+		Document doc;
+		try {
+			Constructor<?> ctor = clazz.getConstructor();
+			doc = (Document) ctor.newInstance();			
+		} catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			throw new DocumentException("Could not generate prototype for document class: "+clazz.getName(), e);
+		}
+		
+		return doc;
 	}
 
 }

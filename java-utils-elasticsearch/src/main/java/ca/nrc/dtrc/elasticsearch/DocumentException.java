@@ -7,4 +7,7 @@ public class DocumentException extends Exception {
 	public DocumentException(String message) {
 		super(message);
 	}
+	public DocumentException(String message, Exception e) {
+		super(message, e);
+	}
 }
