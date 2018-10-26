@@ -1212,6 +1212,16 @@ public class StreamlinedClient {
 		dumpToFile(outputFile, allDocs, true);
 	}	
 	
+	public <T extends Document> void dumpToFile(File file, Class<? extends Document> docClass, String esDocType, String query) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ElasticSearchException {
+		Document docPrototype = docClass.getConstructor().newInstance();
+		if (esDocType == null) {
+			esDocType = docPrototype.getClass().getName();
+		}
+		SearchResults<T> allDocs = (SearchResults<T>) searchFreeform(query, esDocType, docPrototype);
+		dumpToFile(file, allDocs, true);
+	}
+	
+	
 	private void dumpToFile(File outputFile, SearchResults<? extends Document> results, Boolean intoSingleJsonFile) throws ElasticSearchException {
 		if (intoSingleJsonFile == null) intoSingleJsonFile = true;
 		
@@ -1281,4 +1291,5 @@ public class StreamlinedClient {
 		String json = "{\"err\": null, \"status\": \"ok\"}";
 		return json;
 	}
+
 }
