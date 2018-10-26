@@ -231,9 +231,9 @@ public abstract class SubCommand {
 	}
 
 	public static void error(String message) {
-		echo("*********************************************************************");
-		echo("* ERROR: "+message);
-		echo("*********************************************************************");
+		echo("*********************************************************************", Verbosity.Level0);
+		echo("* ERROR: "+message, Verbosity.Level0);
+		echo("*********************************************************************", Verbosity.Level0);
 		
 		if (sysexitOnBadUsage) {
 			System.exit(1);
