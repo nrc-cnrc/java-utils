@@ -418,7 +418,12 @@ public class StreamlinedClient {
 	}
 	
 	public <T extends Document> SearchResults<T> searchFreeform(String query, String docTypeName, T docPrototype) throws ElasticSearchException {
-		String jsonQuery = "{\"query\": {\"query_string\": {\"query\": \""+query+"\"}}}\n";
+		String jsonQuery = null;
+		if (query == null) {
+			jsonQuery= "{}";
+		} else {
+			jsonQuery = "{\"query\": {\"query_string\": {\"query\": \""+query+"\"}}}\n";
+		}
 		SearchResults<T> hits = search(jsonQuery, docTypeName, docPrototype);
 		
 		return hits;
@@ -1213,16 +1218,24 @@ public class StreamlinedClient {
 	}	
 	
 	public <T extends Document> void dumpToFile(File file, Class<? extends Document> docClass, String esDocType, String query) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ElasticSearchException {
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.dumpToFile");
 		Document docPrototype = docClass.getConstructor().newInstance();
 		if (esDocType == null) {
 			esDocType = docPrototype.getClass().getName();
 		}
+		tLogger.trace("retrieving docs that fit query="+query);
 		SearchResults<T> allDocs = (SearchResults<T>) searchFreeform(query, esDocType, docPrototype);
+		tLogger.trace("GOT docs that fit query="+query+". total hits="+allDocs.getTotalHits());
+
 		dumpToFile(file, allDocs, true);
 	}
 	
 	
 	private void dumpToFile(File outputFile, SearchResults<? extends Document> results, Boolean intoSingleJsonFile) throws ElasticSearchException {
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.dumpToFile");
+		
+		tLogger.trace("invoked with outputFile="+outputFile.getAbsolutePath()+", results.getTotalHits()="+results.getTotalHits());
+		System.out.println("== dumpToFile: invoked with outputFile="+outputFile.getAbsolutePath()+", results.getTotalHits()="+results.getTotalHits());
 		if (intoSingleJsonFile == null) intoSingleJsonFile = true;
 		
 		try {
@@ -1239,6 +1252,7 @@ public class StreamlinedClient {
 			Iterator<?> iter = results.iterator();
 			while (iter.hasNext()) {
 				Hit<Document> aScoredDoc = (Hit<Document>)iter.next();
+				tLogger.trace("** dumping document with id="+aScoredDoc.getDocument().getId());
 				if (intoSingleJsonFile) {
 					String json = mapper.writeValueAsString(aScoredDoc.getDocument());
 					fWriter.write(json+"\n");
