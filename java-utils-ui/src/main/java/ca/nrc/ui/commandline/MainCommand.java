@@ -1,6 +1,7 @@
 package ca.nrc.ui.commandline;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -70,6 +71,11 @@ public class MainCommand {
 		}
 
 		SubCommand command = getSubCommandWithName(subCommandName);
+		
+		List<String> argsList = cmdLine.getArgList();
+		if (argsList.size() > 1) {
+			usageBadCommandLine("Too many arguments. The command should have only one argument.\nArguments were: "+String.join(", ", argsList));
+		}
 		
 		return Pair.of(command, cmdLine);
 	}
