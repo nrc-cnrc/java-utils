@@ -252,11 +252,16 @@ public class ESTestHelpers {
 	public static void addTestIndicesToBeCleared(String[] indices) {
 		indicesToBeCleared.addAll(Arrays.asList(indices));
 	}
-	
+
 	public static void clearTestIndices() throws IOException, ElasticSearchException, InterruptedException {
 		for (String index: indicesToBeCleared) {
 			new StreamlinedClient(index).clearIndex();
 		}
+	}
+
+	public static void clearIndexCollection(String index, String collection) throws ElasticSearchException {
+		new StreamlinedClient(index).clearDocType(collection);
+		
 	}
 
 }
