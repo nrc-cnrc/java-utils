@@ -1,5 +1,6 @@
 package ca.nrc.dtrc.elasticsearch;
 
+import java.beans.IntrospectionException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -11,6 +12,7 @@ import java.util.Set;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import ca.nrc.introspection.Introspection;
 import ca.nrc.json.PrettyPrinter;
 
 public class Document {
@@ -33,7 +35,7 @@ public class Document {
 		}
 		public String getShortDescription() {return this.shortDescription; }
 	
-	private String longDescription = null;
+	public String longDescription = null;
 		public void setLongDescription(String _longDescription) {
 			this.longDescription = _longDescription;
 		}
@@ -88,11 +90,9 @@ public class Document {
 		} else {
 			// This is a member attribute field
 			try {
-				Field fld = this.getClass().getDeclaredField(fldName);
-				fld.setAccessible(true);
-				value = (Object)fld.get(this);
-			} catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException exc) {
-				if (failIfNotFound) throw new DocumentException(exc);
+				value = Introspection.getFieldValue(this, fldName, failIfNotFound);
+			} catch (Exception exc) {
+				throw new DocumentException(exc);
 			}
 		}
 		

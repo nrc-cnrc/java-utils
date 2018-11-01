@@ -26,6 +26,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import ca.nrc.datastructure.Pair;
 import ca.nrc.dtrc.elasticsearch.ESTestHelpers;
 import ca.nrc.dtrc.elasticsearch.ESTestHelpers.PlayLine;
+import ca.nrc.introspection.Introspection;
 import ca.nrc.dtrc.elasticsearch.ExcludeFields;
 import ca.nrc.dtrc.elasticsearch.IncludeFields;
 import ca.nrc.dtrc.elasticsearch.StreamlinedClient;
@@ -188,7 +189,7 @@ public class StreamlinedClientTest {
 		String algName = "kmeans";
 		
 		String esDocTypeName = new PlayLine().getClass().getName();
-		String[] useFields = new String[] {"text_entry"};
+		String[] useFields = new String[] {"longDescription"};
 		DocClusterSet clusters = hamletClient.clusterDocuments(query, esDocTypeName, useFields, algName, maxDocs);
 		
 		// You can then look at the various clusters...
@@ -299,8 +300,8 @@ public class StreamlinedClientTest {
 		Thread.sleep(1*1000);
 
 		ESTestHelpers.PlayLine queryLine = new ESTestHelpers.PlayLine("Something is rotten in the kingdom of England");
-		SearchResults<ESTestHelpers.PlayLine> gotSearchResults = client.moreLikeThis(queryLine, new IncludeFields("^text_entry$"));		
-		assertIsInFirstNHits("Something is rotten in the state of Denmark.", 3, "text_entry", gotSearchResults);
+		SearchResults<ESTestHelpers.PlayLine> gotSearchResults = client.moreLikeThis(queryLine, new IncludeFields("^longDescription$"));		
+		assertIsInFirstNHits("Something is rotten in the state of Denmark.", 3, "longDescription", gotSearchResults);
 	}	
 	
 	@Test
@@ -313,20 +314,23 @@ public class StreamlinedClientTest {
 		queryLines.add(new ESTestHelpers.PlayLine("Something is rotten in the kingdom of England"));
 		queryLines.add(new ESTestHelpers.PlayLine("To sing or not to sing that is the question"));
 		
-		SearchResults<ESTestHelpers.PlayLine> gotSearchResults = client.moreLikeThese(queryLines, new IncludeFields("^text_entry$"));		
-		assertIsInFirstNHits("To the ambassadors of England gives", 20, "text_entry", gotSearchResults);
-		assertIsInFirstNHits("To be, or not to be: that is the question:", 20, "text_entry", gotSearchResults);
+		SearchResults<ESTestHelpers.PlayLine> gotSearchResults = client.moreLikeThese(queryLines, new IncludeFields("^longDescription$"));		
+		assertIsInFirstNHits("To the ambassadors of England gives", 20, "longDescription", gotSearchResults);
+		assertIsInFirstNHits("To be, or not to be: that is the question:", 20, "longDescription", gotSearchResults);
 	}	
 	
 	
 	@Test
 	public void test__searchFreeform__HappyPath() throws Exception {
+		ESTestHelpers.PlayLine line = new ESTestHelpers.PlayLine("hello world");
+		Introspection.getFieldValue(line, "longDescription", true);
+		
 		StreamlinedClient client = ESTestHelpers.makeHamletTestClient();	
 		Thread.sleep(1*1000);
 
 		String query = "denmark AND rotten";
 		SearchResults<ESTestHelpers.PlayLine> gotSearchResults = client.searchFreeform(query, new PlayLine());		
-		assertIsInFirstNHits("Something is rotten in the state of Denmark.", 3, "text_entry", gotSearchResults);
+		assertIsInFirstNHits("Something is rotten in the state of Denmark.", 3, "longDescription", gotSearchResults);
 	}		
 	
 
@@ -337,20 +341,20 @@ public class StreamlinedClientTest {
 		final String PLAY_LINE = "line";
 
 		ESTestHelpers.PlayLine queryLine = new ESTestHelpers.PlayLine("say");
-		SearchResults<ESTestHelpers.PlayLine> hits = client.moreLikeThis(queryLine, new IncludeFields("^text_entry$"));
+		SearchResults<ESTestHelpers.PlayLine> hits = client.moreLikeThis(queryLine, new IncludeFields("^longDescription$"));
 		
 		int hitsCount = 0;
 		Iterator<Hit<PlayLine>> iter = hits.iterator();
 		while (iter.hasNext() && hitsCount < 26) {
 			Hit<ESTestHelpers.PlayLine> scoredHit = iter.next();
-			AssertHelpers.assertStringContains("Hit did not fit query.", scoredHit.getDocument().text_entry, "say", false);
+			AssertHelpers.assertStringContains("Hit did not fit query.", scoredHit.getDocument().getLongDescription(), "say", false);
 			hitsCount++;
 		}
 		assertTrue("List of hits should have contained at least 25 hits, but only contained "+hitsCount, hitsCount >= 25);
 	}		
 
 	
-	private <T extends Document> void assertIsInFirstNHits(Object expValue, int nHits, String fieldName, SearchResults<T> gotSearchResults) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
+	private <T extends Document> void assertIsInFirstNHits(Object expValue, int nHits, String fieldName, SearchResults<T> gotSearchResults) throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException, DocumentException {
 		List<Object> gotFields = fieldForFirstNHits(nHits, fieldName, gotSearchResults);
 		Set<Object> gotFieldsSet = new HashSet<Object>();
 		gotFieldsSet.addAll(gotFields);
@@ -363,10 +367,11 @@ public class StreamlinedClientTest {
 	
 	/***********************************************************
 	 * TEST HELPERS
+	 * @throws DocumentException 
 	***********************************************************/
 
 	private <T extends Document> List<Object> fieldForFirstNHits(int nHits, String fieldName, SearchResults<T> gotHits) 
-			throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException {
+			throws NoSuchFieldException, SecurityException, IllegalArgumentException, IllegalAccessException, DocumentException {
 		List<Object> gotValues = new ArrayList<Object>();
 		Iterator<Hit<T>> iter = gotHits.iterator();
 		while (iter.hasNext()) {
@@ -377,9 +382,7 @@ public class StreamlinedClientTest {
 				Map<String,Object> aHitMap = (Map<String, Object>) aHit;
 				fldValue = (Object) aHitMap.get(fieldName);
 			} else {
-				Field fld = aHit.getClass().getDeclaredField(fieldName);
-				fld.setAccessible(true);
-				fldValue = (Object) fld.get(aHit);		
+				fldValue = aHit.getField(fieldName);
 			}
 			gotValues.add(fldValue);
 			nHits--;
@@ -712,11 +715,11 @@ public class StreamlinedClientTest {
 		String indexName = "test-index";
 		StreamlinedClient client = new StreamlinedClient(indexName);
 		
-		String[] useFields = new String[] {"text_entry"};
+		String[] useFields = new String[] {"longDescription"};
 		String gotJson = client.clusterDocumentJsonBody("speaker:hamlet", "testdoc", useFields, "kmeans", 1000);
 		String expJson = 
 				"{\"search_request\":{"+
-				  "\"_source\":[\"text_entry\"],"+
+				  "\"_source\":[\"longDescription\"],"+
 		          "\"query\":"+
 				    "{\"query_string\":"+
 		              "{\"query\":\"speaker:hamlet\"}"+
@@ -726,7 +729,7 @@ public class StreamlinedClientTest {
 		          "\"query_hint\":\"\","+
 				  "\"algorithm\":\"kmeans\","+
 				  "\"field_mapping\":{"+
-		            "\"content\":[\"_source.text_entry\"]"+
+		            "\"content\":[\"_source.longDescription\"]"+
 		          "}"+
 		        "}";
 		AssertHelpers.assertStringEquals(expJson, gotJson);
@@ -735,11 +738,11 @@ public class StreamlinedClientTest {
 	@Test
 	public void test__clusterDocuments__HappyPath() throws Exception {
 		StreamlinedClient hamletClient = ESTestHelpers.makeHamletTestClient();
-		String query = "speaker:Hamlet";
+		String query = "additionalFields.speaker:Hamlet";
 		Integer maxDocs = 1000; 
 		String algName = "stc";
 		String esDocTypeName = new PlayLine().getClass().getName();
-		String[] useFields = new String[] {"text_entry"};
+		String[] useFields = new String[] {"longDescription"};
 		DocClusterSet clusters = hamletClient.clusterDocuments(query, esDocTypeName, useFields, algName, maxDocs);
 		
 		String[] expClusterNamesSuperset = new String[] {

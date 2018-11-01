@@ -32,33 +32,16 @@ public class ESTestHelpers {
 	
 	public static List<String> indicesToBeCleared = new ArrayList<String>();
 	
-	public static class PlayLine extends Document {
-		public Integer line_id = -1;
-		public String play_name = "";
-        public Integer speech_number = -1;
-        public String line_number = "";
-        public String speaker = "";
-        public String text_entry = "";
-        
+	public static class PlayLine extends Document {        
         public PlayLine() {}
         
         public PlayLine(String _text_entry) {
-        	this.text_entry = _text_entry;
+        	this.setLongDescription(_text_entry);
         }
 
 		public PlayLine(int _line_id, String _text_entry) {
-			setId(Integer.toString(line_id));
-        	this.text_entry = _text_entry;
-		}
-
-		@Override
-		public String keyFieldName() {
-			return "line_number";
-		}
-
-		@Override
-		public String getId() {
-			return line_number;
+			this.setId(Integer.toString(_line_id));
+        	this.setLongDescription(_text_entry);
 		}
 	}	
 	
