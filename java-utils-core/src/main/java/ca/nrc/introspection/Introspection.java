@@ -52,4 +52,19 @@ public class Introspection {
 		
 		return fields;
 	}
+
+	public static Object getFieldValue(Object obj, String fldName) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, IntrospectionException {
+		return getFieldValue(obj, fldName, true);
+	}	
+	
+	public static Object getFieldValue(Object obj, String fldName, boolean failIfNotFound) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, IntrospectionException {
+		Map<String,Object> publicFields = publicFields(obj);
+		Object value = null;
+		if (! publicFields.containsKey(fldName) && failIfNotFound) {
+			throw new IntrospectionException("Object of class "+obj.getClass().getName()+" does not have a public attribute with name "+fldName);
+		}
+		value = publicFields.get(fldName);
+		
+		return value;
+	}
 }

@@ -25,7 +25,7 @@ public class IntrospectionTest {
 	
 	@Test
 	public void test__publicFields__HappyPath() throws Exception {
-		DummyObject obj = new DummyObject();
+		Dummy obj = new Dummy();
 		Map<String,Object> gotFields = Introspection.publicFields(obj);
 		Map<String,Object> expFields = new HashMap<String,Object>();
 		{
@@ -33,7 +33,36 @@ public class IntrospectionTest {
 			expFields.put("privFieldWithBothAccessors", "Value of privFieldWithBothAccessors");
 		}
 		AssertHelpers.assertDeepEquals("", expFields, gotFields);
+	}
+	
+	@Test
+	public void test__publicFields__ObjectInheritsFromAParentClass__IncludesInheritedAttributes() throws Exception {
+		DummySubclass obj = new DummySubclass();
+		Map<String,Object> gotFields = Introspection.publicFields(obj);
+		Map<String,Object> expFields = new HashMap<String,Object>();
+		{
+			expFields.put("pubFieldNoAccessors", "Value of pubFieldNoAccessors");
+			expFields.put("privFieldWithBothAccessors", "Value of privFieldWithBothAccessors");
+			expFields.put("subclassAttr1", 1);
+			expFields.put("subclassAttr2", "hello");
+		}
+		AssertHelpers.assertDeepEquals("", expFields, gotFields);
+	}
+	
+	@Test
+	public void test__getField__HappyPath() throws Exception {
+		Dummy obj = new Dummy();
 		
-		
+		Assert.assertEquals("Value of pubFieldNoAccessors", Introspection.getFieldValue(obj, "pubFieldNoAccessors"));
+		Assert.assertEquals("Value of privFieldWithBothAccessors", Introspection.getFieldValue(obj, "privFieldWithBothAccessors"));
+	}
+	
+	@Test
+	public void test__getField__ObjectInheritsFromAParentClass__IncludesInheritedAttributes() throws Exception {
+		DummySubclass obj = new DummySubclass();
+		Assert.assertEquals("Value of pubFieldNoAccessors", Introspection.getFieldValue(obj, "pubFieldNoAccessors"));
+		Assert.assertEquals("Value of privFieldWithBothAccessors", Introspection.getFieldValue(obj, "privFieldWithBothAccessors"));
+		Assert.assertEquals(1, Introspection.getFieldValue(obj, "subclassAttr1"));
+		Assert.assertEquals("hello", Introspection.getFieldValue(obj, "subclassAttr2"));
 	}
 }

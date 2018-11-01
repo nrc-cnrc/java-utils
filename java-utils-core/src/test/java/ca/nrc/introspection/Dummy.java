@@ -2,7 +2,7 @@ package ca.nrc.introspection;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-public class DummyObject {
+public class Dummy {
 	
 	public String pubFieldNoAccessors = "Value of pubFieldNoAccessors";
 
