@@ -16,6 +16,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -1217,7 +1218,9 @@ public class StreamlinedClient {
 		dumpToFile(outputFile, allDocs, true);
 	}	
 	
-	public <T extends Document> void dumpToFile(File file, Class<? extends Document> docClass, String esDocType, String query) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ElasticSearchException {
+	public <T extends Document> void dumpToFile(File file, Class<? extends Document> docClass, 
+			String esDocType, String query, Set<String> fieldsToIgnore) 
+			throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ElasticSearchException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.dumpToFile");
 		Document docPrototype = docClass.getConstructor().newInstance();
 		if (esDocType == null) {
@@ -1227,12 +1230,19 @@ public class StreamlinedClient {
 		SearchResults<T> allDocs = (SearchResults<T>) searchFreeform(query, esDocType, docPrototype);
 		tLogger.trace("GOT docs that fit query="+query+". total hits="+allDocs.getTotalHits());
 
-		dumpToFile(file, allDocs, true);
+		dumpToFile(file, allDocs, true, fieldsToIgnore);
 	}
 	
+	private void dumpToFile(File outputFile, SearchResults<? extends Document> results, 
+			Boolean intoSingleJsonFile) throws ElasticSearchException {
+		dumpToFile(outputFile, results, intoSingleJsonFile, null);
+	}
 	
-	private void dumpToFile(File outputFile, SearchResults<? extends Document> results, Boolean intoSingleJsonFile) throws ElasticSearchException {
+	private void dumpToFile(File outputFile, SearchResults<? extends Document> results, 
+			Boolean intoSingleJsonFile, Set<String> fieldsToIgnore) throws ElasticSearchException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.dumpToFile");
+		
+		if (fieldsToIgnore == null) {fieldsToIgnore = new HashSet<String>();}
 		
 		tLogger.trace("invoked with outputFile="+outputFile.getAbsolutePath()+", results.getTotalHits()="+results.getTotalHits());
 		System.out.println("== dumpToFile: invoked with outputFile="+outputFile.getAbsolutePath()+", results.getTotalHits()="+results.getTotalHits());
@@ -1249,12 +1259,18 @@ public class StreamlinedClient {
 				outputFile.mkdir();
 			}
 			ObjectMapper mapper = new ObjectMapper();
+			Map<String,Object> docMap = new HashMap<String,Object>();
 			Iterator<?> iter = results.iterator();
 			while (iter.hasNext()) {
 				Hit<Document> aScoredDoc = (Hit<Document>)iter.next();
 				tLogger.trace("** dumping document with id="+aScoredDoc.getDocument().getId());
+				docMap = mapper.convertValue(aScoredDoc.getDocument(), docMap.getClass()) ;
+				Map<String,Object> additionalFields = (Map<String, Object>) docMap.get("additionalFields");
+				for (String fld: fieldsToIgnore) {
+					additionalFields.remove(fld);
+				}
 				if (intoSingleJsonFile) {
-					String json = mapper.writeValueAsString(aScoredDoc.getDocument());
+					String json = mapper.writeValueAsString(docMap);
 					fWriter.write(json+"\n");
 				} else {
 					writeToTextFile(aScoredDoc.getDocument(), outputFile.getAbsolutePath());
