@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -13,6 +15,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
 import org.junit.Assert;
@@ -250,10 +254,25 @@ public class AssertHelpers {
 		boolean caseSensitive = true;
 		assertStringDoesNotContain(message, gotString, unexpSubstring, caseSensitive);
 	}
+
+	public static void assertStringDoesNotContain(String message, String gotString, 
+			String unexpSubstring, Boolean caseSensitive) {
+		assertStringDoesNotContain(message, gotString, unexpSubstring, caseSensitive, null);
+	}
+
 	
 	public static void assertStringDoesNotContain(String message, String gotString, 
-			String unexpSubstring, boolean caseSensitive) {
-		if (!caseSensitive) {
+			String unexpSubstring, Boolean caseSensitive, Boolean isRegexp) {
+		
+		if (caseSensitive == null) {
+			caseSensitive = false;
+		}
+		
+		if (isRegexp == null) {
+			isRegexp = false;
+		}
+		
+		if (!caseSensitive && !isRegexp) {
 			gotString = gotString.toLowerCase();
 			unexpSubstring = unexpSubstring.toLowerCase();
 		}
@@ -263,13 +282,34 @@ public class AssertHelpers {
 		} else {
 			message = message + "\n";
 		}
+		
+		String type = "substring";
+		if (isRegexp) {type = "regexp";}
+		
 		message = message + 
-				   "String contained an UN-expected substring.\n"
-						  + "== Un-expected substring: \n"+unexpSubstring+"\n\n"
+				   "String contained an UN-expected "+type+".\n"
+						  + "== Un-expected "+type+": \n"+unexpSubstring+"\n\n"
 						  + "== Got string : \n"+gotString+"\n\n";
 
-		Assert.assertFalse(message, gotString.contains(unexpSubstring));
+		if (isRegexp) {
+			Pattern patt = Pattern.compile(unexpSubstring);
+			Matcher matcher = patt.matcher(gotString);
+			Assert.assertFalse(message+"\nFound at least one occurence of regepx "+unexpSubstring, 
+					matcher.find());
+		} else {
+			Assert.assertFalse(message, gotString.contains(unexpSubstring));			
+		}
 	}	
+	
+	public static void assertFileDoesNotContain(String mess, String fPath, String pattern, Boolean isRegexp) throws IOException {
+		String fileContent = "";
+		List<String> lines = Files.readAllLines(Paths.get(fPath));
+		for (String line: lines) {
+			fileContent += line;
+		}
+		assertStringDoesNotContain(mess, fileContent, pattern, null, isRegexp);
+	}
+	
 
 	public static void assertContainsAll(String message, Object[] supersetArr, Object[] subsetArr) {
 		Set<Object> superset = new HashSet<Object>();
@@ -514,6 +554,7 @@ public class AssertHelpers {
 			Assert.fail(mess+"\nElapsed time of "+elapsed+"secs was longer than expected (max="+maxSecs+"secs).");
 		}
 	}
+
 
 
 }
