@@ -1,17 +1,15 @@
 package ca.nrc.dtrc.elasticsearch;
 
+import ca.nrc.dtrc.elasticsearch.ESConfig;
+
 import java.beans.IntrospectionException;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.file.Files;
 import java.util.ArrayList;
@@ -28,7 +26,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,7 +38,6 @@ import ca.nrc.config.ConfigException;
 import ca.nrc.datastructure.Pair;
 import ca.nrc.dtrc.elasticsearch.ESUrlBuilder;
 import ca.nrc.introspection.Introspection;
-import okhttp3.Call;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -244,6 +240,8 @@ public class StreamlinedClient {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.listAll");
 		tLogger.trace("searching for all type="+esDocTypeName);
 		URL url = esUrlBuilder().forDocType(esDocTypeName).forEndPoint("_search").scroll().build();
+		
+		tLogger.trace("invoking url="+url);
 		String jsonResponse = post(url, "{}");
 		
 		SearchResults<T> results = new SearchResults<T>(jsonResponse, docPrototype, this);
