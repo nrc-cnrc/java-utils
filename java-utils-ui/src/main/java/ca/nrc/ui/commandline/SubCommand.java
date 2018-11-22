@@ -4,6 +4,7 @@ import java.security.InvalidParameterException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -115,8 +116,7 @@ public abstract class SubCommand {
 	}	
 	
 	protected void usage(String errMessage) {
-		error(errMessage);
-
+		usage(errMessage, getUsageOverview(), options);
 	}	
 	
 	public static void usage(String errMessage, String usageMessage, Options cmdLineOptions) {
@@ -270,5 +270,24 @@ public abstract class SubCommand {
 		return verbLevel;
 	}
 	
+	protected Boolean prompt_yes_or_no(String mess) {
+		Pattern patt = Pattern.compile("^\\s*([yn])");
+		boolean answer = false;
+		while (true) {
+			echo("\n"+mess+" (y/n)\n> ", false);	
+			Scanner input = new Scanner(System.in);
+			String yn = input.nextLine();
+			Matcher matcher = patt.matcher(yn);
+			if (matcher.matches()) {
+				answer = false;
+				String ynGroup = matcher.group(1);
+				if (ynGroup.equals("y")) {
+					answer = true;
+				}
+				break;
+			}
+		}
+		return answer;
+	}
 
 }
