@@ -32,37 +32,37 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.experimental.max.MaxHistory;
 
+import ca.nrc.config.ConfigException;
+import ca.nrc.data.JavaUtilsDataConfig;
+
 
 public class BingSearchEngine extends SearchEngine {
 	
-	private static final String BingPropertyFile = "/ca/nrc/conf/bing.properties";
+//	private static final String BingPropertyFile = "/ca/nrc/conf/bing.properties";
 	private static final String bingSearchUrl = "https://api.cognitive.microsoft.com/bing/v7.0/search";
 
 	final Map<Object, Object> parameters = new HashMap<Object, Object>();
 
 	public BingSearchEngine() throws IOException, SearchEngineException {
-		init(BingPropertyFile);
+		init();
 	}
 
-	public BingSearchEngine(String propFile) throws IOException, SearchEngineException {
-		init(propFile);
+	private void init() throws IOException, SearchEngineException {
+		try {
+			parameters.put("subscription-key", JavaUtilsDataConfig.getBingKey());
+		} catch (ConfigException exc) {
+			throw new SearchEngineException("Could not determine the Bing subscription key.", exc);
+		}
+		parameters.put("count",  10);
+		parameters.put("offset", 0);
+		parameters.put("mkt", "en-us");
+		parameters.put("setLang", "en");
+		parameters.put("safesearch", "Moderate");
+		parameters.put("Accept", "application/json");
+
 	}
 	
-	private void init(String propFile) throws IOException, SearchEngineException{
-		final InputStream in = BingSearchEngine.class.getResourceAsStream(propFile);
-		final Properties propsFile = new Properties();
-		try {
-			propsFile.load(in);
-		} catch (Exception exc) {
-			throw new SearchEngine.SearchEngineException("Could not find Bing properties file: "+propFile, exc);
-		}
-		in.close();
-		final Enumeration<Object> keys = propsFile.keys();
-		while (keys.hasMoreElements()) {
-			Object next = keys.nextElement();
-			parameters.put(next, propsFile.get(next));
-		}
-	}
+	
 
 	@Override
 	public List<SearchEngine.Hit> search(SearchEngine.Query seQuery) throws SearchEngineException {

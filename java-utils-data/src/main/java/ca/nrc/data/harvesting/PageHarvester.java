@@ -33,6 +33,7 @@ import org.htmlcleaner.CleanerProperties;
 import org.htmlcleaner.HtmlCleaner;
 import org.htmlcleaner.TagNode;
 
+import ca.nrc.config.ConfigException;
 import ca.nrc.data.harvesting.SearchEngine.SearchEngineException;
 
 import ca.nrc.data.harvesting.SearchEngine.SearchEngineException;
@@ -140,7 +141,7 @@ public class PageHarvester {
 	}
 
 	public List<SearchEngine.Hit> crawlHits(SearchEngine.Query query, SearchEngine.IHitVisitor hitVisitor)
-			throws IOException, SearchEngineException, PageHarvesterException {
+			throws IOException, SearchEngineException, PageHarvesterException, ConfigException {
 		SearchEngine engine = new BingSearchEngine();
 		List<SearchEngine.Hit> hits = engine.search(query);
 		for (SearchEngine.Hit aHit : hits) {
