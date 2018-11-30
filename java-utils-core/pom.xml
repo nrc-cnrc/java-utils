@@ -12,13 +12,15 @@
 	<artifactId>java-utils-core</artifactId>
 	
 	
+<!-- 	
 	<distributionManagement>
 	  <repository>
             <id>central</id>
             <name>poseidon-releases</name>
             <url>http://132.246.128.43:8080/artifactory/libs-release-local</url>
 	  </repository>
-	</distributionManagement>
+	</distributionManagement> 
+-->
 
 	<build>
 		<plugins>		

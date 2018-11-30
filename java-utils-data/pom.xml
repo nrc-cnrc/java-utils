@@ -11,6 +11,7 @@
 	<groupId>ca.nrc</groupId>
 	<artifactId>java-utils-data</artifactId>
 	
+<!--  
 	<distributionManagement>
 	  <repository>
             <id>central</id>
@@ -18,6 +19,7 @@
             <url>http://132.246.128.43:8080/artifactory/libs-release-local</url>
 	  </repository>
 	</distributionManagement>
+-->	
 
 	<build>
 		<plugins>		

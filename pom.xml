@@ -7,6 +7,11 @@
 	<packaging>pom</packaging>
 
 	<version>1.0.5-SNAPSHOT</version>
+	
+	<properties>
+		<nexus.snapshot.url>https://nexus.dt.nrc.ca/repository/maven-snapshots/</nexus.snapshot.url>
+		<nexus.releases.url>https://nexus.dt.nrc.ca/repository/maven-releases/</nexus.releases.url>
+	</properties>
     
 	 <modules>
 	   <!-- Note: Order of modules is important.
@@ -18,6 +23,17 @@
 	 	<module>java-utils-elasticsearch</module>
 	 </modules>
 	 
+	<!-- Pointers to DT Nexus Repositories for Distribution -->
+	<distributionManagement>
+		<repository>
+			<id>dt-nexus-releases</id>
+			<url>${nexus.releases.url}</url>
+		</repository>
+		<snapshotRepository>
+			<id>dt-nexus-snapshots</id>
+			<url>${nexus.snapshot.url}</url>
+		</snapshotRepository>
+	</distributionManagement>	 
 	 
 	<build>
 		<pluginManagement>

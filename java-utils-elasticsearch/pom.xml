@@ -12,6 +12,8 @@
   <artifactId>java-utils-elasticsearch</artifactId>
   
   <name>java-utils-elasticsearch</name>
+  
+<!--  
 	<distributionManagement>
 	  <repository>
             <id>central</id>
@@ -19,6 +21,7 @@
             <url>http://132.246.128.43:8080/artifactory/libs-release-local</url>
 	  </repository>
 	</distributionManagement>
+-->  	
 
 
 	<build>
