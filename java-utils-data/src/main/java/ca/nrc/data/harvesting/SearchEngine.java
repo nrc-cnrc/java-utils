@@ -80,6 +80,10 @@ public abstract class SearchEngine {
 		public SearchEngineException(String message, Exception exc) {
 			super(message, exc);
 		}
+
+		public SearchEngineException(String message) {
+			super(message);
+		}
 	}
 	
 	public class Hit {

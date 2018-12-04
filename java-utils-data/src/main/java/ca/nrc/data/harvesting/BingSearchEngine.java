@@ -30,7 +30,6 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.junit.experimental.max.MaxHistory;
 
 import ca.nrc.config.ConfigException;
 import ca.nrc.data.JavaUtilsDataConfig;
@@ -109,7 +108,9 @@ public class BingSearchEngine extends SearchEngine {
 						break;
 					}
 				}
-				if (ok == HttpURLConnection.HTTP_OK) {
+				if (ok != HttpURLConnection.HTTP_OK) {
+					throw new SearchEngineException("Could not fetch results from Bing");
+				} else {
 					final BufferedReader reader = new BufferedReader(
 							new InputStreamReader(httpResponse.getEntity().getContent()));
 					final StringBuffer response = new StringBuffer();
