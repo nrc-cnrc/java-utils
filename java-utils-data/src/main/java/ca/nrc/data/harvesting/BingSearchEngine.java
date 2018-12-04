@@ -75,75 +75,92 @@ public class BingSearchEngine extends SearchEngine {
 		boolean keepGoing = true;
 		int hitsPageNum = 0;
 		while (keepGoing) {
-			try {
-				parameters.put("q",
-						String.format("%s -filetype:pdf -filetype:ppt -filetype:doc -filetype:img -filetype:bmp -filetype:png -filetype:jpg -filetype:gif -filetype:zip -filetype:jar -filetype:mp3 -filetype:avi", queryString));
-				if (seQuery.maxHits > 0) {
-					parameters.put("count", seQuery.maxHits);
-				}
-				parameters.put("offset", hitsPageNum);
-				
-				String url = bingSearchUrl;
-				String fullURL = addQueryStringToUrl(url, parameters);
-							
-				tLogger.trace("Getting hits from Bing fullURL="+fullURL);
-				HttpGet httpGet = new HttpGet(fullURL);
-		
-				String subscrKey = parameters.get("subscription-key").toString();
-				httpGet.addHeader("Ocp-Apim-Subscription-Key", subscrKey);
-				httpGet.addHeader("Accept", parameters.get("Accept").toString());
-		
+			parameters.put("q",
+					String.format("%s -filetype:pdf -filetype:ppt -filetype:doc -filetype:img -filetype:bmp -filetype:png -filetype:jpg -filetype:gif -filetype:zip -filetype:jar -filetype:mp3 -filetype:avi", queryString));
+			if (seQuery.maxHits > 0) {
+				parameters.put("count", seQuery.maxHits);
+			}
+			parameters.put("offset", hitsPageNum);
+			
+			String url = bingSearchUrl;
+			String fullURL = addQueryStringToUrl(url, parameters);
+						
+			tLogger.trace("Getting hits from Bing fullURL="+fullURL);
+			HttpGet httpGet = new HttpGet(fullURL);
 	
-				int  MAX_TRIES = 2;
-				int ok = 0;
-				CloseableHttpResponse httpResponse = null;
-				for (int ii=0; ii < MAX_TRIES; ii++) {
+			String subscrKey = parameters.get("subscription-key").toString();
+			httpGet.addHeader("Ocp-Apim-Subscription-Key", subscrKey);
+			httpGet.addHeader("Accept", parameters.get("Accept").toString());
+	
+
+			int  MAX_TRIES = 2;
+			int ok = 0;
+			CloseableHttpResponse httpResponse = null;
+			for (int ii=0; ii < MAX_TRIES; ii++) {
+				try {
 					httpResponse = httpClient.execute(httpGet);
-					ok = httpResponse.getStatusLine().getStatusCode();
-					if (ok == 429) {
-						// Too many requests...
-						// Sleep for a second and try again
-						Thread.sleep(1*1000);
-					} else {
-						break;
-					}
+				} catch (IOException e) {
+					throw new SearchEngineException("Could not GET bing url: "+fullURL, e);
 				}
-				if (ok != HttpURLConnection.HTTP_OK) {
-					throw new SearchEngineException("Could not fetch results from Bing");
+				ok = httpResponse.getStatusLine().getStatusCode();
+				if (ok == 429) {
+					// Too many requests...
+					// Sleep for a second and try again
+					try {
+						Thread.sleep(1*1000);
+					} catch (InterruptedException e) {
+						// This should never happen
+						e.printStackTrace();
+					}
 				} else {
-					final BufferedReader reader = new BufferedReader(
+					break;
+				}
+			}
+			if (ok != HttpURLConnection.HTTP_OK) {
+				throw new SearchEngineException("Could not fetch results from Bing. Is your ca_nrc_javautils_bingkey property set correctly?");
+			} else {
+				BufferedReader reader;
+				StringBuffer response = null;
+				try {
+					reader = new BufferedReader(
 							new InputStreamReader(httpResponse.getEntity().getContent()));
-					final StringBuffer response = new StringBuffer();
+					response = new StringBuffer();
 					String inputLine;
 					while ((inputLine = reader.readLine()) != null) {
 						response.append(inputLine);
 					}
 					reader.close();
-					final JSONObject json = new JSONObject(response.toString());
-					if (!json.has("webPages")) {
+				} catch (UnsupportedOperationException | IOException e) {
+					throw new SearchEngineException("Unable to read response from bing url: "+fullURL, e);
+				}
+					
+				final JSONObject json = new JSONObject(response.toString());
+				if (!json.has("webPages")) {
+					keepGoing = false;
+				} else {
+					final JSONObject page = json.getJSONObject("webPages");
+					final JSONArray jsonResults = page.getJSONArray("value");
+					final int resultsLength = jsonResults.length();
+					if (resultsLength == 0) {
 						keepGoing = false;
 					} else {
-						final JSONObject page = json.getJSONObject("webPages");
-						final JSONArray jsonResults = page.getJSONArray("value");
-						final int resultsLength = jsonResults.length();
-						if (resultsLength == 0) {
-							keepGoing = false;
-						} else {
-							tLogger.trace("resultsLength="+resultsLength);
-							for (int i = 0; i < resultsLength; i++) {
-								final JSONObject aResult = jsonResults.getJSONObject(i);						
-								String directURL = getHitDirectURL(aResult.getString("url"));
-								URL hitURL = new URL(directURL);
-								
-								results.add(new SearchEngine.Hit(hitURL, aResult.getString("name"),
-									aResult.getString("snippet")));
-								if (results.size() == seQuery.maxHits) break;
+						tLogger.trace("resultsLength="+resultsLength);
+						for (int i = 0; i < resultsLength; i++) {
+							final JSONObject aResult = jsonResults.getJSONObject(i);						
+							String directURL = getHitDirectURL(aResult.getString("url"));
+							URL hitURL = null;
+							try {
+								hitURL = new URL(directURL);
+							} catch (MalformedURLException e) {
+								throw new SearchEngineException("Bing hit was not a valid URL: "+hitURL, e);
 							}
+							
+							results.add(new SearchEngine.Hit(hitURL, aResult.getString("name"),
+								aResult.getString("snippet")));
+							if (results.size() == seQuery.maxHits) break;
 						}
 					}
 				}
-			} catch (Exception exc) {
-				throw new SearchEngineException(exc);
 			}
 			
 			if (results.size() >= seQuery.maxHits) {
@@ -232,9 +249,14 @@ public class BingSearchEngine extends SearchEngine {
 		return queryString;
 	}
 
-	protected String getHitDirectURL(String bingHitURL) throws MalformedURLException, URISyntaxException {
+	protected String getHitDirectURL(String bingHitURL) throws SearchEngineException {
 		String directURL = bingHitURL;
-		URI bingURI = new URI(bingHitURL);
+		URI bingURI;
+		try {
+			bingURI = new URI(bingHitURL);
+		} catch (URISyntaxException e) {
+			throw new SearchEngineException("Bing Hit was not a URL: "+bingHitURL, e);
+		}
 		List<NameValuePair> params = URLEncodedUtils.parse(bingURI, "UTF-8");
 		for (NameValuePair param : params) {
 		  if (param.getName().equals("r")) {
@@ -252,17 +274,30 @@ public class BingSearchEngine extends SearchEngine {
 	 * @param url
 	 * @param parameters
 	 * @return string full url
+	 * @throws SearchEngineException 
 	 * @throws UnsupportedEncodingException
 	 */
-	protected String addQueryStringToUrl(String url, final Map<Object, Object> parameters)
-			throws UnsupportedEncodingException {
+	protected String addQueryStringToUrl(String url, final Map<Object, Object> parameters) throws SearchEngineException {
 		if (parameters == null || parameters.isEmpty()) {
 			return url;
 		}
 
 		for (Map.Entry<Object, Object> parameter : parameters.entrySet()) {
-			final String encodedKey = URLEncoder.encode(parameter.getKey().toString(), "UTF-8");
-			String encodedValue = URLEncoder.encode(parameter.getValue().toString(), "UTF-8");
+			String parameterKey = parameter.getKey().toString();
+			String encodedKey;
+			try {
+				encodedKey = URLEncoder.encode(parameterKey, "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				throw new SearchEngineException("Could not encode search parameter to UTF8: "+parameterKey, e);
+			}
+			
+			String parameterValue = parameter.getValue().toString();
+			String encodedValue;
+			try {
+				encodedValue = URLEncoder.encode(parameterValue, "UTF-8");
+			} catch (UnsupportedEncodingException e) {
+				throw new SearchEngineException("Could not encode value of search parameter '"+parameterKey+"' to UTF8 (value was: '"+parameterValue+"').");
+			}
 			
 			// Note: For some reason, encode() changes '+' to '%2B' (entity for space).
 			//  eventhoughb '+' is a valid URL character.

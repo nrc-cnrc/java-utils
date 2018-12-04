@@ -94,12 +94,29 @@ public class Config {
 				throw new ConfigException("Could not open props file "+aPossibleFName+"="+aPossibleFNamePath, e);
 			}
 			prop = props.getProperty(propName);
+			if (prop == null) {
+				String propNameOtherFormat = changePropNameFormat(propName);
+				prop = props.getProperty(propNameOtherFormat);
+			}
 		}
 		
 		return prop;
 	}
 
 
+	public static String changePropNameFormat(String propName) throws ConfigException {
+		String propNameOtherFormat = null;
+		
+		if (propName.contains(".") && propName.contains("_")) {
+			throw new ConfigException("Bad property name: "+propName+". Property names cannot contain both '.' and '_' at the same time");
+		}
+		if (propName.contains(".")) {
+			propNameOtherFormat = propName.replaceAll("\\.", "_");
+		} else {
+			propNameOtherFormat = propName.replaceAll("_", ".");
+		}
+		return propNameOtherFormat;
+	}
 
 
 	public static List<String> possiblePropFileNames(String propName) {
