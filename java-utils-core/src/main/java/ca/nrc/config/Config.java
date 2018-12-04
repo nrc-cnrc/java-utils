@@ -1,5 +1,12 @@
 package ca.nrc.config;
 
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Properties;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**********************************************************************
@@ -50,16 +57,64 @@ public class Config {
 	
 	@JsonIgnore
 	public static String getConfigProperty(String propName, boolean failIfNoConfig) throws ConfigException {
-		String prop = System.getenv(propName);
-		if (prop == null) {
-			prop = System.getProperty(propName);			
-		}
 		
+		String prop = lookInEnvAndSystemProps(propName);
+		if (prop == null) {
+			prop = lookInPropFiles(propName);
+		}
+				
 		if (prop == null && failIfNoConfig) {
 			throw new ConfigException("No configuration property or environment variable '"+propName+"'");
 		}
 	
 		return prop;
+	}
+
+
+	private static String lookInEnvAndSystemProps(String propName) {
+		String prop = System.getenv(propName);
+		if (prop == null) {
+			prop = System.getProperty(propName);			
+		}
+		return prop;
+	}
+
+
+	private static String lookInPropFiles(String propName) throws ConfigException {
+		String prop = null;
+		
+		List<String> possibleFNames = possiblePropFileNames(propName);
+		for (String aPossibleFName: possiblePropFileNames(propName)) {
+			String aPossibleFNamePath = lookInEnvAndSystemProps(aPossibleFName);
+			if (aPossibleFNamePath == null) continue;
+			Properties props = new Properties();
+			try {
+				props.load(new FileReader(aPossibleFNamePath));
+			} catch (IOException e) {
+				throw new ConfigException("Could not open props file "+aPossibleFName+"="+aPossibleFNamePath, e);
+			}
+			prop = props.getProperty(propName);
+		}
+		
+		return prop;
+	}
+
+
+
+
+	public static List<String> possiblePropFileNames(String propName) {
+		String[] parts = propName.split("_");
+		String fName = "";
+		List<String> possibleFNames = new ArrayList<String>();
+		for (int ii=0; ii < parts.length-1; ii++) {
+			String aPart = parts[ii];
+			if (!fName.equals("")) fName += "_";
+			fName += aPart;
+			possibleFNames.add(fName);
+		}
+		Collections.reverse(possibleFNames);
+		
+		return possibleFNames;
 	}
 	
 }
