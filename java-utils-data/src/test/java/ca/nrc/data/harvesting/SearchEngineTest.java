@@ -129,7 +129,7 @@ public abstract class SearchEngineTest {
 
 
 	@Test
-	public void test__search__MultipleTerms() throws IOException, SearchEngineException {
+	public void test__search__MultipleTerms() throws Exception {
 		SearchEngine engine = makeSearchEngine();
 		
 		String[] terms = new String[] {"machine learning", "pattern recognition"};
@@ -194,7 +194,7 @@ public abstract class SearchEngineTest {
 	protected abstract Integer engineMaxHitsPerPage();
 
 	@Test
-	public void test__search__TypeNEWS() throws IOException, SearchEngineException {
+	public void test__search__TypeNEWS() throws Exception {
 		SearchEngine engine = makeSearchEngine();
 		
 		SearchEngine.Type hitType = SearchEngine.Type.NEWS;
@@ -205,7 +205,7 @@ public abstract class SearchEngineTest {
 	}
 	
 	@Test
-	public void test__search__Site() throws IOException, SearchEngineException {
+	public void test__search__Site() throws Exception {
 		SearchEngine engine = makeSearchEngine();
 		
 		String site = "nrc-cnrc.gc.ca";
@@ -217,7 +217,7 @@ public abstract class SearchEngineTest {
 
 	
 	@Test
-	public void test__search__RestrictToSite() throws IOException, SearchEngineException {
+	public void test__search__RestrictToSite() throws Exception {
 		SearchEngine engine = makeSearchEngine();
 		
 		String site = "nrc-cnrc.gc.ca";
@@ -230,13 +230,14 @@ public abstract class SearchEngineTest {
 	
 	/*************************
 	 * TEST HELPER METHODS
+	 * @throws PageHarvesterException 
 	 *************************/	
 
-	private void assertResultsFitTheQuery(List<SearchEngine.Hit> results, SearchEngine.Query query) {
+	private void assertResultsFitTheQuery(List<SearchEngine.Hit> results, SearchEngine.Query query) throws PageHarvesterException {
 		assertResultsFitTheQuery(results, query, 0);
 	}
 	
-	private void assertResultsFitTheQuery(List<SearchEngine.Hit> results, SearchEngine.Query query, int maxNoFit) {
+	private void assertResultsFitTheQuery(List<SearchEngine.Hit> results, SearchEngine.Query query, int maxNoFit) throws PageHarvesterException {
 		Map<URL, String> badHits = new HashMap<URL,String>();
 		
 		// Checking max number of hits
@@ -260,13 +261,14 @@ public abstract class SearchEngineTest {
 
 		// Checking if hits match the query words and have the correct type
 		for (SearchEngine.Hit hit: results) {
-			String wholeContent = hit.toString();
-			if (wholeContent.contains("we would like to show you a description here but the site won’t allow us")) {
-				// Skip this hit as it does not include we won't be able to tell if it fits the query. 
-				continue;
+			
+			if (badHits.containsKey(hit.url)) continue;
+			
+			if (!hitMatchesQueryKeywords(query, hit)) {
+				addBadHit(hit, "Did not match the keywords", badHits);
 			}
-			if (!hitMatchesContent(query, wholeContent) || !hitHasCorrectType(query, wholeContent)) {
-				addBadHit(hit, "Content does not match query words", badHits);
+			if (!hitHasCorrectType(query, hit)) {
+				addBadHit(hit, "Content does not have the correct type", badHits);
 			}
 		}
 
@@ -295,9 +297,17 @@ public abstract class SearchEngineTest {
 			badHits.put(url, "*** "+reason+"\n"+hit.toString());
 		}
 	}
+	
+	private boolean alreadyInBadHits(SearchEngine.Hit hit, Map<URL, String> badHits) {
+		boolean answer = false;
+		if (badHits.containsKey(hit.url)) answer = true;
+		
+		return answer;
+	}
 
 
-	private Boolean hitMatchesContent(SearchEngine.Query query, String wholeContent) {
+	private Boolean hitMatchesQueryKeywords(SearchEngine.Query query, SearchEngine.Hit hit) throws PageHarvesterException {
+		String wholeContent = hit.toString();
 		Boolean matches = null;
 		if (wholeContent.contains("moved")) {
 			// Don't check keywords if the page was moved to a different location
@@ -305,11 +315,25 @@ public abstract class SearchEngineTest {
 		} else {
 			if (query.fuzzyQuery != null) {
 				matches = hitMatchesContent_FuzzyQuery(query.fuzzyQuery, wholeContent);
+				if (! matches) {
+					String actualContent = getHitActualContent(hit);
+					matches = hitMatchesContent_FuzzyQuery(query.fuzzyQuery, actualContent);
+				}
 			} else {
 				matches = hitMatchesContent_TermsList(query.terms, wholeContent);
+				if (! matches) {
+					String actualContent = getHitActualContent(hit);
+					matches = hitMatchesContent_TermsList(query.terms, actualContent);
+				}
 			}
 		}
 		return matches;
+	}
+	
+	private String getHitActualContent(SearchEngine.Hit hit) throws PageHarvesterException {
+		String content = new PageHarvester().harvestSinglePage(hit.url);
+		
+		return content;
 	}
 
 	private Boolean hitMatchesContent_TermsList(List<String> terms, String wholeContent) {
@@ -335,8 +359,10 @@ public abstract class SearchEngineTest {
 		return foundWord;
 	}
 	
-	private boolean hitHasCorrectType(Query query, String wholeContent) {
+	private boolean hitHasCorrectType(Query query, SearchEngine.Hit hit) {
 		boolean hasCorrectType = true;
+		
+		String wholeContent = hit.toString();
 		SearchEngine.Type[] types = query.types;
 		
 		boolean foundType = false;
