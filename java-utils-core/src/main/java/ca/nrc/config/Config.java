@@ -42,11 +42,7 @@ public class Config {
 	
 	@JsonIgnore
 	public static String getConfigProperty(String propName, String defValue) throws ConfigException {
-		String prop = System.getenv(propName);
-		if (prop == null) {
-			prop = System.getProperty(propName);			
-		}
-		
+		String prop = getConfigProperty(propName, false);
 		if (prop == null) {
 			prop = defValue;
 		}
@@ -58,7 +54,8 @@ public class Config {
 	@JsonIgnore
 	public static String getConfigProperty(String propName, boolean failIfNoConfig) throws ConfigException {
 		
-		String prop = lookInEnvAndSystemProps(propName);
+		propName = convertToUndescore(propName);
+		String prop = lookInEnvAndSystemProps(convertToUndescore(propName));
 		if (prop == null) {
 			prop = lookInPropFiles(propName);
 		}
@@ -68,6 +65,12 @@ public class Config {
 		}
 	
 		return prop;
+	}
+
+
+	private static String convertToUndescore(String propName) {
+		propName = propName.replaceAll("\\.+", "_");
+		return propName;
 	}
 
 
