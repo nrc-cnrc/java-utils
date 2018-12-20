@@ -55,7 +55,7 @@ public class Config {
 	public static String getConfigProperty(String propName, boolean failIfNoConfig) throws ConfigException {
 		
 		propName = convertToUndescore(propName);
-		String prop = lookInEnvAndSystemProps(convertToUndescore(propName));
+		String prop = lookInEnvAndSystemProps(propName);
 		if (prop == null) {
 			prop = lookInPropFiles(propName);
 		}
