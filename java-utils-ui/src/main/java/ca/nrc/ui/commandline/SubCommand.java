@@ -87,7 +87,12 @@ public abstract class SubCommand {
 		
 		return optValue;
 	}
-
+	
+	public boolean hasOption(String optName) {
+		boolean answer = cmdLine.hasOption(optName);
+		return answer;
+	}
+	
 	
 	public void run(CommandLine _cmdLine, String commandName) throws Exception {
 		echo("Executing sub-command "+commandName);
