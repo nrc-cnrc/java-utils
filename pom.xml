@@ -2,13 +2,16 @@
   
 	<modelVersion>4.0.0</modelVersion>
 	
-	<groupId>ca.nrc</groupId>
-	<artifactId>java-utils</artifactId>
+	<groupId>ca.nrc.java-utils</groupId>
+ 	<artifactId>java-utils</artifactId>
 	<packaging>pom</packaging>
-
+ 
 	<version>1.0.5-SNAPSHOT</version>
 	
 	<properties>
+		<!-- We deploy modules, but not the parent -->
+  		<maven.deploy.skip>true</maven.deploy.skip>
+  		
 		<nexus.snapshot.url>https://nexus.dt.nrc.ca/repository/maven-snapshots/</nexus.snapshot.url>
 		<nexus.releases.url>https://nexus.dt.nrc.ca/repository/maven-releases/</nexus.releases.url>
 	</properties>
@@ -44,9 +47,29 @@
 					<version>1.16</version>
 				</plugin>
 			</plugins>
-		</pluginManagement>		
+		</pluginManagement>			
 	
-	 	<plugins>	
+	 	<plugins>
+	 		<plugin>
+			   <groupId>org.apache.maven.plugins</groupId>
+			   <artifactId>maven-deploy-plugin</artifactId>
+			   <configuration>
+			   		<skip>${maven.deploy.skip}</skip>
+			   </configuration>
+			   <executions>
+			   		<execution>
+			   			<id>default-deploy</id>
+			   			<phase>deploy</phase>
+			   			<goals>
+			   				<goal>deploy</goal>
+			   			</goals>
+			   		</execution>
+			   </executions>
+			</plugin>
+			
+	 	
+	 		<!--  For finding licenses of all third party S/W used
+	 		      by this artifact -->
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>license-maven-plugin</artifactId>
