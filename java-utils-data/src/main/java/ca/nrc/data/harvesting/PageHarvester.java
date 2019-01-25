@@ -58,6 +58,10 @@ public class PageHarvester {
 	private TagNode currentRoot;
 	public String error = null;
 	
+	private boolean harvestFullText = false;
+		public void setHarvestFullText(boolean _fullText) {this.harvestFullText = _fullText;}
+
+	
 	private int connectionTimeoutSecs = 5;
 	public int getConnectionTimeoutSecs() {
 		return connectionTimeoutSecs;
@@ -102,12 +106,11 @@ public class PageHarvester {
 		return text;
 	}
 
-	public String getMainText() throws PageHarvesterException {
-		String html = getHtml();
-		String text = null;
+	public String extractMainText(String html) throws PageHarvesterException {
 		
 		if (html != null) {
 			String mainText;
+			
 			try {
 				
 				text = KeepEverythingExtractor.INSTANCE.getText(html);
@@ -208,31 +211,6 @@ public class PageHarvester {
 		}
 	}
 
-	private void getPage(String url) throws PageHarvesterException {
-		try {
-			this.currentURL = new URL(url);
-	
-			URL urlObj = currentURL;
-			String protocol = urlObj.getProtocol();
-	
-			if (protocol.equals("file")) {
-				this.html = getFilePage(urlObj);
-	 		} else if (protocol.equals("jar")) {
-	 			this.html = getJarPage(urlObj);
-			} else if (protocol.equals("http") || protocol.equals("https")) {
-				this.html = getHttpPage(urlObj);
-			} else {
-				throw new IOException("Unsupported protocol: " + protocol + " found in URL " + url);
-			}
-			
-			parseHTML(html);
-
-		} catch (IOException exc) {
-			throw new PageHarvesterException(exc, "Failed to get content of url: "+url);
-		}
-		
-	}
-
 	protected void parseHTML(String html) throws PageHarvesterException {
 		if (null == html) return;
 		
@@ -242,7 +220,11 @@ public class PageHarvester {
 		inlineAllIFramesContent(currentRoot);
 
 		this.html = cleaner.getInnerHtml(currentRoot);
-		this.text = getMainText();
+		if (harvestFullText) {
+			this.text = currentRoot.getText().toString();
+		} else {
+			this.text = extractMainText(this.html);
+		}
 		
 		TagNode elt = currentRoot.findElementByName("title", true);
 		if (elt != null) {
@@ -262,6 +244,30 @@ public class PageHarvester {
 		}	
 	}
 
+	private void getPage(String url) throws PageHarvesterException {
+		try {
+			this.currentURL = new URL(url);
+	
+			URL urlObj = currentURL;
+			String protocol = urlObj.getProtocol();
+	
+			if (protocol.equals("file")) {
+				this.html = getFilePage(urlObj);
+	 		} else if (protocol.equals("jar")) {
+	 			this.html = getJarPage(urlObj);
+			} else if (protocol.equals("http") || protocol.equals("https")) {
+				this.html = getHttpPage(urlObj);
+			} else {
+				throw new IOException("Unsupported protocol: " + protocol + " found in URL " + url);
+			}
+			
+			parseHTML(html);
+	
+		} catch (IOException exc) {
+			throw new PageHarvesterException(exc, "Failed to get content of url: "+url);
+		}
+		
+	}
 	protected String getHttpPage(URL url) throws PageHarvesterException, IOException {
 		String oldUserAgent = System.getProperty("http.agent");
 		failureStatus  = 0;

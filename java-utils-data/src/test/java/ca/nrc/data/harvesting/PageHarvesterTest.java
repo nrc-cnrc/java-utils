@@ -66,13 +66,13 @@ public class PageHarvesterTest {
 		// Get the HTML content
 		String html = harvester.getHtml();
 		
-		// Get the plain-text content of the page
+		// Get the plain-text content of the page. 
+		// 
+		// Note: By default, the harvester tries to remove 'container' elements like navigation menus, banners, etc...
+		//   from plain-text. If you want to include those in the plain-text, you must set 'harvestFullText' option
+		//   to true, BEFORE invoking harvestSinglePage().
 		String plainText = harvester.getText();
-		
-		// Get the plain-text content of the "main" portion of the 
-		// page, i.e. excluding menus and side bars
-		String mainText = harvester.getMainText();
-		
+				
 		// Get the title of the page
 		String title = harvester.getTitle();
 		
@@ -119,7 +119,7 @@ public class PageHarvesterTest {
 		AssertHelpers.assertStringContains(plainText, "Wages, full-time work sliding for young Canadians, StatsCan says - Business - CBC News");
 		
 		// Main text should not contain HTML codes, nor side bars
-		String mainText = harvester.getMainText();
+		String mainText = harvester.getText();
 		AssertHelpers.assertStringDoesNotContain(mainText, "<title>"); 
 		AssertHelpers.assertStringDoesNotContain(mainText, "Photo Galleries");
 		AssertHelpers.assertStringContains(mainText, "Wages, full-time work sliding for young Canadians, StatsCan says - Business - CBC News");
