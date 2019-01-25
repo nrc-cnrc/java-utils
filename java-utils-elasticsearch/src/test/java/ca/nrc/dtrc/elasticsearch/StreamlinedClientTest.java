@@ -761,7 +761,7 @@ public class StreamlinedClientTest {
 		// If this assertion fails, check if the new cluster that was generated makes sense, 
 		// and if it does, then add it to the superset of expected clusters.
 		//
-		AssertHelpers.assertContainsAll("Cluster names not as expected", expClusterNamesSuperset, gotClusterNames);
+		AssertHelpers.assertContainsAll("Cluster names not as expected\nNOTE: The exact clusters produced in this test are non-deterministic. If the test fail, it may be because you need to add new words to the expectation.", expClusterNamesSuperset, gotClusterNames);
 
 		String clusterName = "Heaven";
 		String[] expIDs = new String[] {
