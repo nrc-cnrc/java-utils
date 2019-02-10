@@ -47,6 +47,8 @@ import okhttp3.Response;
 
 public class StreamlinedClient {
 	
+	enum FieldTypes {date, text, term};
+	
 	public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 	
 	// Whenever the client issues a transaction that modifies the DB,
@@ -1318,6 +1320,31 @@ public class StreamlinedClient {
 	private String okResponseJson() {
 		String json = "{\"err\": null, \"status\": \"ok\"}";
 		return json;
+	}
+
+	public void defineFieldTypes(Map<String,FieldTypes> typeDefs) throws ElasticSearchException {
+		Map<String,Map<String,String>> mappingsDict = new HashMap<String,Map<String,String>>();
+		for (String typeName: typeDefs.keySet()) {
+			Map<String,String> aMapping = new HashMap<String,String>();
+			aMapping.put("type", typeDefs.get(typeName).name());
+			mappingsDict.put(typeName, aMapping);
+		}
+		
+		String jsonString;
+		
+		try {
+			jsonString = new ObjectMapper().writeValueAsString(mappingsDict);
+		} catch (JsonProcessingException e) {
+			throw new ElasticSearchException(e);
+		}
+		jsonString = "{\"mappings\": {\"type_name\": {\"properties\": "+jsonString+"}}}";
+		
+		
+		URL url = esUrlBuilder().build();
+		String json = put(url, jsonString);
+		
+		return;
+
 	}
 
 }

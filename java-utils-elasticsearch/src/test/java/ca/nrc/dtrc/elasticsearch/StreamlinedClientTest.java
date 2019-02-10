@@ -73,7 +73,12 @@ public class StreamlinedClientTest {
 	@Before
     public void setUp() throws Exception {
         ESTestHelpers.skipTestsUnlessESIsRunning();
-        new StreamlinedClient("es-test").clearIndex();
+        try {
+        	new StreamlinedClient("es-test").clearIndex();
+        } catch (Exception e) {
+        	// Nothing to do... probably the index didn't exist in
+        	// the first place.
+        }
     }
 	
 	/*********************************
@@ -118,7 +123,6 @@ public class StreamlinedClientTest {
 		
 		// Delete a document with a specific ID
 		client.deleteDocumentWithID("Homer", Person.class);
-		
 		
 		//
 		// Search for some objects. You can specify an arbitrary query as a JSON string
@@ -165,6 +169,25 @@ public class StreamlinedClientTest {
 		searchResults = client.moreLikeThese(queryPeople);
 		
 		// You can then scroll through the hits as described above...
+		
+		//
+		// When you add documents to an index, the system automatically guesses 
+		// the type of each fields. Most of the fields end up being of type 'text'.
+		//
+		// If you want to explicitly specify the type of one or more fields, make 
+		// sure you invoke the setFieldTypes() BEFORE THE VERY FIRST TIME that you
+		// add a document with that field to a given index.
+		//
+		client.deleteIndex(); // Let's delete the index to get rid of the existing types
+		Map<String,StreamlinedClient.FieldTypes> fieldTypes = new HashMap<String,StreamlinedClient.FieldTypes>();
+		{
+			fieldTypes.put("birthDay", StreamlinedClient.FieldTypes.date);
+		}
+		client.defineFieldTypes(fieldTypes);
+		
+							// Now when we add Person documents, their birthday 
+							// field will be trated as a Date
+		client.putDocument(new Person("Marg", "Simpson"));
 		
 		//
 		// You can cluster a set of documents.
