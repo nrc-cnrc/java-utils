@@ -128,13 +128,29 @@ public class StreamlinedClient {
 		return jsonResponse;
 	}
 	
+	public void defineMappings(Map<String, Object> mappingsDict) throws ElasticSearchException {
+		String jsonString;
+		try {
+			jsonString = new ObjectMapper().writeValueAsString(mappingsDict);
+		} catch (JsonProcessingException e) {
+			throw new ElasticSearchException(e);
+		}
+		
+		URL url = esUrlBuilder().build();
+		String json = put(url, jsonString);
+		
+		return;
+		
+		
+	}
+
 	public void defineFieldTypes(Map<String,String> typeDefs) throws ElasticSearchException {
 		Map<String,Map<String,String>> mappingsDict = new HashMap<String,Map<String,String>>();
 		for (String typeName: typeDefs.keySet()) {
 			Map<String,String> aMapping = new HashMap<String,String>();
 			
 			String aType = typeDefs.get(typeName).toLowerCase();
-			if (! aType.matches("^(date|text|term)$")) {
+			if (! aType.matches("^(date|text|keyword)$")) {
 				throw new ElasticSearchException("Unknown ElasticSearch field type "+aType);
 			}
 			aMapping.put("type", aType);
@@ -1349,5 +1365,6 @@ public class StreamlinedClient {
 		String json = "{\"err\": null, \"status\": \"ok\"}";
 		return json;
 	}
+
 
 }
