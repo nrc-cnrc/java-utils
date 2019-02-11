@@ -46,10 +46,9 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 public class StreamlinedClient {
-	
-	enum FieldTypes {date, text, term};
-	
+		
 	public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+	
 	
 	// Whenever the client issues a transaction that modifies the DB,
 	// it will sleep by that much to give ES time to update all the 
@@ -128,6 +127,35 @@ public class StreamlinedClient {
 		
 		return jsonResponse;
 	}
+	
+	public void defineFieldTypes(Map<String,String> typeDefs) throws ElasticSearchException {
+		Map<String,Map<String,String>> mappingsDict = new HashMap<String,Map<String,String>>();
+		for (String typeName: typeDefs.keySet()) {
+			Map<String,String> aMapping = new HashMap<String,String>();
+			
+			String aType = typeDefs.get(typeName).toLowerCase();
+			if (! aType.matches("^(date|text|term)$")) {
+				throw new ElasticSearchException("Unknown ElasticSearch field type "+aType);
+			}
+			aMapping.put("type", aType);
+			mappingsDict.put(typeName, aMapping);
+		}
+		
+		String jsonString;
+		
+		try {
+			jsonString = new ObjectMapper().writeValueAsString(mappingsDict);
+		} catch (JsonProcessingException e) {
+			throw new ElasticSearchException(e);
+		}
+		jsonString = "{\"mappings\": {\"type_name\": {\"properties\": "+jsonString+"}}}";
+		
+		
+		URL url = esUrlBuilder().build();
+		String json = put(url, jsonString);
+		
+		return;
+	}	
 	
 	public String putDocument(Document doc) throws ElasticSearchException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.putDocument");
@@ -1320,31 +1348,6 @@ public class StreamlinedClient {
 	private String okResponseJson() {
 		String json = "{\"err\": null, \"status\": \"ok\"}";
 		return json;
-	}
-
-	public void defineFieldTypes(Map<String,FieldTypes> typeDefs) throws ElasticSearchException {
-		Map<String,Map<String,String>> mappingsDict = new HashMap<String,Map<String,String>>();
-		for (String typeName: typeDefs.keySet()) {
-			Map<String,String> aMapping = new HashMap<String,String>();
-			aMapping.put("type", typeDefs.get(typeName).name());
-			mappingsDict.put(typeName, aMapping);
-		}
-		
-		String jsonString;
-		
-		try {
-			jsonString = new ObjectMapper().writeValueAsString(mappingsDict);
-		} catch (JsonProcessingException e) {
-			throw new ElasticSearchException(e);
-		}
-		jsonString = "{\"mappings\": {\"type_name\": {\"properties\": "+jsonString+"}}}";
-		
-		
-		URL url = esUrlBuilder().build();
-		String json = put(url, jsonString);
-		
-		return;
-
 	}
 
 }
