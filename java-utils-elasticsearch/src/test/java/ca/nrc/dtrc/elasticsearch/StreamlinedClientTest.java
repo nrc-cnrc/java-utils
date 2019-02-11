@@ -33,7 +33,7 @@ import ca.nrc.dtrc.elasticsearch.StreamlinedClient;
 import ca.nrc.testing.AssertHelpers;
 
 public class StreamlinedClientTest {
-	
+		
 	final static String PERSON_TYPE = "person";	
 	final static Person personPrototype = new Person();
 
@@ -179,9 +179,9 @@ public class StreamlinedClientTest {
 		// add a document with that field to a given index.
 		//
 		client.deleteIndex(); // Let's delete the index to get rid of the existing types
-		Map<String,StreamlinedClient.FieldTypes> fieldTypes = new HashMap<String,StreamlinedClient.FieldTypes>();
+		Map<String,String> fieldTypes = new HashMap<String,String>();
 		{
-			fieldTypes.put("birthDay", StreamlinedClient.FieldTypes.date);
+			fieldTypes.put("birthDay", "date");
 		}
 		client.defineFieldTypes(fieldTypes);
 		

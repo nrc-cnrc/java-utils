@@ -77,7 +77,7 @@
 	<dependencies>
 
 		<dependency>
-			<groupId>ca.nrc</groupId>
+			<groupId>ca.nrc.java-utils</groupId>
 			<artifactId>java-utils-core</artifactId>
 			<version>1.0.5-SNAPSHOT</version>
 		</dependency>
