@@ -467,7 +467,16 @@ public class StreamlinedClient {
 		if (query == null) {
 			jsonQuery= "{}";
 		} else {
-			jsonQuery = "{\"query\": {\"query_string\": {\"query\": \""+query+"\"}}}\n";
+			jsonQuery = 
+					"{"+
+					   "\"query\": {"+
+							"\"query_string\": {\"query\": \""+query+"\"}"+
+						"},"+
+						"\"highlight\": {"+
+							"\"fields\": {\"longDescription\": {}}"+
+						"}"+
+					"}"
+					;
 		}
 		SearchResults<T> hits = search(jsonQuery, docTypeName, docPrototype);
 		
@@ -691,8 +700,7 @@ public class StreamlinedClient {
 		String mltBody = moreLikeThisJsonBody(esType, queryDocMap);
 		if (tLogger.isTraceEnabled()) tLogger.trace("** queryDocMap="+PrettyPrinter.print(queryDocMap));
 		
-		SearchResults results = null;
-		results = search(mltBody, esType, queryDoc);
+		SearchResults<T> results = search(mltBody, esType, queryDoc);
 	
 		return results;
 	}				
@@ -749,13 +757,13 @@ public class StreamlinedClient {
 				highlight.set("fields", fields);
 				{
 					ObjectNode description = nodeFactory.objectNode();
-					fields.set("description", description);
+					fields.set("longDescription", description);
 					{
 						description.put("type", "plain");						
 					}
 					
 					ObjectNode shortDesc = nodeFactory.objectNode();
-					fields.set("short_desc", shortDesc);
+					fields.set("shortDescription", shortDesc);
 					{
 						shortDesc.put("type", "plain");
 					}
