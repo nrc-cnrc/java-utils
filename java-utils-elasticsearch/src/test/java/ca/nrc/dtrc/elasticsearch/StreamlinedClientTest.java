@@ -253,6 +253,13 @@ public class StreamlinedClientTest {
 		// You can delete all documents for a given doc type
 		//
 		client.clearDocType(docType);
+		
+		//
+		// You can change the settings of the index (assuming it has already been created)
+		//
+		Map<String,Object> settings = new HashMap<String,Object>();
+		settings.put("index.mapping.total_fields.limit", new Integer(2000));
+		client.changeIndexSettings(settings);
 	}
 	
 	/*********************************
@@ -455,7 +462,7 @@ public class StreamlinedClientTest {
 		Map<String, Object> homerMap = new ObjectMapper().convertValue(homer, Map.class);
 		String gotJson = client.moreLikeThisJsonBody(homer.getClass().getName(), homerMap);
 		String expJson = 
-				"{\"query\":{\"more_like_this\":{\"min_term_freq\":1,\"min_doc_freq\":1,\"max_query_terms\":12,\"fields\":[\"lang\",\"id\",\"firstName\",\"surname\"],\"like\":{\"_index\":\"es-test\",\"_type\":\"ca.nrc.dtrc.elasticsearch.StreamlinedClientTest$Person\",\"doc\":{\"lang\":\"en\",\"id\":\"homersimpson\",\"firstName\":\"homer\",\"surname\":\"simpson\"}}}},\"highlight\":{\"order\":\"score\",\"fields\":{\"description\":{\"type\":\"plain\"},\"short_desc\":{\"type\":\"plain\"}}}}";
+				"{\"query\":{\"more_like_this\":{\"min_term_freq\":1,\"min_doc_freq\":1,\"max_query_terms\":12,\"fields\":[\"lang\",\"id\",\"firstName\",\"surname\"],\"like\":{\"_index\":\"es-test\",\"_type\":\"ca.nrc.dtrc.elasticsearch.StreamlinedClientTest$Person\",\"doc\":{\"lang\":\"en\",\"id\":\"homersimpson\",\"firstName\":\"homer\",\"surname\":\"simpson\"}}}},\"highlight\":{\"order\":\"score\",\"fields\":{\"longDescription\":{\"type\":\"plain\"},\"shortDescription\":{\"type\":\"plain\"}}}}";
 		AssertHelpers.assertStringEquals(expJson, gotJson);
 	}
 	

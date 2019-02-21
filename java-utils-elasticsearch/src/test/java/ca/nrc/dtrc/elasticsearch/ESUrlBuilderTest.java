@@ -43,4 +43,16 @@ public class ESUrlBuilderTest  {
 		String expURL = "http://localhost:9090/test-index/_delete_by_query";
 		AssertHelpers.assertStringEquals(expURL, gotURL.toString());
 	}
+
+	@Test
+	public void test__settings_endpoint() throws Exception {
+		URL gotURL = 
+				new ESUrlBuilder("test-index", "localhost", 9090)
+					.forEndPoint("_settings")
+					.build();
+		;
+		String expURL = "http://localhost:9090/test-index/_settings";
+		AssertHelpers.assertStringEquals(expURL, gotURL.toString());
+	}
+
 }

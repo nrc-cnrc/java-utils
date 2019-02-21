@@ -211,15 +211,10 @@ public class StreamlinedClient {
 		tLogger.trace("posting url="+url+",jsonDoc=\n"+jsonDoc);
 		
 		String jsonResponse = post(url, jsonDoc);
-		tLogger.trace("** post finished, jsonResponse=\n"+jsonResponse);
 		
 		clearFieldTypesCache(type);		
-		tLogger.trace("** After clearFieldTypesCache");
 		
 		sleep();
-
-		tLogger.trace("** After sleep(), returning jsonResponse=\n"+jsonResponse);
-		
 		return jsonResponse;
 	}	
 	
@@ -295,11 +290,11 @@ public class StreamlinedClient {
 		return results;
 	}		
 	
-	private String post(URL url) throws IOException, ElasticSearchException, InterruptedException {
+	public String post(URL url) throws IOException, ElasticSearchException, InterruptedException {
 		return post(url, null);
 	}
 	
-	private String post(URL url, String json) throws ElasticSearchException {
+	public String post(URL url, String json) throws ElasticSearchException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.post");
 		tLogger.trace("posting url="+url+", with json=\n"+json);
 		
@@ -359,7 +354,7 @@ public class StreamlinedClient {
 		return jsonResponse;		
 	}
 	
-	private String put(URL url, String json) throws ElasticSearchException {
+	public String put(URL url, String json) throws ElasticSearchException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.put");
 		tLogger.trace("putting url="+url+", with json=\n"+json);
 		
@@ -389,12 +384,12 @@ public class StreamlinedClient {
 	    return jsonResponse;
 	  }	
 	
-	private void delete(URL url) throws ElasticSearchException {
+	public void delete(URL url) throws ElasticSearchException {
 		delete(url, "");
 	}
 
 	
-	private void delete(URL url, String jsonBody) throws ElasticSearchException{
+	public void delete(URL url, String jsonBody) throws ElasticSearchException{
 		@SuppressWarnings("unused")
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.delete");
 		if (jsonBody == null) jsonBody = "";
@@ -1374,5 +1369,20 @@ public class StreamlinedClient {
 		return json;
 	}
 
+	public void changeIndexSetting(String settingName, Object settingValue) throws ElasticSearchException {
+		Map<String,Object> settings = new HashMap<String,Object>();
+		settings.put(settingName, settingValue);
+		changeIndexSettings(settings);
+	}
 
+	public void changeIndexSettings(Map<String, Object> settings) throws ElasticSearchException {
+		String json = null;
+		try {
+			json = new ObjectMapper().writeValueAsString(settings);
+			URL url = esUrlBuilder().forEndPoint("_settings").build();
+			put(url, json);
+		} catch (JsonProcessingException e) {
+			throw new ElasticSearchException(e);
+		}
+	}
 }
