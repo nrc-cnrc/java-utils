@@ -8,6 +8,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.ObjectStreamException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.HashMap;
@@ -19,6 +20,7 @@ import java.util.regex.Pattern;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -81,6 +83,21 @@ public class ObjectStreamReader implements Closeable {
 
 	private void initialize(Reader _reader) {
 		this.buffReader = new BufferedReader(_reader);
+	}
+
+	@JsonIgnore
+	public ObjectStreamReader setEndOfBodyMarker(String markerType) throws ObjectStreamReaderException {
+		if (!bodyEndMarkerChoices.containsKey(markerType)) {
+			throw new ObjectStreamReaderException("Unknown end of body marker: "+markerType);
+		}
+		regexBodyLast = bodyEndMarkerChoices.get(markerType);
+		return this;
+	}
+
+	@JsonIgnore
+	public ObjectStreamReader setObjectClass(Class type)  {
+		currentObjClass = type;
+		return this;
 	}
 
 	public Object readObject() throws IOException, ClassNotFoundException {		
