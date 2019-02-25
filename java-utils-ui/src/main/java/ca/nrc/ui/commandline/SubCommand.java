@@ -95,7 +95,10 @@ public abstract class SubCommand {
 	
 	
 	public void run(CommandLine _cmdLine, String commandName) throws Exception {
-		echo("Executing sub-command "+commandName);
+		if (verbosity != Levelnull && verbosity != Level0) {
+			echo("Executing sub-command "+commandName);
+		}
+		
 		this.cmdLine = _cmdLine;
 		this.execute();
 	}

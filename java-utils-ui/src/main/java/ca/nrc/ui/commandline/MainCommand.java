@@ -49,8 +49,9 @@ public class MainCommand {
 		SubCommand command = cmdAndConfig.getFirst();
 		CommandLine cmdLine = cmdAndConfig.getSecond();
 		command.run(cmdLine, subCommandName);
-		
-		SubCommand.echo("Done");
+		if (command.verbosity != Levelnull && vcommand.erbosity != Level0) {
+			SubCommand.echo("Done");
+		}
 	}
 	
 	public Pair<SubCommand, CommandLine> makeSubCommandAndConfig(String[] args) {
