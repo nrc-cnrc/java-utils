@@ -28,9 +28,13 @@ public class ResourceGetter {
 		String resourcePath = null;
 		resourcePath = resourceURL.getPath().toString();
 
+		/* Replace %20 by spaes */
+		resourcePath = resourcePath.replaceAll("%20", " ");
+
 		/* For Windows, substitute /C:/etc -> C:/etc.. */
 		String regexWindowsPathPrefix = "^/([A-Z]\\:/)";
 		resourcePath = resourcePath.replaceAll(regexWindowsPathPrefix, "$1");
+		
 		
 		return resourcePath;
 	}
