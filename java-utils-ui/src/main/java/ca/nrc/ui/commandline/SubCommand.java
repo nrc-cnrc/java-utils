@@ -95,7 +95,7 @@ public abstract class SubCommand {
 	
 	
 	public void run(CommandLine _cmdLine, String commandName) throws Exception {
-		if (verbosity != Levelnull && verbosity != Level0) {
+		if (verbosity != Verbosity.Levelnull && verbosity != Verbosity.Level0) {
 			echo("Executing sub-command "+commandName);
 		}
 		

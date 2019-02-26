@@ -49,7 +49,7 @@ public class MainCommand {
 		SubCommand command = cmdAndConfig.getFirst();
 		CommandLine cmdLine = cmdAndConfig.getSecond();
 		command.run(cmdLine, subCommandName);
-		if (command.verbosity != Levelnull && vcommand.erbosity != Level0) {
+		if (command.verbosity != SubCommand.Verbosity.Levelnull && command.verbosity != SubCommand.Verbosity.Level0) {
 			SubCommand.echo("Done");
 		}
 	}
