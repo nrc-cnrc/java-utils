@@ -214,7 +214,12 @@ public class ObjectStreamReader implements Closeable {
 	private void onClassLine(Map<String, String> parameters) {
 		String className = parameters.get("class");
 		try {
-			currentObjClass = Class.forName(className);
+			if (className.equals("Map")) {
+				Map<String,Object> proto = new HashMap<String,Object>();
+				currentObjClass = proto.getClass();
+			} else {
+				currentObjClass = Class.forName(className);
+			}
 		} catch (ClassNotFoundException exc) {
 			error("No class found for object of type: "+className);
 		}
