@@ -35,6 +35,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import ca.nrc.json.PrettyPrinter;
 import ca.nrc.config.ConfigException;
+import ca.nrc.data.file.ObjectStreamReader;
 import ca.nrc.datastructure.Pair;
 import ca.nrc.dtrc.elasticsearch.ESUrlBuilder;
 import ca.nrc.introspection.Introspection;
@@ -127,6 +128,13 @@ public class StreamlinedClient {
 		
 		return jsonResponse;
 	}
+	
+	private void defineMappings(Mappings mappings) throws ElasticSearchException {
+		Map<String,Object> mappingsHash = new HashMap<String,Object>();
+		mappingsHash = new ObjectMapper().convertValue(mappings, mappingsHash.getClass());
+		defineMappings(mappingsHash);
+	}
+	
 	
 	public void defineMappings(Map<String, Object> mappingsDict) throws ElasticSearchException {
 		String jsonString;
@@ -945,6 +953,8 @@ public class StreamlinedClient {
 	
 	
 	public void bulk(String jsonContent, String docTypeName) throws ElasticSearchException, IOException {
+		
+		jsonContent += "\n\n";
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.bulk");
 		URL url = esUrlBuilder().forDocType(docTypeName).forEndPoint("_bulk").build();
 		tLogger.trace("url="+url);
@@ -963,20 +973,26 @@ public class StreamlinedClient {
 	}
 	
 	public void bulkIndex(String dataFPath, String docTypeName, int batchSize, boolean verbose) throws ElasticSearchException {
-		String id = null;
+		ObjectMapper mapper = new ObjectMapper();
 		try {
 			if (batchSize < 0) batchSize = 100;
 			int batchStart = 1;
-			File dataFile = new File(dataFPath);			
-			BufferedReader br = new BufferedReader(new FileReader(dataFile));
+			
+			ObjectStreamReader reader = new ObjectStreamReader(new File(dataFPath));
+			Object firstObj = reader.readObject();
+			Document doc = null;
+			if (firstObj instanceof Mappings) {
+				defineMappings((Mappings) firstObj);
+				doc = (Document)reader.readObject();
+			} else {
+				doc = (Document)firstObj;
+			}
 			int currBatchSize = 0;
 			String jsonBatch = "";
 			String jsonLine = null;
-			while (true) {
-				jsonLine = br.readLine();
-				if (jsonLine == null) break;
-				if (jsonLine.matches("^(class|bodyEndMarker)=.*$")) continue;
-				id = getLineID(jsonLine, verbose);
+			while (doc != null) {
+				String id = doc.getId();
+				jsonLine = mapper.writeValueAsString(doc);
 				jsonBatch += 
 					"\n{\"index\": {\"_index\": \""+indexName+"\", \"_type\" : \""+docTypeName+"\", \"_id\": \""+id+"\"}}" +
 					"\n" + jsonLine;
@@ -993,18 +1009,29 @@ public class StreamlinedClient {
 					currBatchSize++;
 				}
 				
-//				jsonLine = br.readLine();
+				doc = (Document) reader.readObject();
 			}
+			
+			if (!jsonBatch.isEmpty()) {
+				// Process the very last partial batch
+				bulk(jsonBatch, docTypeName);
+			}
+			
 		} catch (FileNotFoundException e) {
 			throw new ElasticSearchException("Could not open file "+dataFPath+" for bulk indexing.");
 		} catch (IOException e) {
 			throw new ElasticSearchException("Could not read from data file "+dataFPath, e);
 		} catch (ElasticSearchException e) {
 			throw(e);
+		} catch (ClassNotFoundException e) {
+			throw new ElasticSearchException(e);
 		}
+		
+		return;
 	}
 	
 	
+
 	public void bulkIndex(BufferedReader br, String docTypeName, int batchSize, boolean verbose) throws IOException, ElasticSearchException {
 		if (batchSize < 0) batchSize = 100;
 		int batchStart = 1;
