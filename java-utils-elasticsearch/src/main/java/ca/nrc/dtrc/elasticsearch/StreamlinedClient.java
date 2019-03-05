@@ -990,8 +990,13 @@ public class StreamlinedClient {
 			int currBatchSize = 0;
 			String jsonBatch = "";
 			String jsonLine = null;
+			long docNum = 0;
 			while (doc != null) {
+				docNum++;
 				String id = doc.getId();
+				if (verbose) {
+					System.out.println("Loading document #1"+docNum+": "+id);
+				}
 				jsonLine = mapper.writeValueAsString(doc);
 				jsonBatch += 
 					"\n{\"index\": {\"_index\": \""+indexName+"\", \"_type\" : \""+docTypeName+"\", \"_id\": \""+id+"\"}}" +

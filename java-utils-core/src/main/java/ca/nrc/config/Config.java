@@ -7,6 +7,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**********************************************************************
@@ -42,8 +45,10 @@ public class Config {
 	
 	@JsonIgnore
 	public static String getConfigProperty(String propName, String defValue) throws ConfigException {
+		Logger tLogger = LogManager.getLogger("ca.nrc.config.Config.getConfigProperty");
 		String prop = getConfigProperty(propName, false);
 		if (prop == null) {
+			tLogger.trace("** Using defValue="+defValue);
 			prop = defValue;
 		}
 	
@@ -53,16 +58,19 @@ public class Config {
 	
 	@JsonIgnore
 	public static String getConfigProperty(String propName, boolean failIfNoConfig) throws ConfigException {
-		
+		Logger tLogger = LogManager.getLogger("ca.nrc.config.Config.getConfigProperty");
 		propName = convertToUndescore(propName);
 		String prop = lookInEnvAndSystemProps(propName);
+		tLogger.trace("** After lookInEnvAndSystemProps, prop="+prop);
 		if (prop == null) {
 			prop = lookInPropFiles(propName);
 		}
+		tLogger.trace("** After lookInPropFiles, prop="+prop);
 				
 		if (prop == null && failIfNoConfig) {
 			throw new ConfigException("No configuration property or environment variable '"+propName+"'");
 		}
+		tLogger.trace("** returning prop="+prop);
 	
 		return prop;
 	}
