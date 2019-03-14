@@ -181,6 +181,12 @@ public class AssertHelpers {
 		message = message +
 				"The two strings differred. Location of the first difference is highlighted below with tag <FIRST_DIFF>.\n";
 		
+		// Ignore differences in \n versus \r\n
+		//  TODO: This should probably be an option
+		expString = expString.replaceAll("\r\n", "\n");
+		gotString = gotString.replaceAll("\r\n", "\n");
+		
+		
 		int firstDiffOffset = StringUtils.indexOfDifference(expString, gotString);
 		
 		if (expString == null || gotString == null) {
