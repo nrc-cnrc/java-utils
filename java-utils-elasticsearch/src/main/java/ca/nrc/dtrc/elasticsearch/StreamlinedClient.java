@@ -137,6 +137,16 @@ public class StreamlinedClient {
 	
 	
 	public void defineMappings(Map<String, Object> mappingsDict) throws ElasticSearchException {
+		
+		Map<String,Object> currentSettings = null;
+		if (indexExists()) {
+			// Remember the old index settings so we can restore them
+			// when we re-create the index with the new mappings
+			currentSettings = indexSettings();
+			mappingsDict.put("settings", currentSettings);			
+			deleteIndex();
+		}
+		
 		String jsonString;
 		try {
 			jsonString = new ObjectMapper().writeValueAsString(mappingsDict);
@@ -150,6 +160,40 @@ public class StreamlinedClient {
 		return;
 		
 		
+	}
+
+	private Map<String, Object> indexSettings() throws ElasticSearchException {
+		URL url = esUrlBuilder().forEndPoint("_settings").build();
+		String json = get(url);
+		Map<String,Object> settings = new HashMap<String,Object>();
+		try {
+			settings = new ObjectMapper().readValue(json, settings.getClass());
+			settings = (Map<String,Object>)(settings.get(indexName));
+			settings = (Map<String,Object>)(settings.get("settings"));
+			
+		} catch (IOException e) {
+			throw new ElasticSearchException(e);
+		}
+		
+		return settings;
+	}
+
+	private boolean indexExists() {
+		URL url = null;
+		boolean exists = true;
+		try {
+			url = esUrlBuilder().forEndPoint("_search").build();
+		} catch (ElasticSearchException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		try {
+			get(url);
+		} catch (ElasticSearchException e) {
+			exists = false;
+		}
+		
+		return exists;
 	}
 
 	public void defineFieldTypes(Map<String,String> typeDefs) throws ElasticSearchException {
@@ -973,8 +1017,10 @@ public class StreamlinedClient {
 	}
 	
 	public void bulkIndex(String dataFPath, String docTypeName, int batchSize, boolean verbose) throws ElasticSearchException {
+		deleteIndex();
 		ObjectMapper mapper = new ObjectMapper();
 		try {
+			configureIndexAnalyzer();
 			if (batchSize < 0) batchSize = 100;
 			int batchStart = 1;
 			
@@ -1036,6 +1082,36 @@ public class StreamlinedClient {
 	}
 	
 	
+
+	private void configureIndexAnalyzer() throws ElasticSearchException {
+		String jsonBody = 
+				"{\n" + 
+				"  \"settings\" : {\n" + 
+				"    \"analysis\": {\n" + 
+				"      \"filter\": {\n" + 
+				"        \"filter_snowball_en\": {\n" + 
+				"          \"type\": \"snowball\",\n" + 
+				"          \"language\": \"English\"\n" + 
+				"        }\n" + 
+				"      },\n" + 
+				"      \"analyzer\": {\n" + 
+				"        \"my_analyzer\": {\n" + 
+				"            \"filter\": [\n" + 
+				"              \"lowercase\",\n" + 
+				"              \"filter_snowball_en\"\n" + 
+				"            ],\n" + 
+				"          \"type\": \"custom\",\n" + 
+				"          \"tokenizer\": \"whitespace\"\n" + 
+				"        }\n" + 
+				"      }\n" + 
+				"    }\n" + 
+				"  }\n" + 
+				"}"
+				;
+
+		URL url = esUrlBuilder().build();
+		put(url, jsonBody);
+	}
 
 	public void bulkIndex(BufferedReader br, String docTypeName, int batchSize, boolean verbose) throws IOException, ElasticSearchException {
 		if (batchSize < 0) batchSize = 100;
