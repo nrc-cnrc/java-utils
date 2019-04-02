@@ -183,8 +183,12 @@ public class AssertHelpers {
 		
 		// Ignore differences in \n versus \r\n
 		//  TODO: This should probably be an option
-		expString = expString.replaceAll("\r\n", "\n");
-		gotString = gotString.replaceAll("\r\n", "\n");
+		if (expString != null) {
+			expString = expString.replaceAll("\r\n", "\n");
+		}
+		if (gotString != null) {
+			gotString = gotString.replaceAll("\r\n", "\n");
+		}
 		
 		
 		int firstDiffOffset = StringUtils.indexOfDifference(expString, gotString);
