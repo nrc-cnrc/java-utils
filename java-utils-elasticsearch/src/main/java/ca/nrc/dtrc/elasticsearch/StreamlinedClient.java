@@ -257,7 +257,6 @@ public class StreamlinedClient {
 	}
 		
 	public String putDocument(String type, String docID, String jsonDoc) throws ElasticSearchException {
-		@SuppressWarnings("unused")
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.putDocument");
 		URL url = esUrlBuilder().forDocType(type).forDocID(docID).build();
 		tLogger.trace("posting url="+url+",jsonDoc=\n"+jsonDoc);
