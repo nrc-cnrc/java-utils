@@ -61,16 +61,13 @@ public class Config {
 		Logger tLogger = LogManager.getLogger("ca.nrc.config.Config.getConfigProperty");
 		propName = convertToUndescore(propName);
 		String prop = lookInEnvAndSystemProps(propName);
-		tLogger.trace("** After lookInEnvAndSystemProps, prop="+prop);
 		if (prop == null) {
 			prop = lookInPropFiles(propName);
 		}
-		tLogger.trace("** After lookInPropFiles, prop="+prop);
 				
 		if (prop == null && failIfNoConfig) {
 			throw new ConfigException("No configuration property or environment variable '"+propName+"'");
 		}
-		tLogger.trace("** returning prop="+prop);
 	
 		return prop;
 	}
