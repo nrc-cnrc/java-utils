@@ -320,6 +320,12 @@ public class AssertHelpers {
 		assertStringDoesNotContain(mess, fileContent, pattern, null, isRegexp);
 	}
 	
+	public static void assertFileContentEquals(String mess, File file, String expFileContent) throws IOException {
+		String gotFileContent = new String(Files.readAllBytes(file.toPath()));
+		assertStringEquals(mess+"\nContent of file '"+file+"' was not as expected.",
+				expFileContent, gotFileContent);
+		
+	}
 
 	public static void assertContainsAll(String message, Object[] supersetArr, Object[] subsetArr) {
 		Set<Object> superset = new HashSet<Object>();
@@ -564,6 +570,7 @@ public class AssertHelpers {
 			Assert.fail(mess+"\nElapsed time of "+elapsed+"secs was longer than expected (max="+maxSecs+"secs).");
 		}
 	}
+
 
 
 
