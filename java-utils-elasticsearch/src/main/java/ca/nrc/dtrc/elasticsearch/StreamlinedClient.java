@@ -140,10 +140,10 @@ public class StreamlinedClient {
 		
 		Map<String,Object> currentSettings = null;
 		if (indexExists()) {
-			// Remember the old index settings so we can restore them
-			// when we re-create the index with the new mappings
-			currentSettings = indexSettings();
-			mappingsDict.put("settings", currentSettings);			
+//			// Remember the old index settings so we can restore them
+//			// when we re-create the index with the new mappings
+//			currentSettings = indexSettings();
+//			mappingsDict.put("settings", currentSettings);			
 			deleteIndex();
 		}
 		
