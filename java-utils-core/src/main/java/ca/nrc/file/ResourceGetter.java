@@ -2,13 +2,16 @@ package ca.nrc.file;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.regex.Matcher;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 
 /*
  * A class for accessing resource files and directories.
@@ -105,5 +108,25 @@ public class ResourceGetter {
 			Files.createDirectories(dir);
 		}
 		return;
+	}
+	
+	public static File copyResouceToTempFile(String resPath) throws IOException {
+		String ext = FilenameUtils.getExtension(resPath);
+		String fname = FilenameUtils.getBaseName(resPath);
+		File tempFile = File.createTempFile(fname, "."+ext);
+		
+		InputStream iStream = getResourceAsStream(resPath);
+		
+		OutputStream oStream = new FileOutputStream(tempFile.getAbsolutePath());
+		
+		int data = iStream.read();
+		while(data != -1) {
+			oStream.write(data);
+			data = iStream.read();
+		}
+		iStream.close();
+		oStream.close();
+				
+		return tempFile;
 	}
 }
