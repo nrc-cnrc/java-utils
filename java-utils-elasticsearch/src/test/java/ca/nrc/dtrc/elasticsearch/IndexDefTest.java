@@ -81,24 +81,23 @@ public class IndexDefTest {
 		// Define a BOOKS type
 		final String BOOKS = "books";
 		TypeDef booksDef = iDef.getTypeDef(BOOKS);
-		booksDef.getFieldDef("title").setType(FieldDef.Types.text).setAnalyzer("english");
-		booksDef.getFieldDef("author").setType(FieldDef.Types.text);
+		booksDef.getFieldDef("title").setType(FieldDef.Types.text);
+		booksDef.getFieldDef("author").setType(FieldDef.Types.text).setAnalyzer("none");
 		booksDef.getFieldDef("publication_date").setType(Types.date);
 		
 		// Define a MOVIES type
 		final String MOVIES = "movies";
 		TypeDef moviesDef = iDef.getTypeDef(MOVIES);
-		moviesDef.getFieldDef("title").setType(FieldDef.Types.text).setAnalyzer("english");
-		moviesDef.getFieldDef("director").setType(FieldDef.Types.text);
+		moviesDef.getFieldDef("title").setType(FieldDef.Types.text);
+		moviesDef.getFieldDef("director").setType(FieldDef.Types.text).setAnalyzer("none");
 		moviesDef.getFieldDef("release_date").setType(Types.date);
 
 		Map<String,Object> gotMap = iDef.toMap();
-		
 		String expMapJson = 
 				  "{"
 				+ "  \"mappings\": {\n"
 				+ "    \"books\": {\n"
-				+ "      \"fields\": {\n"
+				+ "      \"properties\": {\n"
 				+ "        \"author\": {\n"
 				+ "          \"type\": \"text\"\n"
 				+ "        },\n"
@@ -112,7 +111,7 @@ public class IndexDefTest {
 				+ "      }\n"
 				+ "    },\n"
 				+ "    \"movies\": {\n"
-				+ "      \"fields\": {\n"
+				+ "      \"properties\": {\n"
 				+ "        \"director\": {\n"
 				+ "          \"type\": \"text\"\n"
 				+ "        },\n"

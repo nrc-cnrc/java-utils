@@ -1,0 +1,11 @@
+bodyEndMarker=NEW_LINE
+
+class=ca.nrc.dtrc.elasticsearch.IndexDef
+{"types":{"books":{"fields":{"title":{"type":"text", "analyzer":"english"},"pubdate":{"type":"date"}}}}}
+
+class=ca.nrc.dtrc.elasticsearch.CurrentDocType
+{"name": "books"}
+
+class=ca.nrc.dtrc.elasticsearch.Document
+{"id": "For whom the bell tolls", "additionalFields": {"title": "For whom the bell tolls", "pubdate": "1940-10-21"}}
+{"id": "The old man and the sea", "additionalFields": {"title": "The old man and the sea", "pubdate": "1952-09-01"}}

@@ -20,7 +20,7 @@ public class TypeDef {
 	public Object toMap() {
 		Map<String,Object> tMap = new HashMap<String,Object>();
 		Map<String,Object> fieldsMap = new HashMap<String,Object>();
-		tMap.put("fields", fieldsMap);
+		tMap.put("properties", fieldsMap);
 		{
 			for (String fldName: fields.keySet()) {
 				FieldDef fDef = getFieldDef(fldName);

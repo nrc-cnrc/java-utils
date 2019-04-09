@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class IndexDef {
 	
-	Map<String,TypeDef> types = new HashMap<String,TypeDef>();
+	public Map<String,TypeDef> types = new HashMap<String,TypeDef>();
 
 	public TypeDef getTypeDef(String typeName) {
 		if (!types.containsKey(typeName)) {

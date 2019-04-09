@@ -129,33 +129,29 @@ public class StreamlinedClient {
 		return jsonResponse;
 	}
 	
-	private void defineMappings(Mappings mappings) throws ElasticSearchException {
-		Map<String,Object> mappingsHash = new HashMap<String,Object>();
-		mappingsHash = new ObjectMapper().convertValue(mappings, mappingsHash.getClass());
-		defineMappings(mappingsHash);
+	private void defineIndex(IndexDef iDef) throws ElasticSearchException {
+		Map<String,Object> iDefMap = iDef.toMap();
+		defineIndex(iDefMap);
 	}
 	
 	
-	public void defineMappings(Map<String, Object> mappingsDict) throws ElasticSearchException {
+	public void defineIndex(Map<String, Object> iDefMap) throws ElasticSearchException {
 		
 		Map<String,Object> currentSettings = null;
 		if (indexExists()) {
-//			// Remember the old index settings so we can restore them
-//			// when we re-create the index with the new mappings
-//			currentSettings = indexSettings();
-//			mappingsDict.put("settings", currentSettings);			
 			deleteIndex();
 		}
 		
 		String jsonString;
 		try {
-			jsonString = new ObjectMapper().writeValueAsString(mappingsDict);
+			jsonString = new ObjectMapper().writeValueAsString(iDefMap);
 		} catch (JsonProcessingException e) {
 			throw new ElasticSearchException(e);
 		}
 		
 		URL url = esUrlBuilder().build();
 		String json = put(url, jsonString);
+		
 		
 		return;
 		
@@ -1007,65 +1003,78 @@ public class StreamlinedClient {
 		clearFieldTypesCache();
 	}
 	
-	public void bulkIndex(String dataFPath, String docTypeName) throws ElasticSearchException {
-		bulkIndex(dataFPath, docTypeName, -1, false);
+	public void bulkIndex(String dataFPath, String defDocTypeName) throws ElasticSearchException {
+		bulkIndex(dataFPath, defDocTypeName, -1, false);
 	}
 
-	public void bulkIndex(String dataFPath, String docTypeName, Boolean verbose) throws ElasticSearchException {
-		bulkIndex(dataFPath, docTypeName, -1, verbose);
+	public void bulkIndex(String dataFPath, String defDocTypeName, Boolean verbose) throws ElasticSearchException {
+		bulkIndex(dataFPath, defDocTypeName, -1, verbose);
 	}
 	
-	public void bulkIndex(String dataFPath, String docTypeName, int batchSize, boolean verbose) throws ElasticSearchException {
+	public void bulkIndex(String dataFPath, String defDocTypeName, int batchSize, boolean verbose) throws ElasticSearchException {
 		deleteIndex();
 		ObjectMapper mapper = new ObjectMapper();
+		String currDocTypeName = defDocTypeName;
+		if (currDocTypeName == null) {
+			currDocTypeName = "DefaultType";
+		}
 		try {
-			configureIndexAnalyzer();
+			boolean firstDocumentWasRead = false;
 			if (batchSize < 0) batchSize = 100;
 			int batchStart = 1;
 			
 			ObjectStreamReader reader = new ObjectStreamReader(new File(dataFPath));
-			Object firstObj = reader.readObject();
-			Document doc = null;
-			if (firstObj instanceof Mappings) {
-				defineMappings((Mappings) firstObj);
-				doc = (Document)reader.readObject();
-			} else {
-				doc = (Document)firstObj;
-			}
-			int currBatchSize = 0;
+			Object obj = reader.readObject();
 			String jsonBatch = "";
-			String jsonLine = null;
-			long docNum = 0;
-			while (doc != null) {
-				docNum++;
-				String id = doc.getId();
-				if (verbose) {
-					System.out.println("Loading document #1"+docNum+": "+id);
-				}
-				jsonLine = mapper.writeValueAsString(doc);
-				jsonBatch += 
-					"\n{\"index\": {\"_index\": \""+indexName+"\", \"_type\" : \""+docTypeName+"\", \"_id\": \""+id+"\"}}" +
-					"\n" + jsonLine;
+			while (obj != null) {
+				int currBatchSize = 0;
+				String jsonLine = null;
+				long docNum = 0;
 				
-				if (currBatchSize > batchSize) {
-					for (StreamlinedClientObserver obs: observers) {
-						obs.onBulkIndex(batchStart, batchStart+currBatchSize, indexName, docTypeName);
+				if (obj instanceof IndexDef) {
+					if (firstDocumentWasRead) {
+						throw new ElasticSearchException("IndexDef object did not precede the first Document object in the json file: "+dataFPath);
+					} else {
+						defineIndex((IndexDef) obj);
 					}
-					bulk(jsonBatch, docTypeName);
-					batchStart += currBatchSize;
-					currBatchSize = 0;
-					jsonBatch = "";
+				} else if (obj instanceof CurrentDocType) {
+					currDocTypeName = ((CurrentDocType)obj).name;
+				} else if (obj instanceof Document){
+					firstDocumentWasRead = true;
+					Document doc = (Document)obj;
+					docNum++;
+					String id = doc.getId();
+					if (verbose) {
+						System.out.println("Loading document #1"+docNum+": "+id);
+					}
+					jsonLine = mapper.writeValueAsString(doc);
+					jsonBatch += 
+						"\n{\"index\": {\"_index\": \""+indexName+"\", \"_type\" : \""+currDocTypeName+"\", \"_id\": \""+id+"\"}}" +
+						"\n" + jsonLine;
+					
+					if (currBatchSize > batchSize) {
+						for (StreamlinedClientObserver obs: observers) {
+							obs.onBulkIndex(batchStart, batchStart+currBatchSize, indexName, currDocTypeName);
+						}
+						bulk(jsonBatch, defDocTypeName);
+						batchStart += currBatchSize;
+						currBatchSize = 0;
+						jsonBatch = "";
+					} else {
+						currBatchSize++;
+					}
 				} else {
-					currBatchSize++;
+					throw new ElasticSearchException("JSON file "+dataFPath+" contained an object of unsupoorted type: "+obj.getClass().getName());
+				}
+
+				if (!jsonBatch.isEmpty()) {
+					// Process the very last partial batch
+					bulk(jsonBatch, defDocTypeName);
 				}
 				
-				doc = (Document) reader.readObject();
+				obj = reader.readObject();
 			}
 			
-			if (!jsonBatch.isEmpty()) {
-				// Process the very last partial batch
-				bulk(jsonBatch, docTypeName);
-			}
 			
 		} catch (FileNotFoundException e) {
 			throw new ElasticSearchException("Could not open file "+dataFPath+" for bulk indexing.");
@@ -1082,35 +1091,35 @@ public class StreamlinedClient {
 	
 	
 
-	private void configureIndexAnalyzer() throws ElasticSearchException {
-		String jsonBody = 
-				"{\n" + 
-				"  \"settings\" : {\n" + 
-				"    \"analysis\": {\n" + 
-				"      \"filter\": {\n" + 
-				"        \"filter_snowball_en\": {\n" + 
-				"          \"type\": \"snowball\",\n" + 
-				"          \"language\": \"English\"\n" + 
-				"        }\n" + 
-				"      },\n" + 
-				"      \"analyzer\": {\n" + 
-				"        \"my_analyzer\": {\n" + 
-				"            \"filter\": [\n" + 
-				"              \"lowercase\",\n" + 
-				"              \"filter_snowball_en\"\n" + 
-				"            ],\n" + 
-				"          \"type\": \"custom\",\n" + 
-				"          \"tokenizer\": \"whitespace\"\n" + 
-				"        }\n" + 
-				"      }\n" + 
-				"    }\n" + 
-				"  }\n" + 
-				"}"
-				;
-
-		URL url = esUrlBuilder().build();
-		put(url, jsonBody);
-	}
+//	private void configureIndexAnalyzer() throws ElasticSearchException {
+//		String jsonBody = 
+//				"{\n" + 
+//				"  \"settings\" : {\n" + 
+//				"    \"analysis\": {\n" + 
+//				"      \"filter\": {\n" + 
+//				"        \"filter_snowball_en\": {\n" + 
+//				"          \"type\": \"snowball\",\n" + 
+//				"          \"language\": \"English\"\n" + 
+//				"        }\n" + 
+//				"      },\n" + 
+//				"      \"analyzer\": {\n" + 
+//				"        \"my_analyzer\": {\n" + 
+//				"            \"filter\": [\n" + 
+//				"              \"lowercase\",\n" + 
+//				"              \"filter_snowball_en\"\n" + 
+//				"            ],\n" + 
+//				"          \"type\": \"custom\",\n" + 
+//				"          \"tokenizer\": \"whitespace\"\n" + 
+//				"        }\n" + 
+//				"      }\n" + 
+//				"    }\n" + 
+//				"  }\n" + 
+//				"}"
+//				;
+//
+//		URL url = esUrlBuilder().build();
+//		put(url, jsonBody);
+//	}
 
 	public void bulkIndex(BufferedReader br, String docTypeName, int batchSize, boolean verbose) throws IOException, ElasticSearchException {
 		if (batchSize < 0) batchSize = 100;

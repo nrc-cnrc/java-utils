@@ -2,6 +2,7 @@ package ca.nrc.dtrc.elasticsearch;
 
 import static org.junit.Assert.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -30,6 +31,7 @@ import ca.nrc.introspection.Introspection;
 import ca.nrc.dtrc.elasticsearch.ExcludeFields;
 import ca.nrc.dtrc.elasticsearch.IncludeFields;
 import ca.nrc.dtrc.elasticsearch.StreamlinedClient;
+import ca.nrc.file.ResourceGetter;
 import ca.nrc.testing.AssertHelpers;
 
 public class StreamlinedClientTest {
@@ -801,6 +803,23 @@ public class StreamlinedClientTest {
 		};
 		String[] gotIDs = clusters.getCluster("Heaven").getDocIDs().toArray(new String[]{});
 		AssertHelpers.assertContainsAll("Cluster IDs not as expected", expIDs, gotIDs);
+	}
+	
+	@Test
+	public void test__bulkIndex__HappyPath() throws Exception {
+		StreamlinedClient esClient = ESTestHelpers.makeEmptyTestClient();
+		
+		File jsonFile = ResourceGetter.copyResouceToTempFile("test_data/ca/nrc/dtrc/elasticsearch/small_index_content.json");
+		esClient.bulkIndex(jsonFile.getAbsolutePath(), null);
+		
+		Thread.sleep(ESTestHelpers.LONG_WAIT);
+		
+		String[] expDocIDs = new String[] {
+				"For whom the bell tolls",
+				"The old man and the sea"
+		};
+		ESTestHelpers.assertDocTypeContainsDoc("Bulk indexed index did not contain the expected documents",
+				esClient.getIndexName(), "books", expDocIDs, new Document());
 	}
 
 	/*************************

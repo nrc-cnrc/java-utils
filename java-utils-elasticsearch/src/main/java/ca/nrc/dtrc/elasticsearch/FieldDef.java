@@ -8,11 +8,30 @@ public class FieldDef {
 	public static enum Types {text, integer, keyword, binary, date, ip, object, nested};
 	
 
-	Types type = Types.text;
+	public Types type = Types.text;
 	
 	// This one only applies when type = Type.text
 	// If set to null, it means the text is not analyzed (i.e. no stemming, nor stopword removal)
-	String analyzerLang = "en";
+	private String __analyzerLang = null;
+	
+	public String getAnalyzer() {
+		String analyzer = null;
+		if (type == Types.text) {
+			if (__analyzerLang == null) {
+				analyzer = "english";
+			} else if (__analyzerLang.matches("[nN]one")) {
+				analyzer = null;
+			} else {
+				analyzer = __analyzerLang;
+			}
+		}
+		return analyzer;
+	}
+	public FieldDef setAnalyzer(String lang) {
+		__analyzerLang = getLangFullName(lang);
+		return this;
+	}
+	
 
 	public FieldDef() {
 		initialize(null, null);
@@ -30,21 +49,33 @@ public class FieldDef {
 		this.type = _type;
 		
 		_analyzerLang = getLangFullName(_analyzerLang);
+		if (type == Types.text && _analyzerLang == null) {
+			// By default, text fields are analyzed with the "english" analyzer
+			// meaning that stopwords are removed and words are stemmed
+			_analyzerLang = "english";
+		}
 		
-		this.analyzerLang = _analyzerLang;
+		this.__analyzerLang = _analyzerLang;		
 	}
-	
-	public FieldDef setAnalyzer(String lang) {
-		this.analyzerLang = lang;
+		
+	public FieldDef setType(Types _type) {
+		this.type = _type;
+		if (type == Types.text && __analyzerLang == null) {
+			// By default, text fields are analyzed with the "english" analyzer
+			// meaning that stopwords are removed and words are stemmed
+			__analyzerLang = "english";
+		}
 		return this;
 	}
+	
 	
 	public Map<String,Object> toMap() {
 		
 		Map<String,Object> fieldMap = new HashMap<String,Object>();
 		fieldMap.put("type", type.toString());
-		if (analyzerLang != null) {
-			fieldMap.put("analyzer", analyzerLang);
+		String analyzer = getAnalyzer();
+		if (analyzer != null) {
+			fieldMap.put("analyzer", analyzer);
 		}
 		
 		return fieldMap;
@@ -59,11 +90,6 @@ public class FieldDef {
 			}
 		}		
 		return lang;
-	}
-
-	public FieldDef setType(Types _type) {
-		this.type = _type;
-		return this;
 	}
 
 }
