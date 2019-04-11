@@ -6,6 +6,7 @@ import java.util.Map;
 public class IndexDef {
 	
 	public Map<String,TypeDef> types = new HashMap<String,TypeDef>();
+	public Integer totalFieldsLimit = null;
 
 	public TypeDef getTypeDef(String typeName) {
 		if (!types.containsKey(typeName)) {
@@ -16,20 +17,32 @@ public class IndexDef {
 		return tDef;
 	}
 
-	public Map<String, Object> toMap() {
-		Map<String,Object> iMap = new HashMap<String,Object>();
+	public Map<String, Object> indexSettings() {
+		Map<String,Object> isMap = new HashMap<String,Object>();
+		
+		if (totalFieldsLimit != null) {
+			isMap.put("index.mapping.total_fields.limit", totalFieldsLimit);
+		} else {
+			isMap.put("index.mapping.total_fields.limit", 1000);
+		}
+		
+		return isMap;
+	}
+
+	
+	public Map<String, Object> indexMappings() {
+		Map<String,Object> imMap = new HashMap<String,Object>();
 		
 		Map<String,Object> mappings = new HashMap<String,Object>();
-		iMap.put("mappings", mappings);
+		imMap.put("mappings", mappings);
 		{
 			for (String typeName: types.keySet()) {
 				TypeDef typeDef = getTypeDef(typeName);
 				mappings.put(typeName, typeDef.toMap());
 			}
 		}
-		
-		// TODO Auto-generated method stub
-		return iMap;
+
+		return imMap;
 	}
 
 	

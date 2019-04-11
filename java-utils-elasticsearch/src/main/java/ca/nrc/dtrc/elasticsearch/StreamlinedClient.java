@@ -130,32 +130,40 @@ public class StreamlinedClient {
 	}
 	
 	private void defineIndex(IndexDef iDef) throws ElasticSearchException {
-		Map<String,Object> iDefMap = iDef.toMap();
-		defineIndex(iDefMap);
+		Map<String,Object> indexMappings = iDef.indexMappings();
+		Map<String,Object> indexSettings = iDef.indexSettings();
+		defineIndex(indexSettings, indexMappings);
 	}
 	
 	
-	public void defineIndex(Map<String, Object> iDefMap) throws ElasticSearchException {
+	public void defineIndex(Map<String, Object> indexSettings, Map<String, Object> indexMappings) throws ElasticSearchException {
 		
-		Map<String,Object> currentSettings = null;
 		if (indexExists()) {
 			deleteIndex();
 		}
 		
 		String jsonString;
 		try {
-			jsonString = new ObjectMapper().writeValueAsString(iDefMap);
+			jsonString = new ObjectMapper().writeValueAsString(indexMappings);
 		} catch (JsonProcessingException e) {
 			throw new ElasticSearchException(e);
 		}
 		
 		URL url = esUrlBuilder().build();
 		String json = put(url, jsonString);
+				
+		try {
+			jsonString = new ObjectMapper().writeValueAsString(indexSettings);
+		} catch (JsonProcessingException e) {
+			throw new ElasticSearchException(e);
+		}
+		
+		url = esUrlBuilder().forEndPoint("_settings").build();
+		json = put(url, jsonString);
+		
 		
 		
 		return;
-		
-		
 	}
 
 	private Map<String, Object> indexSettings() throws ElasticSearchException {
@@ -1026,10 +1034,10 @@ public class StreamlinedClient {
 			ObjectStreamReader reader = new ObjectStreamReader(new File(dataFPath));
 			Object obj = reader.readObject();
 			String jsonBatch = "";
+			long docNum = 0;
 			while (obj != null) {
 				int currBatchSize = 0;
 				String jsonLine = null;
-				long docNum = 0;
 				
 				if (obj instanceof IndexDef) {
 					if (firstDocumentWasRead) {
@@ -1045,7 +1053,7 @@ public class StreamlinedClient {
 					docNum++;
 					String id = doc.getId();
 					if (verbose) {
-						System.out.println("Loading document #1"+docNum+": "+id);
+						System.out.println("Loading document #"+docNum+": "+id);
 					}
 					jsonLine = mapper.writeValueAsString(doc);
 					jsonBatch += 

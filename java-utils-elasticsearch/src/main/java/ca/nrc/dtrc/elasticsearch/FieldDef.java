@@ -18,7 +18,8 @@ public class FieldDef {
 		String analyzer = null;
 		if (type == Types.text) {
 			if (__analyzerLang == null) {
-				analyzer = "english";
+//				analyzer = "english";
+				analyzer = null;
 			} else if (__analyzerLang.matches("[nN]one")) {
 				analyzer = null;
 			} else {
@@ -44,7 +45,7 @@ public class FieldDef {
 	public void initialize(Types _type, String _analyzerLang) {
 
 		if (_type == null) {
-			_type = Types.text;
+//			_type = Types.text;
 		}
 		this.type = _type;
 		

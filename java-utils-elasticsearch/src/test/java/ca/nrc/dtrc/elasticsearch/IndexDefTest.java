@@ -67,7 +67,7 @@ public class IndexDefTest {
 		// Once you have created an IndexDef, you can convert it to a Map<String,Object>, 
 		// which can then be fed to ElasticSearch to define the index.
 		//
-		Map<String,Object> map = iDef.toMap();
+		Map<String,Object> map = iDef.indexMappings();
 	}
 	
 	/**************************
@@ -92,7 +92,7 @@ public class IndexDefTest {
 		moviesDef.getFieldDef("director").setType(FieldDef.Types.text).setAnalyzer("none");
 		moviesDef.getFieldDef("release_date").setType(Types.date);
 
-		Map<String,Object> gotMap = iDef.toMap();
+		Map<String,Object> gotMap = iDef.indexMappings();
 		String expMapJson = 
 				  "{"
 				+ "  \"mappings\": {\n"
