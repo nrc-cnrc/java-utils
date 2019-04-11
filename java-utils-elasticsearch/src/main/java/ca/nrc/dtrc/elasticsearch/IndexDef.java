@@ -41,7 +41,8 @@ public class IndexDef {
 				mappings.put(typeName, typeDef.toMap());
 			}
 		}
-
+		
+		// TODO Auto-generated method stub
 		return imMap;
 	}
 
