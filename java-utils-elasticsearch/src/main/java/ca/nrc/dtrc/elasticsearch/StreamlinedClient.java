@@ -129,7 +129,7 @@ public class StreamlinedClient {
 		return jsonResponse;
 	}
 	
-	private void defineIndex(IndexDef iDef) throws ElasticSearchException {
+	public void defineIndex(IndexDef iDef) throws ElasticSearchException {
 		Map<String,Object> indexMappings = iDef.indexMappings();
 		Map<String,Object> indexSettings = iDef.indexSettings();
 		defineIndex(indexSettings, indexMappings);
