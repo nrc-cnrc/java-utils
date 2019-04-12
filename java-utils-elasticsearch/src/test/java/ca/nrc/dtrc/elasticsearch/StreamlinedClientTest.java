@@ -155,6 +155,11 @@ public class StreamlinedClientTest {
 		String query = "(lisa OR marge) AND simpson";
 		hits = client.searchFreeform(query, personPrototype);
 		
+		// Freeform queries support quoted expressions
+		query = "\"lisa simpson\"";
+		hits = client.searchFreeform(query, personPrototype);
+		
+		
 		// 
 		// Find documents that are similar to a particular doc.
 		//
@@ -364,7 +369,30 @@ public class StreamlinedClientTest {
 		SearchResults<ESTestHelpers.PlayLine> gotSearchResults = client.searchFreeform(query, new PlayLine());		
 		assertIsInFirstNHits("Something is rotten in the state of Denmark.", 3, "longDescription", gotSearchResults);
 	}		
-	
+
+	@Test
+	public void test__searchFreeform__QuotedExpressions() throws Exception {
+		ESTestHelpers.PlayLine line = new ESTestHelpers.PlayLine("hello world");
+		Introspection.getFieldValue(line, "longDescription", true);
+		
+		StreamlinedClient client = ESTestHelpers.makeHamletTestClient();	
+		Thread.sleep(1*1000);
+
+		String query = "\"state of denmark\"";
+		SearchResults<ESTestHelpers.PlayLine> gotSearchResults = client.searchFreeform(query, new PlayLine());		
+		assertIsInFirstNHits("Something is rotten in the state of Denmark.", 3, "longDescription", gotSearchResults);
+	}		
+
+	@Test
+	public void test__escapeQuotes__HappyPath() {
+		String query = "\"software development\" agile \"ui design\"";
+		StreamlinedClient esClient = new StreamlinedClient("some_index");
+		String gotQuery = esClient.escapeQuotes(query);
+		String expQuery = "\\\"software development\\\" agile \\\"ui design\\\"";
+		AssertHelpers.assertStringEquals(expQuery, gotQuery);
+		
+		
+	}
 
 	@Test
 	public void test__scrollThroughSearchResults__HappyPath() throws Exception {

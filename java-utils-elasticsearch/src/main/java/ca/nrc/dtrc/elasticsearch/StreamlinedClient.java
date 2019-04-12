@@ -21,6 +21,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.LogManager;
@@ -514,6 +516,9 @@ public class StreamlinedClient {
 	
 	public <T extends Document> SearchResults<T> searchFreeform(String query, String docTypeName, T docPrototype) throws ElasticSearchException {
 		String jsonQuery = null;
+		
+		query = escapeQuotes(query);
+		
 		if (query == null) {
 			jsonQuery= "{}";
 		} else {
@@ -533,6 +538,17 @@ public class StreamlinedClient {
 		return hits;
 	}
 	
+	protected String escapeQuotes(String query) {
+		
+		Matcher matcher = Pattern.compile("\"").matcher(query);
+		while (matcher.find()) {
+			int x = 1;
+		}
+		String escQuery = matcher.replaceAll("\\\\\"");
+			
+		return escQuery;
+	}
+
 	public <T extends Document> SearchResults<T> searchFreeform(String query, T docPrototype) throws ElasticSearchException {
 		String docTypeName = docPrototype.getClass().getName();
 		SearchResults<T> hits = searchFreeform(query, docTypeName, docPrototype);
