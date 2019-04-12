@@ -7,6 +7,11 @@ public class IndexDef {
 	
 	public Map<String,TypeDef> types = new HashMap<String,TypeDef>();
 	public Integer totalFieldsLimit = null;
+	
+	public IndexDef setTotalFieldsLimit(Integer limit) {
+		totalFieldsLimit = limit;
+		return this;
+	}
 
 	public TypeDef getTypeDef(String typeName) {
 		if (!types.containsKey(typeName)) {
