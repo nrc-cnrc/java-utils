@@ -71,6 +71,7 @@ public class AssertHelpers {
 	
 	public static void assertDeepNotEqual(String message, Object expObject, Object gotObject) {
 		try {
+			
 			assertDeepEquals("", expObject, gotObject);
 			
 			// NOTE: If the two objects are not equal, then the above assertion should
@@ -81,8 +82,9 @@ public class AssertHelpers {
 			Assert.assertTrue(message+"\nThe two objects should NOT have been equal. But they were both equal to:\n"+PrettyPrinter.print(expObject), 
 					false);
 			
-		} catch (Exception e) {
-			
+		} catch (AssertionError | IOException e) {
+			// Nothing to do. We actually WANT the above deepEquals to fail (i.e. we WANT
+			// the two objects to differ ins SOME respect). 
 		}
 		
 	}
