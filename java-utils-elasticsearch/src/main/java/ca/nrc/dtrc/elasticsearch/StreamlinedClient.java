@@ -540,11 +540,12 @@ public class StreamlinedClient {
 	
 	protected String escapeQuotes(String query) {
 		
-		Matcher matcher = Pattern.compile("\"").matcher(query);
-		while (matcher.find()) {
-			int x = 1;
+		
+		String escQuery = query;
+		if (query != null) {
+			Matcher matcher = Pattern.compile("\"").matcher(query);
+			escQuery = matcher.replaceAll("\\\\\"");
 		}
-		String escQuery = matcher.replaceAll("\\\\\"");
 			
 		return escQuery;
 	}
