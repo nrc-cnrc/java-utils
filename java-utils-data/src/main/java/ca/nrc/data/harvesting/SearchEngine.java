@@ -17,7 +17,11 @@ public abstract class SearchEngine {
 		public String fuzzyQuery = null;
 		public List<String> terms = null;
 		public Type[] types = new Type[] {Type.ANY};
+		
+		public int hitsPageNum = 0;
+		public int hitsPerPage = 10;
 		public int maxHits = 10;
+		public String lang = "en";
 		
 		private String site = null;				
 		public String getSite() {return site;}
@@ -66,6 +70,11 @@ public abstract class SearchEngine {
 		
 		public Query setSite(String _site) {
 			this.site = _site;
+			return this;
+		}
+		
+		public Query setLang(String _lang) {
+			this.lang = _lang;
 			return this;
 		}
 	}

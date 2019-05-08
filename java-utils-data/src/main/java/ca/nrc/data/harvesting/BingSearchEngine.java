@@ -80,6 +80,7 @@ public class BingSearchEngine extends SearchEngine {
 			if (seQuery.maxHits > 0) {
 				parameters.put("count", seQuery.maxHits);
 			}
+			parameters.put("setLang", seQuery.lang);
 			parameters.put("offset", hitsPageNum);
 			
 			String url = bingSearchUrl;

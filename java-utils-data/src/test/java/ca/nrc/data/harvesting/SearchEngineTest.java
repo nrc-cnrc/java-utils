@@ -224,7 +224,7 @@ public abstract class SearchEngineTest {
 		SearchEngine.Query query = new SearchEngine.Query("machine learning");
 		query.setSite(site);
 		List<SearchEngine.Hit> results = engine.search(query); 
-		assertResultsFitTheQuery(results, query);
+		assertResultsFitTheQuery(results, query, 1);
 	}
 	
 	
@@ -238,7 +238,11 @@ public abstract class SearchEngineTest {
 	}
 	
 	private void assertResultsFitTheQuery(List<SearchEngine.Hit> results, SearchEngine.Query query, int maxNoFit) throws PageHarvesterException {
-		Map<URL, String> badHits = new HashMap<URL,String>();
+		
+		Map<URL, String> hitValidity = new HashMap<URL,String>();
+		for (SearchEngine.Hit hit: results) {
+			hitValidity.put(hit.url, "OK");
+		}
 		
 		// Checking max number of hits
 		int expNumHits = query.maxHits;
@@ -254,31 +258,49 @@ public abstract class SearchEngineTest {
 			for (SearchEngine.Hit hit: results) {
 				String gotHost = hit.url.getHost();
 				if (!gotHost.contains(expSite)) {
-					addBadHit(hit, "Is on wrong web site", badHits);
+					hitValidity.put(hit.url, "Is on wrong web site");
 				}
 			}
 		}
 
 		// Checking if hits match the query words and have the correct type
 		for (SearchEngine.Hit hit: results) {
+			if (! hitValidity.get(hit.url).equals("OK")) {continue;}
 			
-			if (badHits.containsKey(hit.url)) continue;
+			if (hit.url.toString().matches("[\\s\\S]*\\.pdf$")) {
+				hitValidity.put(hit.url, "Skipped");
+				continue;
+			}
 			
 			if (!hitMatchesQueryKeywords(query, hit)) {
-				addBadHit(hit, "Did not match the keywords", badHits);
+				hitValidity.put(hit.url, "Did not match the keywords");
+				continue;
 			}
+			
 			if (!hitHasCorrectType(query, hit)) {
-				addBadHit(hit, "Content does not have the correct type", badHits);
+				hitValidity.put(hit.url, "Content does not have the correct type");
+				continue;
 			}
 		}
 
-		int numBadhits = badHits.keySet().size();
-		int totalHits = results.size();
-		if (numBadhits > maxNoFit) {
-			String[] badHitsArray = badHits.values().toArray(new String[numBadhits]);
+		int numBadHits = 0;
+		int totalHits = 0;
+		List<String> badHits = new ArrayList<String>();
+		for (URL url: hitValidity.keySet()) {
+			String validity = hitValidity.get(url);
+			if (validity.equals("Skipped")) {continue;}
+			totalHits++;
+			if (! validity.equals("OK")) {
+				numBadHits++;
+				badHits.add(url.toString());
+			}
+		}
+		
+		if (numBadHits > maxNoFit) {
+			String[] badHitsArray = badHits.toArray(new String[numBadHits]);
 			String badHitsDesc = String.join("\n\n", badHitsArray);
 			fail(
-				"There were too many hits ("+numBadhits+" > "+maxNoFit+" out of "+totalHits+") that did not fit the query.\n"+ 
+				"There were too many hits ("+numBadHits+" > "+maxNoFit+" out of "+totalHits+") that did not fit the query.\n"+ 
 				"Query was:\n============\n" + PrettyPrinter.print(query) + "============\n" +
 				"Here are the non-matching hits:\n\n" + badHitsDesc
 				);
@@ -287,26 +309,26 @@ public abstract class SearchEngineTest {
 
 	}
 	
-	private void addBadHit(SearchEngine.Hit hit, String reason, Map<URL, String> badHits) {
-		URL url = hit.url;
-		if (badHits.containsKey(url)) {
-			String value = badHits.get(url);
-			value = "*** "+reason+"\n";
-			badHits.put(url, value);
-		} else {
-			badHits.put(url, "*** "+reason+"\n"+hit.toString());
-		}
-	}
-	
-	private boolean alreadyInBadHits(SearchEngine.Hit hit, Map<URL, String> badHits) {
-		boolean answer = false;
-		if (badHits.containsKey(hit.url)) answer = true;
-		
-		return answer;
-	}
-
+//	private void updateHitValidity(SearchEngine.Hit hit, String validityStatus, Map<URL, String> hitValidity) {
+//		URL url = hit.url;
+//		String currentValidityStatus = hitValidity.get(url);
+//		if (currentValidityStatus.equals("OK")) {
+//			currentValidityStatus = "";
+//		}
+//		currentValidityStatus += "*** "+validityStatus+"\n";
+//		hitValidity.put(url, currentValidityStatus);
+//	}
+//	
+//	private boolean alreadyInBadHits(SearchEngine.Hit hit, Map<URL, String> badHits) {
+//		boolean answer = false;
+//		if (badHits.containsKey(hit.url)) answer = true;
+//		
+//		return answer;
+//	}
+//
 
 	private Boolean hitMatchesQueryKeywords(SearchEngine.Query query, SearchEngine.Hit hit) throws PageHarvesterException {
+		System.out.println("-- hitMatchesQueryKeywords: hit.title="+hit.title);
 		String wholeContent = hit.toString();
 		Boolean matches = null;
 		if (wholeContent.contains("moved")) {
