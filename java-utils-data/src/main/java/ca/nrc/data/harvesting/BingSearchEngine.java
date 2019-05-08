@@ -33,6 +33,7 @@ import org.json.JSONObject;
 
 import ca.nrc.config.ConfigException;
 import ca.nrc.data.JavaUtilsDataConfig;
+import ca.nrc.datastructure.Pair;
 
 
 public class BingSearchEngine extends SearchEngine {
@@ -70,18 +71,21 @@ public class BingSearchEngine extends SearchEngine {
 		final List<SearchEngine.Hit> results = new ArrayList<SearchEngine.Hit>();
 		final CloseableHttpClient httpClient = HttpClients.createDefault();
 		
+		Pair<Integer,Integer> pageRange = seQuery.computeFirstAndLastPage();
+		Integer currentPage = pageRange.getFirst();
+		Integer lastPage = pageRange.getSecond();
+		
 		String queryString = makeBingQueryString(seQuery);
 		
 		boolean keepGoing = true;
-		int hitsPageNum = 0;
 		while (keepGoing) {
+			if (currentPage > lastPage) break;
+			int offset = currentPage * seQuery.hitsPerPage;
 			parameters.put("q",
 					String.format("%s -filetype:pdf -filetype:ppt -filetype:doc -filetype:img -filetype:bmp -filetype:png -filetype:jpg -filetype:gif -filetype:zip -filetype:jar -filetype:mp3 -filetype:avi", queryString));
-			if (seQuery.maxHits > 0) {
-				parameters.put("count", seQuery.maxHits);
-			}
+			parameters.put("count", seQuery.hitsPerPage);
 			parameters.put("setLang", seQuery.lang);
-			parameters.put("offset", hitsPageNum);
+			parameters.put("offset", offset);
 			
 			String url = bingSearchUrl;
 			String fullURL = addQueryStringToUrl(url, parameters);
@@ -158,16 +162,16 @@ public class BingSearchEngine extends SearchEngine {
 							
 							results.add(new SearchEngine.Hit(hitURL, aResult.getString("name"),
 								aResult.getString("snippet")));
-							if (results.size() == seQuery.maxHits) break;
+							if (seQuery.maxHits != null && results.size() == seQuery.maxHits) break;
 						}
 					}
 				}
 			}
 			
-			if (results.size() >= seQuery.maxHits) {
+			if (seQuery.maxHits != null && results.size() >= seQuery.maxHits) {
 				keepGoing = false;
 			} else {
-				hitsPageNum++;
+				currentPage++;
 			}			
 
 		}	
@@ -179,6 +183,11 @@ public class BingSearchEngine extends SearchEngine {
 		}
 		
 		return results;
+	}
+
+	private void computeFirstAndLastPage() {
+		// TODO Auto-generated method stub
+		
 	}
 
 	protected String makeBingQueryString(Query seQuery) {

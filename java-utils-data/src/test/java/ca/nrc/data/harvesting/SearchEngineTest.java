@@ -111,6 +111,20 @@ public abstract class SearchEngineTest {
 				.setMaxHits(20)
 				.setSite("www.nrc-cnrc.gc.ca");	
 		
+		// When displaying search results in a web UI, it is typical to request one
+		// "page" of hits at a time. You can do this as follows.
+		//
+		// Say you want to have 10 hits per page...
+		//
+		int hitsPerPage = 10;
+		query = new SearchEngine.Query("donald trump")
+					.setHitsPerPage(hitsPerPage);
+		
+		// Get the first page of hits...
+		results = engine.search(query.setHitsPageNum(0)); 
+		
+		// Get the second page, and so on...
+		results = engine.search(query.setHitsPageNum(1)); 
 	}
 
 	/*************************
@@ -135,7 +149,7 @@ public abstract class SearchEngineTest {
 		String[] terms = new String[] {"machine learning", "pattern recognition"};
 		SearchEngine.Query query = new SearchEngine.Query(terms).setMaxHits(10);
 		List<SearchEngine.Hit> results = engine.search(query); 
-		Assert.assertEquals("max Hits", query.maxHits, results.size());
+		Assert.assertEquals("max Hits", query.maxHits, new Integer(results.size()));
 		assertResultsFitTheQuery(results, query, 3);
 	}
 
@@ -227,6 +241,18 @@ public abstract class SearchEngineTest {
 		assertResultsFitTheQuery(results, query, 1);
 	}
 	
+	@Test
+	public void test__search__PageByPage() throws Exception {
+		SearchEngine engine = makeSearchEngine();
+		
+		SearchEngine.Query query = new SearchEngine.Query("learn");
+		
+		List<SearchEngine.Hit> gotPage1 = engine.search(query.setHitsPageNum(0)); 
+		List<SearchEngine.Hit> gotPage2 = engine.search(query.setHitsPageNum(1)); 
+		AssertHelpers.assertDeepNotEqual("First page of hits should have been different from the second one.", gotPage1, gotPage2);
+	}
+
+	
 	
 	/*************************
 	 * TEST HELPER METHODS
@@ -309,26 +335,7 @@ public abstract class SearchEngineTest {
 
 	}
 	
-//	private void updateHitValidity(SearchEngine.Hit hit, String validityStatus, Map<URL, String> hitValidity) {
-//		URL url = hit.url;
-//		String currentValidityStatus = hitValidity.get(url);
-//		if (currentValidityStatus.equals("OK")) {
-//			currentValidityStatus = "";
-//		}
-//		currentValidityStatus += "*** "+validityStatus+"\n";
-//		hitValidity.put(url, currentValidityStatus);
-//	}
-//	
-//	private boolean alreadyInBadHits(SearchEngine.Hit hit, Map<URL, String> badHits) {
-//		boolean answer = false;
-//		if (badHits.containsKey(hit.url)) answer = true;
-//		
-//		return answer;
-//	}
-//
-
 	private Boolean hitMatchesQueryKeywords(SearchEngine.Query query, SearchEngine.Hit hit) throws PageHarvesterException {
-		System.out.println("-- hitMatchesQueryKeywords: hit.title="+hit.title);
 		String wholeContent = hit.toString();
 		Boolean matches = null;
 		if (wholeContent.contains("moved")) {

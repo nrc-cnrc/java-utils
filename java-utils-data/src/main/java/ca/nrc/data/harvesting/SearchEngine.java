@@ -4,6 +4,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import ca.nrc.datastructure.Pair;
+
 public abstract class SearchEngine {
 
 	public abstract List<SearchEngine.Hit> search(Query query) throws SearchEngineException;
@@ -18,9 +20,9 @@ public abstract class SearchEngine {
 		public List<String> terms = null;
 		public Type[] types = new Type[] {Type.ANY};
 		
-		public int hitsPageNum = 0;
-		public int hitsPerPage = 10;
-		public int maxHits = 10;
+		public Integer hitsPageNum = null;
+		public Integer hitsPerPage = 10;
+		public Integer maxHits = 10;
 		public String lang = "en";
 		
 		private String site = null;				
@@ -65,6 +67,7 @@ public abstract class SearchEngine {
 		
 		public Query setMaxHits(int numHits) {
 			this.maxHits = numHits;
+			this.hitsPageNum = null;
 			return this;
 		}
 		
@@ -76,6 +79,28 @@ public abstract class SearchEngine {
 		public Query setLang(String _lang) {
 			this.lang = _lang;
 			return this;
+		}
+		
+		public Query setHitsPerPage(int _hitsPerPage) {
+			this.hitsPerPage = _hitsPerPage; 
+			return this;
+		}
+		public Query setHitsPageNum(int pageNum) {
+			this.hitsPageNum = pageNum;
+			this.maxHits = null;
+			return this;
+		}
+		
+		public Pair<Integer, Integer> computeFirstAndLastPage() {
+			Integer first = new Integer(0);
+			Integer last = null;
+			if (maxHits != null) {
+				last = new Long(Math.round(1.0 * maxHits / hitsPerPage)).intValue();
+			} else {
+				first = hitsPageNum;
+				last = hitsPageNum;
+			}
+			return Pair.of(first, last);
 		}
 	}
 	
