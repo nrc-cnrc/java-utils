@@ -21,6 +21,11 @@ public class MockHttpServletResponse implements HttpServletResponse {
 		return oStream;
 	}
 	
+	public String getOutput() throws IOException {
+		String output = getOutputStream().toString();
+		return output;
+	}
+	
 	
 	@Override
 	public void flushBuffer() throws IOException {

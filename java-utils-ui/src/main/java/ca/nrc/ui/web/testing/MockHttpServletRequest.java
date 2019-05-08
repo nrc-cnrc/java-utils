@@ -76,13 +76,14 @@ public class MockHttpServletRequest implements HttpServletRequest {
 	 * But for testing purposes, we need to be able to set parameters in 
 	 * the tests.
 	 */
-	public void setParameter(String name, String value) {
+	public MockHttpServletRequest setParameter(String name, String value) {
 		List<String> valuesList = this.parameters.get(name);
 		if (valuesList == null) {
 			valuesList = new ArrayList<String>();
 			this.parameters.put(name, valuesList);
 		}
 		valuesList.add(value);
+		return this;
 	}
 
 	@Override
