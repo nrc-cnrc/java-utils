@@ -17,7 +17,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class JSONUtils {
 	public static enum STRUCT {List, Object};
 	
-	@Deprecated
 	public static Map<String,Object> json2ObjectMap(String json) throws JsonParseException, JsonMappingException, IOException {
 		Map<String,Object> objMap = new HashMap<String,Object>();
 		objMap = new ObjectMapper().readValue(json, objMap.getClass());
