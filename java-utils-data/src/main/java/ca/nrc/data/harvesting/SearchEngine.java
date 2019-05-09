@@ -124,6 +124,7 @@ public abstract class SearchEngine {
 		public URL url;
 		public String title;
 		public String summary;
+		public Long outOfTotal;
 		
 		public Hit(URL url, String title, String summary) {
 			this.url = url;

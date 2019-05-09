@@ -144,6 +144,7 @@ public class BingSearchEngine extends SearchEngine {
 					keepGoing = false;
 				} else {
 					final JSONObject page = json.getJSONObject("webPages");
+					Long totalEstHits = page.getLong("totalEstimatedMatches");
 					final JSONArray jsonResults = page.getJSONArray("value");
 					final int resultsLength = jsonResults.length();
 					if (resultsLength == 0) {
@@ -160,8 +161,12 @@ public class BingSearchEngine extends SearchEngine {
 								throw new SearchEngineException("Bing hit was not a valid URL: "+hitURL, e);
 							}
 							
-							results.add(new SearchEngine.Hit(hitURL, aResult.getString("name"),
-								aResult.getString("snippet")));
+							SearchEngine.Hit newHit = 
+									new SearchEngine.Hit(hitURL, aResult.getString("name"),
+											aResult.getString("snippet"));
+							newHit.outOfTotal = totalEstHits;	
+							
+							results.add(newHit);
 							if (seQuery.maxHits != null && results.size() == seQuery.maxHits) break;
 						}
 					}
