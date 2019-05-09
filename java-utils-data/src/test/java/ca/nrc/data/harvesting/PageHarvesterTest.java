@@ -158,7 +158,6 @@ public class PageHarvesterTest {
 		assertTrue("Html code was not as expected.", gotHtml.matches("[\\s\\S]*<title>\\s*Hello\\s+World[\\s\\S]*"));
 
 		String gotText = harvester.getText();
-//		System.out.println("gotText=" + gotText);
 		assertTrue("Plain text content was not as expected.", gotText.matches("\\s*Hello World[\\s\\S]+"));
 
 		IPageVisitorCollector urlCollector = new IPageVisitorCollector();
