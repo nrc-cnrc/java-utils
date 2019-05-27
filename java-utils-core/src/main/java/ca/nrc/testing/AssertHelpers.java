@@ -329,16 +329,29 @@ public class AssertHelpers {
 		
 	}
 
-	public static void assertContainsAll(String message, Object[] supersetArr, Object[] subsetArr) {
+	public static <T> void assertContainsAll(String message, T[] supersetArr, T[] subsetArr) {
 		Set<Object> superset = new HashSet<Object>();
 		for (Object elt: supersetArr) superset.add(elt);
+		assertContainsAll(message, superset, subsetArr);
+		
+	}
+
+	public static <T> void assertContainsAll(String message, List<T> supersetList, T[] subsetArr) {
+		Set<Object> superset = new HashSet<Object>();
+		for (Object elt: supersetList) superset.add(elt);
+		assertContainsAll(message, superset, subsetArr);
+		
+	}
+	
+	
+	public  static <T> void  assertContainsAll(String message, Set<T> superset, T[] subsetArr) {
 		
 		int ii = 0;
 		for (Object elt: subsetArr) {
 			if (!superset.contains(elt)) {
 				message += 
 						  "\nElement "+ii+"("+elt+") of the second collection is absent from the first collection\n"
-						+ "First collection:\n"+PrettyPrinter.print(supersetArr)+"\n"
+						+ "First collection:\n"+PrettyPrinter.print(superset)+"\n"
 						+ "\n"
 						+ "Second collection:\n"+PrettyPrinter.print(subsetArr)+"\n"
 						;
@@ -353,7 +366,7 @@ public class AssertHelpers {
 		
 		if (!superset.containsAll(subset)) {
 		}
-	}
+	}	
 	
 	/**
 	 * Indicates if elements in two collections are the same, ignoring the order of elements
