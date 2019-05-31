@@ -26,7 +26,10 @@ public abstract class SubCommand {
 	private String name = null;
 		public String getName() {return name;}
 		
+	@SuppressWarnings("unused")
 	private String usageOneLiner = null;
+	
+	public UserIO user_io = new UserIO();
 	
 	private static int currentIndentation = 0;
 	public static final Map<Integer,String> indentation = new HashMap<Integer,String>();
