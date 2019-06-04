@@ -6,10 +6,26 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.StandardCopyOption;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileAttribute;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 
@@ -110,23 +126,161 @@ public class ResourceGetter {
 		return;
 	}
 	
-	public static File copyResouceToTempFile(String resPath) throws IOException {
+	public static File copyResouceToTempLocation(String resRelPath) throws ResourceGetterException {
+		String resPath;
+		try {
+			resPath = getResourcePath(resRelPath);
+		} catch (IOException e1) {
+			throw new ResourceGetterException("Cuold not find resource with path '"+resRelPath+"'", e1);
+		}
+		
+		File tempLocation = null;
+		if (isInJar(resPath)) {
+			tempLocation = copyJarResourceToTempFile(resPath);
+		} else {
+			tempLocation = copyFileSystemResourceToTempFile(resPath);
+		}
+						
+		return tempLocation;
+	}
+	
+//	private static File copyResourceDirToTempFile(String dirname, Path resDir) throws IOException {
+//		Path tempDest = Files.createTempDirectory(Paths.get(dirname), "", null);	
+//		
+//		
+//		https://stackoverflow.com/questions/1386809/copy-directory-from-a-jar-file
+//			  
+//		FileCopy.copyFolder(resDir, tempDest);
+//		return tempDest.toFile();
+//	}
+//
+//
+//	private static File copyResourceFileToTempFile(String fname, String ext, File resFile) throws IOException {
+//		File tempFile = File.createTempFile(fname, "."+ext);
+//		
+//		InputStream iStream = getResourceAsStream(resFile.toString());
+//		
+//		OutputStream oStream = new FileOutputStream(tempFile.getAbsolutePath());
+//		
+//		int data = iStream.read();
+//		while(data != -1) {
+//			oStream.write(data);
+//			data = iStream.read();
+//		}
+//		iStream.close();
+//		oStream.close();
+//				
+//		return tempFile;
+//	}
+	
+	
+	private static File copyFileSystemResourceToTempFile(String resPath) throws ResourceGetterException {
+		File resFile = new File(resPath);
+		File tempLocation = makeTempLocationForCopy(resPath);
+		try {
+			if (resFile.isDirectory()) {
+				FileUtils.copyDirectory(resFile, tempLocation);
+			} else {
+				FileUtils.copyFile(resFile, tempLocation);
+			}
+		
+		} catch (IOException e) {
+			throw new ResourceGetterException(
+					"Could not copy '"+resPath+"' to '"+tempLocation.toString()+"'", 
+					e);
+		}
+		
+		return tempLocation;
+	}
+
+
+	private static File makeTempLocationForCopy(String resPath) throws ResourceGetterException {
+		File resFile = new File(resPath);
 		String ext = FilenameUtils.getExtension(resPath);
 		String fname = FilenameUtils.getBaseName(resPath);
-		File tempFile = File.createTempFile(fname, "."+ext);
 		
-		InputStream iStream = getResourceAsStream(resPath);
+		String suffix = "";
+		if (ext !=  null && !ext.isEmpty()) suffix = "."+ext;
 		
-		OutputStream oStream = new FileOutputStream(tempFile.getAbsolutePath());
-		
-		int data = iStream.read();
-		while(data != -1) {
-			oStream.write(data);
-			data = iStream.read();
-		}
-		iStream.close();
-		oStream.close();
+		File tempLocation = null;
+		try {
+			if (resFile.isDirectory()) {
+				tempLocation = Files.createTempDirectory(fname).toFile();
+			} else {
+			tempLocation = File.createTempFile(fname, suffix);
 				
-		return tempFile;
+			}
+		} catch (IOException e) {
+			throw new ResourceGetterException(e);
+		}
+	return tempLocation;
+}
+
+
+	private static File copyJarResourceToTempFile(String resPath) {
+		File tempLocation = null;
+		
+		return null;
+		
 	}
+
+	private static boolean isInJar(String resPath) {
+		boolean answer = false;
+		if (Pattern.compile("\\.jar![\\s\\S]*$").matcher(resPath).find()) {
+			answer = true;
+		}
+		
+		return answer;
+	}
+
+
+//	public static void copyFromJar(String source, final Path target) throws ResourceGetterException  {
+//	    URI resourceURI;
+//		try {
+//			resourceURI = new ResourceGetter().getClass().getResource("").toURI();
+//			Path resourcePath = Paths.get(resourceURI.getPath());
+//			
+//			if (isFile(resourceURI)) {
+//				
+//			}
+//			
+////			Map<String,Object> emptyMap = new HashMap<String,Object>();
+////		    FileSystem fileSystem = FileSystems.newFileSystem(
+////		            resourceURI,
+//////		            Collections.<String, String>emptyMap()
+////		            emptyMap
+////		    );
+//	
+//
+//		    FileSystem fileSystem = FileSystems.newFileSystem(
+//		            resourcePath, ClassLoader.getSystemClassLoader()
+//		    );
+//			
+//		    final Path jarPath = fileSystem.getPath(source);
+//	
+//		    StandardCopyOption blah;
+//		    Files.walkFileTree(jarPath, new SimpleFileVisitor<Path>() {
+//	
+//		        private Path currentTarget;
+//	
+//		        @Override
+//		        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+//		            currentTarget = target.resolve(jarPath.relativize(dir).toString());
+//		            Files.createDirectories(currentTarget);
+//		            return FileVisitResult.CONTINUE;
+//		        }
+//	
+//		        @Override
+//		        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+//		            Files.copy(file, target.resolve(jarPath.relativize(file).toString()), StandardCopyOption.REPLACE_EXISTING);
+//		            return FileVisitResult.CONTINUE;
+//		        }
+//	
+//		    });
+//
+//		} catch (URISyntaxException | IOException e) {
+//			throw new ResourceGetterException(e);
+//		}
+//		
+//	}
 }
