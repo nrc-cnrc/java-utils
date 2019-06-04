@@ -4,7 +4,9 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.apache.log4j.LogManager;
@@ -37,6 +39,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class Config {
 
+	private  static Map<Class<? extends Config>,Map<String,String>> propOverrides = new HashMap<Class<? extends Config>,Map<String,String>>();
+
 	@JsonIgnore
 	public static String getConfigProperty(String propName) throws ConfigException {
 		return getConfigProperty(propName, true);
@@ -55,12 +59,23 @@ public class Config {
 		return prop;
 	}
 
-	
 	@JsonIgnore
 	public static String getConfigProperty(String propName, boolean failIfNoConfig) throws ConfigException {
+		return getConfigProperty(propName, failIfNoConfig, null);
+	}
+	
+	@JsonIgnore
+	public static String getConfigProperty(String propName, boolean failIfNoConfig, Map<String,String> propOverrides) throws ConfigException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.config.Config.getConfigProperty");
 		propName = convertToUndescore(propName);
-		String prop = lookInEnvAndSystemProps(propName);
+		String prop = null;
+		
+		if (propOverrides != null && propOverrides.containsKey(propName)) {
+			prop = propOverrides.get(propName);
+		}
+		if (prop == null) {
+			prop = lookInEnvAndSystemProps(propName);
+		}
 		if (prop == null) {
 			prop = lookInPropFiles(propName);
 		}
@@ -141,5 +156,19 @@ public class Config {
 		
 		return possibleFNames;
 	}
+	
+	protected static void overrideProperty(String prop, String value, Map<String, String> overridesRegistry) {
+		prop = convertToUndescore(prop);
+		overridesRegistry.put(prop, value);
+	}
+	
+	protected static void unOverrideProperty(String prop, Map<String, String> overridesRegistry) {
+		prop = convertToUndescore(prop);
+		if (overridesRegistry.containsKey(prop)) {
+			overridesRegistry.remove(prop);
+		}
+	}
+	
+	
 	
 }
