@@ -328,6 +328,22 @@ public class AssertHelpers {
 				expFileContent, gotFileContent);
 		
 	}
+	
+	public static void assertFileContentStartsWith(String mess, File file, String expContentStart) throws IOException {
+		mess += "Content of file "+file.toString()+" did not start with the expected string.";
+		String gotFileContent = new String(Files.readAllBytes(file.toPath()));
+		String gotContentStart = gotFileContent.substring(0, expContentStart.length());
+		assertStringEquals(mess, expContentStart, gotContentStart);
+	}
+	
+	public static void assertFileContentEndsWith(String mess, File file, String expContentEnd) throws IOException {
+		mess += "Content of file "+file.toString()+" did not end with the expected string.";
+		String gotFileContent = new String(Files.readAllBytes(file.toPath()));
+		String gotContentEnd = gotFileContent.substring(gotFileContent.length() - expContentEnd.length(), gotFileContent.length());
+		assertStringEquals(mess, expContentEnd, gotContentEnd);
+	}
+	
+	
 
 	public static <T> void assertContainsAll(String message, T[] supersetArr, T[] subsetArr) {
 		Set<Object> superset = new HashSet<Object>();
@@ -601,8 +617,4 @@ public class AssertHelpers {
 			Assert.fail(mess+"\nElapsed time of "+elapsed+"secs was longer than expected (max="+maxSecs+"secs).");
 		}
 	}
-
-
-
-
 }

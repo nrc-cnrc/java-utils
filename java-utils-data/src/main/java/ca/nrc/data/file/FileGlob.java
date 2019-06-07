@@ -13,7 +13,11 @@ import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+
+import org.apache.commons.io.FilenameUtils;
 
 public class FileGlob {
 	
@@ -64,6 +68,32 @@ public class FileGlob {
 		files = matcherVisitor.getFiles();
 		
 		return files;
+	}
+	
+
+	public static File[] listFiles(File rootDir, String[] patterns)  {
+		if (!rootDir.isDirectory()) {
+			throw new IllegalArgumentException("Root path was not a directory (was "+rootDir.toString()+")");
+		}
+		
+		for (int ii=0; ii < patterns.length; ii++) {
+			patterns[ii] = FilenameUtils.concat(rootDir.toString(), patterns[ii]);
+		}
+		File[] matchingFiles = listFiles(patterns);
+		
+		return matchingFiles;
+	}
+	
+	
+	public static File[] listFiles(String[] patterns)  {
+		Set<File> matchingFilesLst = new HashSet<File>();
+		for (String aPattern: patterns) {
+			File[] filesThisPattern = listFiles(aPattern);
+			for (File aFile: filesThisPattern) matchingFilesLst.add(aFile);
+		}
+		
+		File[] matchingFilesArr = matchingFilesLst.toArray(new File[matchingFilesLst.size()]);
+		return matchingFilesArr;
 	}
 	
 	
