@@ -131,7 +131,7 @@ public class ResourceGetter {
 		try {
 			resPath = getResourcePath(resRelPath);
 		} catch (IOException e1) {
-			throw new ResourceGetterException("Cuold not find resource with path '"+resRelPath+"'", e1);
+			throw new ResourceGetterException("Could not find resource with path '"+resRelPath+"'", e1);
 		}
 		
 		File tempLocation = null;
