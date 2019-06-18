@@ -343,6 +343,19 @@ public class AssertHelpers {
 		assertStringEquals(mess, expContentEnd, gotContentEnd);
 	}
 	
+	public static void assertDirectoryHasFiles(String message, File dir, String[] expFiles) throws IOException {		
+		File[] gotFiles = dir.listFiles();
+		
+		Set<String> gotFilesSet = new HashSet<String>();
+		for (File aFile: gotFiles) gotFilesSet.add(aFile.getName());
+		
+		Set<String> expFilesSet = new HashSet<String>();
+		for (String aFileName: expFiles) expFilesSet.add(aFileName);
+		
+		
+		AssertHelpers.assertDeepEquals(message, expFilesSet, gotFilesSet);	
+	}
+
 	
 
 	public static <T> void assertContainsAll(String message, T[] supersetArr, T[] subsetArr) {
@@ -617,4 +630,5 @@ public class AssertHelpers {
 			Assert.fail(mess+"\nElapsed time of "+elapsed+"secs was longer than expected (max="+maxSecs+"secs).");
 		}
 	}
+
 }
