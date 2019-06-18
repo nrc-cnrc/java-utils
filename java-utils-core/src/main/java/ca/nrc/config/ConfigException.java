@@ -7,7 +7,9 @@ public class ConfigException extends Exception {
 		super(mess);
 	}
 
-	public ConfigException(String mess, IOException e) {
+	public ConfigException(String mess, Exception e) {
 		super(mess, e);
 	}
+
+	public ConfigException(Exception e) { super(e); }
 }
