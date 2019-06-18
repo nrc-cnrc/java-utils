@@ -46,11 +46,11 @@ public class FileGlobTest {
 		AssertHelpers.assertStringEquals(expStartingDir, gotStartingDir);
 	}
 	
-//	@Test
-//	public void test__getStartingDir__DELETE_LATER() {
-//		String pattern = "Job_postings_NOC 2011 Uncoded - 2015-02-05 to 2018-02-05/*lines*.dsv";
-//		String gotStartingDir = FileGlob.getStartingDir(pattern);
-//		String expStartingDir = "BLAH";
-//		AssertHelpers.assertStringEquals(expStartingDir, gotStartingDir);
-//	}	
+	@Test
+	public void test__getStartingDir__WildcardIsNotAtTheStartOfADirectory() {
+		String pattern = "/some/path/x*/to/somewhere";
+		String gotStartingDir = FileGlob.getStartingDir(pattern);
+		String expStartingDir = "/some/path";
+		AssertHelpers.assertStringEquals(expStartingDir, gotStartingDir);
+	}
 }

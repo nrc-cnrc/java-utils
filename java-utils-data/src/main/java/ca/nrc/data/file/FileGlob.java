@@ -109,6 +109,13 @@ public class FileGlob {
 
 	protected static String getStartingDir(String pattern) {
 		String startingDir = truncatePatternToFirstWildcard(pattern);
+		if (!startingDir.endsWith(File.separator)) {
+			File parentDir = Paths.get(startingDir).toFile().getParentFile();			
+			if (parentDir != null) {
+				startingDir = parentDir.toString();
+			}
+		}
+		
 		if (!pattern.matches("^([a-zAZ]:[\\/]|[\\/]|\\.).*$")) {
 			startingDir = "./" + startingDir; 
 		}
@@ -117,6 +124,7 @@ public class FileGlob {
 
 	private static String truncatePatternToFirstWildcard(String pattern) {
 		pattern = pattern.replaceFirst("[\\*\\?].*$", "");
+		
 		return pattern;
 	}
 }
