@@ -837,7 +837,7 @@ public class StreamlinedClientTest {
 	public void test__bulkIndex__HappyPath() throws Exception {
 		StreamlinedClient esClient = ESTestHelpers.makeEmptyTestClient();
 		
-		File jsonFile = ResourceGetter.copyResouceToTempLocation("test_data/ca/nrc/dtrc/elasticsearch/small_index_content.json");
+		File jsonFile = ResourceGetter.copyResourceToTempLocation("test_data/ca/nrc/dtrc/elasticsearch/small_index_content.json");
 		esClient.bulkIndex(jsonFile.getAbsolutePath(), null);
 		
 		Thread.sleep(ESTestHelpers.LONG_WAIT);

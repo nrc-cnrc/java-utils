@@ -126,7 +126,26 @@ public class ResourceGetter {
 		return;
 	}
 	
-	public static File copyResouceToTempLocation(String resRelPath) throws ResourceGetterException {
+	public static void copyResourceFilesToDir(String resDirRelPath, Path targDir) throws ResourceGetterException {
+		String resPath;
+		try {
+			resPath = getResourcePath(resDirRelPath);
+		} catch (IOException e1) {
+			throw new ResourceGetterException("Could not find resource with path '"+resDirRelPath+"'", e1);
+		}
+		
+		File tempLocation = null;
+		if (isInJar(resPath)) {
+			tempLocation = copyJarResourceToTempFile(resPath);
+		} else {
+			tempLocation = copyFileSystemResourceToTempFile(resPath);
+		}
+		
+		FileCopy.copyFolder(tempLocation.toPath(), targDir);	
+	}
+	
+	
+	public static File copyResourceToTempLocation(String resRelPath) throws ResourceGetterException {
 		String resPath;
 		try {
 			resPath = getResourcePath(resRelPath);
@@ -232,6 +251,8 @@ public class ResourceGetter {
 		
 		return answer;
 	}
+
+
 
 
 //	public static void copyFromJar(String source, final Path target) throws ResourceGetterException  {
