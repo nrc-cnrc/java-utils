@@ -109,7 +109,7 @@ public class FileGlob {
 
 	protected static String getStartingDir(String pattern) {
 		String startingDir = truncatePatternToFirstWildcard(pattern);
-		if (!startingDir.endsWith(File.separator)) {
+		if (!endsWithFileSeparator(startingDir)) {
 			File parentDir = Paths.get(startingDir).toFile().getParentFile();			
 			if (parentDir != null) {
 				startingDir = parentDir.toString();
@@ -122,9 +122,18 @@ public class FileGlob {
 		return startingDir;
 	}
 
+	private static boolean endsWithFileSeparator(String path) {
+		//Non-Windows OS
+		if(!System.getProperty("os.name").toLowerCase().startsWith("win")) {
+			return path.endsWith(File.separator);
+		}else {
+			return path.endsWith(File.separator) | path.endsWith("/");
+		}
+	}
+	
 	private static String truncatePatternToFirstWildcard(String pattern) {
 		pattern = pattern.replaceFirst("[\\*\\?].*$", "");
 		
 		return pattern;
-	}
+	}	
 }
