@@ -52,5 +52,44 @@ public class DocumentTest {
 		gotDate = doc.getCreationLocalDate();
 		AssertHelpers.assertDeepEquals("", LocalDate.parse(dateStr), gotDate);
 	}
+	
+	@Test
+	public void test__longDescription_and_content_are_synonyms() {
+		Document doc = new Document();
+		String content = "hello world";
+		
+		doc.setLongDescription(content);
+		AssertHelpers.assertStringEquals(doc.getContent(), content);
+		
+		content = "greetings earthlings";
+		doc.setContent(content);
+		AssertHelpers.assertStringEquals(doc.getLongDescription(), content);
+	}
 
+	@Test
+	public void test__toJson__DoesNotInclude_longDescription_Field() {
+		Document doc = new Document();
+		doc.setContent("hello world");
+		String gotJson = doc.toJson();
+		String expJson = 
+				"{\n" + 
+				"  \"_detect_language\":\n" + 
+				"    true,\n" + 
+				"  \"additionalFields\":\n" + 
+				"    {\n" + 
+				"    },\n" + 
+				"  \"content\":\n" + 
+				"    \"hello world\",\n" + 
+				"  \"creationDate\":\n" + 
+				"    null,\n" + 
+				"  \"id\":\n" + 
+				"    null,\n" + 
+				"  \"lang\":\n" + 
+				"    \"en\",\n" + 
+				"  \"shortDescription\":\n" + 
+				"    null\n" + 
+				"}" 
+				;
+		AssertHelpers.assertStringEquals(expJson, gotJson);
+	}
 }

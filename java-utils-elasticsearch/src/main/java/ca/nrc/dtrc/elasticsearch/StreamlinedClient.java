@@ -950,7 +950,13 @@ public class StreamlinedClient {
 			if (fieldName.equals("additionalFields")) continue; 
 			if (filter == null || filter.keepField(fieldName)) {
 				if (!isTextField(esDocType, fieldName)) continue;
-				objMap.put(fieldName, unfilteredMemberAttibutes.get(fieldName));
+				if (!fieldName.equals("longDescription")) {
+					objMap.put(fieldName, unfilteredMemberAttibutes.get(fieldName));					
+				} else {
+					// Note: longDescription is an alias for content. So if it
+					//   it is to be retained, then retain content instead.
+					objMap.put("content", unfilteredMemberAttibutes.get("content"));
+				}
 			}
 		}
 		

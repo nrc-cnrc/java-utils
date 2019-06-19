@@ -337,7 +337,7 @@ public class StreamlinedClientTest {
 		Thread.sleep(1*1000);
 
 		ESTestHelpers.PlayLine queryLine = new ESTestHelpers.PlayLine("Something is rotten in the kingdom of England");
-		SearchResults<ESTestHelpers.PlayLine> gotSearchResults = client.moreLikeThis(queryLine, new IncludeFields("^longDescription$"));		
+		SearchResults<ESTestHelpers.PlayLine> gotSearchResults = client.moreLikeThis(queryLine, new IncludeFields("^content$"));		
 		assertIsInFirstNHits("Something is rotten in the state of Denmark.", 3, "longDescription", gotSearchResults);
 	}	
 	
@@ -351,9 +351,9 @@ public class StreamlinedClientTest {
 		queryLines.add(new ESTestHelpers.PlayLine("Something is rotten in the kingdom of England"));
 		queryLines.add(new ESTestHelpers.PlayLine("To sing or not to sing that is the question"));
 		
-		SearchResults<ESTestHelpers.PlayLine> gotSearchResults = client.moreLikeThese(queryLines, new IncludeFields("^longDescription$"));		
-		assertIsInFirstNHits("To the ambassadors of England gives", 20, "longDescription", gotSearchResults);
-		assertIsInFirstNHits("To be, or not to be: that is the question:", 20, "longDescription", gotSearchResults);
+		SearchResults<ESTestHelpers.PlayLine> gotSearchResults = client.moreLikeThese(queryLines, new IncludeFields("^content$"));		
+		assertIsInFirstNHits("To the ambassadors of England gives", 20, "content", gotSearchResults);
+		assertIsInFirstNHits("To be, or not to be: that is the question:", 20, "content", gotSearchResults);
 	}	
 	
 	
@@ -401,7 +401,7 @@ public class StreamlinedClientTest {
 		final String PLAY_LINE = "line";
 
 		ESTestHelpers.PlayLine queryLine = new ESTestHelpers.PlayLine("say");
-		SearchResults<ESTestHelpers.PlayLine> hits = client.moreLikeThis(queryLine, new IncludeFields("^longDescription$"));
+		SearchResults<ESTestHelpers.PlayLine> hits = client.moreLikeThis(queryLine, new IncludeFields("^content$"));
 		
 		int hitsCount = 0;
 		Iterator<Hit<PlayLine>> iter = hits.iterator();
@@ -562,7 +562,7 @@ public class StreamlinedClientTest {
 			expFilteredFields.put("id", "homersimpson");
 			expFilteredFields.put("lang", "en");
 
-			expFilteredFields.put("longDescription", "Homer is a character created created by Matt Groening in etc..");
+			expFilteredFields.put("content", "Homer is a character created created by Matt Groening in etc..");
 			expFilteredFields.put("shortDescription", "Homer is a the father of the Simpsons family");
 
 			expFilteredFields.put("additionalFields.first", "Homer");
@@ -802,7 +802,7 @@ public class StreamlinedClientTest {
 		Integer maxDocs = 1000; 
 		String algName = "stc";
 		String esDocTypeName = new PlayLine().getClass().getName();
-		String[] useFields = new String[] {"longDescription"};
+		String[] useFields = new String[] {"content"};
 		DocClusterSet clusters = hamletClient.clusterDocuments(query, esDocTypeName, useFields, algName, maxDocs);
 		
 		String[] expClusterNamesSuperset = new String[] {

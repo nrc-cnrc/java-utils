@@ -35,11 +35,19 @@ public class Document {
 		}
 		public String getShortDescription() {return this.shortDescription; }
 	
-	public String longDescription = null;
+		
+	// Note: longDescription is synonymous with content 		
+	private String content = null;
+		public void setContent(String _content) {this.content = _content;}
+		public String getContent() {return this.content;}
+		
+		// Note: longDescription is an alias for content.
+		//
 		public void setLongDescription(String _longDescription) {
-			this.longDescription = _longDescription;
+			this.content = _longDescription;
 		}
-		public String getLongDescription() {return this.longDescription; }
+		public String getLongDescription() {return this.content;}
+		
 			
 	private String creationDate = null;
 		public void setCreationDate(String _date) { this.creationDate = _date; }
@@ -75,7 +83,7 @@ public class Document {
 	}
 	
 	@JsonIgnore
-	public String getContent() {
+	public String toJson() {
 		String content = PrettyPrinter.print(this);
 		return content;
 	}
