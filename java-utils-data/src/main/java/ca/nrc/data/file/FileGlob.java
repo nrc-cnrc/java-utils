@@ -116,7 +116,7 @@ public class FileGlob {
 			}
 		}
 		
-		if (!pattern.matches("^([a-zAZ]:[\\/]|[\\/]|\\.).*$")) {
+		if (!pattern.matches("^([a-zA-Z]:(\\|/|\\\\)|[\\/]|\\.).*$")) {
 			startingDir = "./" + startingDir; 
 		}
 		return startingDir;
