@@ -42,25 +42,8 @@ public class Document {
 		public String getContent() {return this.content;}
 		
 		// Note: longDescription is an alias for content.
-<<<<<<< Upstream, based on origin/master
-=======
-		//   The getter is JsonIgnored because we don't want
-		//   to write that attribute to the serialization
-		//   (the content attribute will be written instead).
-		//   The setter on the other is NOT JsonIgnored, because
-		//   we want to be able to read that attribute from 
-		//   legacy JSON files.
->>>>>>> 02a1892 Document.longDescription is now just an alias for Document.content
-		//
-		public void setLongDescription(String _longDescription) {
-			this.content = _longDescription;
-		}
+		public void setLongDescription(String _longDescription) {this.content = _longDescription;}
 		public String getLongDescription() {return this.content;}
-		
-<<<<<<< Upstream, based on origin/master
-=======
-		
->>>>>>> 02a1892 Document.longDescription is now just an alias for Document.content
 			
 	private String creationDate = null;
 		public void setCreationDate(String _date) { this.creationDate = _date; }
