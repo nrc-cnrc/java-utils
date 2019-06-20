@@ -1,5 +1,7 @@
 package ca.nrc.data.file;
 
+import java.io.File;
+
 import org.junit.Test;
 
 import ca.nrc.testing.AssertHelpers;
@@ -11,7 +13,7 @@ public class FileGlobTest {
 		String pattern = "*.txt";
 		String gotStartingDir = FileGlob.getStartingDir(pattern);
 		String expStartingDir = "./";
-		AssertHelpers.assertStringEquals(expStartingDir, gotStartingDir);
+		assertSamePath(expStartingDir, gotStartingDir);
 	}
 
 	@Test
@@ -19,7 +21,7 @@ public class FileGlobTest {
 		String pattern = "./*.txt";
 		String gotStartingDir = FileGlob.getStartingDir(pattern);
 		String expStartingDir = "./";
-		AssertHelpers.assertStringEquals(expStartingDir, gotStartingDir);
+		assertSamePath(expStartingDir, gotStartingDir);
 	}
 
 	@Test
@@ -27,7 +29,7 @@ public class FileGlobTest {
 		String pattern = "subdir/*.txt";
 		String gotStartingDir = FileGlob.getStartingDir(pattern);
 		String expStartingDir = "./subdir/";
-		AssertHelpers.assertStringEquals(expStartingDir, gotStartingDir);
+		assertSamePath(expStartingDir, gotStartingDir);
 	}
 	
 	@Test
@@ -35,7 +37,7 @@ public class FileGlobTest {
 		String pattern = "../subdir/*.txt";
 		String gotStartingDir = FileGlob.getStartingDir(pattern);
 		String expStartingDir = "../subdir/";
-		AssertHelpers.assertStringEquals(expStartingDir, gotStartingDir);
+		assertSamePath(expStartingDir, gotStartingDir);
 	}
 
 	@Test
@@ -43,14 +45,24 @@ public class FileGlobTest {
 		String pattern = "foo.txt";
 		String gotStartingDir = FileGlob.getStartingDir(pattern);
 		String expStartingDir = "./foo.txt";
-		AssertHelpers.assertStringEquals(expStartingDir, gotStartingDir);
+		assertSamePath(expStartingDir, gotStartingDir);
 	}
 	
 	@Test
-	public void test__getStartingDir__WildcardIsNotAtTheStartOfADirectory() {
+	public void test__getStartingDir__WildcardIsNotAtTheStartOfADirectory() {		
 		String pattern = "/some/path/x*/to/somewhere";
 		String gotStartingDir = FileGlob.getStartingDir(pattern);
 		String expStartingDir = "/some/path";
-		AssertHelpers.assertStringEquals(expStartingDir, gotStartingDir);
+		assertSamePath(expStartingDir, gotStartingDir);
+	}
+	
+	/**
+	 * Compare two file paths
+	 * Recognizes both / and \\ as equivalent Windows file separators
+	 * @param path1
+	 * @param path2
+	 */
+	private void assertSamePath(String path1, String path2) {
+		AssertHelpers.assertStringEquals(new File(path1).getPath(), new File(path2).getPath());
 	}
 }
