@@ -28,7 +28,8 @@ public class FileGlob {
 		public CollectingFileVisitor(String pattern) {
 			collectedFiles = new ArrayList<File>();	
 			FileSystem fs = FileSystems.getDefault();
-			matcher = fs.getPathMatcher("glob:" + pattern);
+			//Have to escape windows file separators since \\ is a glob escape character
+			matcher = fs.getPathMatcher("glob:" + pattern.replace("\\", "\\\\"));
 		}
 		
 	    @Override
