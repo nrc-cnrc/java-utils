@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import ca.nrc.json.PrettyPrinter;
+import ca.nrc.ui.commandline.UserIO;
 import ca.nrc.config.ConfigException;
 import ca.nrc.data.file.ObjectStreamReader;
 import ca.nrc.datastructure.Pair;
@@ -63,6 +64,11 @@ public class StreamlinedClient {
 		
 	private String serverName = "localhost";
 	private int port = 9200;
+	
+	private UserIO userIO = null;
+		public void setUserIO(UserIO _userIO) {this.userIO = _userIO;}
+		public UserIO getUserIO() {return this.userIO;}
+		public void echo(String message, UserIO.Verbosity level) {if (userIO != null) userIO.echo(message, level);}
 	
 	// Stores the types of the various fields for a given document type
 	private static Map<String,Map<String,String>> fieldTypesCache = null;
@@ -1034,15 +1040,17 @@ public class StreamlinedClient {
 		clearFieldTypesCache();
 	}
 	
-	public void bulkIndex(String dataFPath, String defDocTypeName) throws ElasticSearchException {
-		bulkIndex(dataFPath, defDocTypeName, -1, false);
+	public Document bulkIndex(String dataFPath, String defDocTypeName) throws ElasticSearchException {
+		return bulkIndex(dataFPath, defDocTypeName, -1, false);
 	}
 
 	public void bulkIndex(String dataFPath, String defDocTypeName, Boolean verbose) throws ElasticSearchException {
 		bulkIndex(dataFPath, defDocTypeName, -1, verbose);
 	}
 	
-	public void bulkIndex(String dataFPath, String defDocTypeName, int batchSize, boolean verbose) throws ElasticSearchException {
+	public Document bulkIndex(String dataFPath, String defDocTypeName, int batchSize, boolean verbose) throws ElasticSearchException {
+		int docCounter = 0;
+		Document docPrototype = null;
 		deleteIndex();
 		ObjectMapper mapper = new ObjectMapper();
 		String currDocTypeName = defDocTypeName;
@@ -1073,6 +1081,12 @@ public class StreamlinedClient {
 				} else if (obj instanceof Document){
 					firstDocumentWasRead = true;
 					Document doc = (Document)obj;
+					docCounter++;
+					
+					echo("Indexing document #"+docCounter+": "+doc.getId(), UserIO.Verbosity.Level1);
+					
+					// Keep the first document read as a prototype.
+					if (docPrototype == null) docPrototype = doc;
 					docNum++;
 					String id = doc.getId();
 					if (verbose) {
@@ -1117,7 +1131,7 @@ public class StreamlinedClient {
 			throw new ElasticSearchException(e);
 		}
 		
-		return;
+		return docPrototype;
 	}
 	
 	
