@@ -57,11 +57,12 @@ public class Document {
 			return this.additionalFields;
 		}
 		@JsonIgnore
-		public void setAnAdditionalField(String _fldName, Object _fldValue) {
+		public Document setAdditionalField(String _fldName, Object _fldValue) {
 			this.additionalFields.put(_fldName, _fldValue);
+			return this;
 		}
 		@JsonIgnore
-		public Object getAnAdditionalField(String _fldName) {
+		public Object getAdditionalField(String _fldName) {
 			Object value = this.additionalFields.get(_fldName);
 			return value;
 		}

@@ -41,43 +41,43 @@ public class UserIO {
 		
 	}	
 
-	public static void echo() {
+	public void echo() {
 		echo("");
 	}
 
-	public static void echo(int indentLevelChange) {
+	public void echo(int indentLevelChange) {
 		if (indentLevelChange > 0) currentIndentation += 2;
 		if (currentIndentation > 10) currentIndentation = 10;
 		if (indentLevelChange < 0) currentIndentation -= 2;
 		if (currentIndentation < 0) currentIndentation = 0;
 	}
 	
-	public static void echo(String message, boolean newline) {
+	public void echo(String message, boolean newline) {
 		echo(message, 0, Verbosity.Level0, newline);
 	}
 	
-	public static void echo(String message, Verbosity level, boolean newline) {
+	public void echo(String message, Verbosity level, boolean newline) {
 		echo(message, 0, level, newline);
 	}
 
 	
-	public static void echo(String message) {
+	public void echo(String message) {
 		echo(message, 0, Verbosity.Level1);
 	}
 	
-	public static void echo(String message, Verbosity level) {
+	public void echo(String message, Verbosity level) {
 		echo(message, 0, level);
 	}
 	
-	public static void echo(String message, int indentLevelChange) {
+	public void echo(String message, int indentLevelChange) {
 		echo(message, indentLevelChange, Verbosity.Level1);
 	}
 
-	public static void echo(String message, int indentLevelChange, Verbosity level) {
+	public void echo(String message, int indentLevelChange, Verbosity level) {
 		echo(message, indentLevelChange, level, null);
 	}
 	
-	public static void echo(String message, int indentLevelChange, Verbosity level, Boolean newline) {
+	public void echo(String message, int indentLevelChange, Verbosity level, Boolean newline) {
 		if (newline == null) newline = true;
 		if (verbosityLevelIsMet(level)) {
 			
@@ -100,7 +100,7 @@ public class UserIO {
 		}
 	}
 	
-	protected static boolean verbosityLevelIsMet(Verbosity minLevel) {
+	protected boolean verbosityLevelIsMet(Verbosity minLevel) {
 		boolean answer = false;
 		Integer minLevelInt = verbosityToInt(minLevel);
 		Integer verbosityInt = verbosityToInt(verbosity);

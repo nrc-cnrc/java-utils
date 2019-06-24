@@ -549,8 +549,8 @@ public class StreamlinedClientTest {
 	public void test__filterFields__HappyPath() throws Exception {
 		StreamlinedClient esClient = ESTestHelpers.makeEmptyTestClient();		
 		Document homer = new Document("homersimpson");
-		homer.setAnAdditionalField("first", "Homer");
-		homer.setAnAdditionalField("last", "Simpson");
+		homer.setAdditionalField("first", "Homer");
+		homer.setAdditionalField("last", "Simpson");
 		homer.setCreationDate("2018-03-19");
 		homer.setLongDescription("Homer is a character created created by Matt Groening in etc..");
 		homer.setShortDescription("Homer is a the father of the Simpsons family");
@@ -576,9 +576,9 @@ public class StreamlinedClientTest {
 	public void test__getFieldTypes__DynamicallyTypedDocsOnly() throws Exception {
 		StreamlinedClient esClient = ESTestHelpers.makeEmptyTestClient();
 		Document homer = new Document("homersimpson");
-		homer.setAnAdditionalField("first", "homer");
-		homer.setAnAdditionalField("last", "homer");
-		homer.setAnAdditionalField("birthDay", "1993-01-26");
+		homer.setAdditionalField("first", "homer");
+		homer.setAdditionalField("last", "homer");
+		homer.setAdditionalField("birthDay", "1993-01-26");
 		String type = "CartoonCharacters";
 		esClient.putDocument(type, homer);
 		
@@ -609,7 +609,7 @@ public class StreamlinedClientTest {
 		
 		// This other person is dynamically typed
 		Document marge = new Document("margesimpson");
-		marge.setAnAdditionalField("birthDay", "1993-01-26");
+		marge.setAdditionalField("birthDay", "1993-01-26");
 		esClient.putDocument(type, marge);
 		
 		// The field types should be the union of the types for both

@@ -68,7 +68,9 @@ public class StreamlinedClient {
 	private UserIO userIO = null;
 		public void setUserIO(UserIO _userIO) {this.userIO = _userIO;}
 		public UserIO getUserIO() {return this.userIO;}
-		public void echo(String message, UserIO.Verbosity level) {if (userIO != null) userIO.echo(message, level);}
+		public void echo(String message, UserIO.Verbosity level) {
+			if (this.userIO != null) userIO.echo(message, level);
+		}
 	
 	// Stores the types of the various fields for a given document type
 	private static Map<String,Map<String,String>> fieldTypesCache = null;
@@ -1110,15 +1112,15 @@ public class StreamlinedClient {
 					}
 				} else {
 					throw new ElasticSearchException("JSON file "+dataFPath+" contained an object of unsupoorted type: "+obj.getClass().getName());
-				}
-
-				if (!jsonBatch.isEmpty()) {
-					// Process the very last partial batch
-					bulk(jsonBatch, defDocTypeName);
-				}
-				
+				}				
 				obj = reader.readObject();
 			}
+			
+		if (!jsonBatch.isEmpty()) {
+			// Process the very last partial batch
+			bulk(jsonBatch, defDocTypeName);
+		}
+			
 			
 			
 		} catch (FileNotFoundException e) {
@@ -1129,6 +1131,15 @@ public class StreamlinedClient {
 			throw(e);
 		} catch (ClassNotFoundException e) {
 			throw new ElasticSearchException(e);
+		}
+		
+		
+		// Sleep a bit to give time for ES to incorporate the documents.
+		try {
+			Thread.sleep(2*1000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		
 		return docPrototype;
