@@ -197,7 +197,10 @@ public class PageHarvester {
 			throws IOException, PageHarvesterException {
 		this.getPage(url);
 		boolean keepGoing = true;
-		while (keepGoing) {
+// 2019-06-24: [AD] Not sure why this while() was here, but it was causing an infinite loop today
+//    So, I commented it out for now.
+//
+//		while (keepGoing) {
 			final URL pageUrl = new URL(url);
 			final TagNode root = cleaner.clean(pageUrl);
 
@@ -207,8 +210,8 @@ public class PageHarvester {
 			final PageLinkVisitor lv = new PageLinkVisitor(this, pageUrl, linkAttrName, pageAttrName);
 			// traverse whole DOM and find hyperlink and next page link
 			body.traverse(lv);
-			keepGoing = false;
-		}
+//			keepGoing = false;
+//		}
 	}
 
 	protected void parseHTML(String html) throws PageHarvesterException {
