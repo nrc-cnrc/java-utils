@@ -43,6 +43,7 @@ public class StreamlinedClientTest {
 		public String firstName;
 		public String surname;
 		public String birthDay;
+		public String gender;
 
 		public Person() {};
 		
@@ -56,6 +57,11 @@ public class StreamlinedClientTest {
 			birthDay = bDay;
 			return this;
 		} 
+		
+		public Person setGender(String _gender) {
+			this.gender = _gender;
+			return this;
+		}
 	}	
 	
 	public static class Movie {
@@ -185,7 +191,6 @@ public class StreamlinedClientTest {
 		String indexName = "es-test";
 		StreamlinedClient client = new StreamlinedClient(indexName);
 		
-		
 		// 
 		// Find documents that are similar to a particular doc.
 		//
@@ -202,7 +207,22 @@ public class StreamlinedClientTest {
 		searchResults = client.moreLikeThese(queryPeople);
 		
 		
-		// You can then scroll through the hits ...
+		// You may have noticed that the moreLikeThis and moreLikeThese searches
+		// do not allow you to set hard criteria on the similar docs you want.
+		//
+		// You can however attach a HitFilter to SearchResults, in order 
+		// to only get those similar docs that you want.
+		//
+		// For example, say you only want similar docs whose 'gender' field is
+		// set to 'f'...
+		//
+		
+		// See documentation tests of HitFilder for other possiblities
+		HitFilter genderFilter = new HitFilter("+ gender:f");
+		searchResults.setFilter(genderFilter);
+		
+		// The iterator will then only loop through the hits that pass
+		// the gender filter
 		Iterator<Hit<Person>> iter = searchResults.iterator();
 		while (iter.hasNext()) {
 			Hit<Person> scoredHit = iter.next();

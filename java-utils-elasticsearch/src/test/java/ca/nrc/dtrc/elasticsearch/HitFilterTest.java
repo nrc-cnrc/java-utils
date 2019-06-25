@@ -202,6 +202,16 @@ public class HitFilterTest {
 		AssertHelpers.assertUnOrderedSameElements("Filtered hits not as expected", expFilteredIDs, gotFilteredIDs);
 	}
 	
+
+	@Test
+	public void test__filterDups__EmptyFilter() throws Exception {
+		List<Hit<Document>> origHits = makeHitsList();
+		HitFilter filter = new HitFilter();
+		List<String> gotFilteredIDs =  filterHits(filter, origHits);
+		String[] expFilteredIDs = new String[] {"mobydick-en", "mobydick-fr", "lesmiserables-fr", "lesmiserables-en", "hamlet-en", "hamlet-fr"};
+		AssertHelpers.assertUnOrderedSameElements("Filtered hits not as expected", expFilteredIDs, gotFilteredIDs);
+	}
+	
 	//////////////////////////////////////////////
 	// TEST HELPERS
 	//////////////////////////////////////////////

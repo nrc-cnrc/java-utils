@@ -25,6 +25,8 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 
 	private String scrollID = null;
 	
+	protected HitFilter filter = new HitFilter();
+	
 	private Long totalHits = new Long(0);
 		public Long getTotalHits() {return totalHits;}
 		public void setTotalHits(Long _totalHits) {this.totalHits = _totalHits;}
@@ -148,6 +150,10 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 		}
 		
 		return docs;
+	}
+	public SearchResults setFilter(HitFilter _filter) {
+		this.filter = _filter;
+		return this;
 	}
 
 }
