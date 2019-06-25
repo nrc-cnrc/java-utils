@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 public class Hit<T extends Document> {
 	public T document;
-	public Double score;
+	public Double score = 0.0;
 		public void setScore(Double _score) {this.score = _score;}
 	public Map<String, List<String>> snippets;
 	
@@ -24,9 +24,13 @@ public class Hit<T extends Document> {
 		initialize(_document, _score, _snippets);
 	}
 
+	public Hit(T _document) {
+		initialize(_document, null, null);
+	}
+	
 	private void initialize(T _document, Double _score, JsonNode _snippets) {
 		this.document = _document;
-		this.score = _score;
+		if (_score != null) this.score = _score;
 		this.snippets = getSnippets(_snippets);
 	}
 
