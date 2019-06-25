@@ -7,10 +7,14 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> {
+	
+	private static final int MAX_CONSEC_UNSUCCESSFUL_BATCHES = 5;
 
 	private T docPrototype = null;
 
 	private String scrollID = null;
+	
+	private HitFilter filter = new HitFilter();
 	
 	private Long totalHits = new Long(0);
 		public Long getTotalHits() {return totalHits;}
@@ -21,19 +25,78 @@ public class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> 
 		
 	private int batchCursor = 0;	
 	
+	boolean potentiallyMoreInIndex = true;
+	
 	// Client that was used to retrieve the results.
 	// The SearchResults class needs it to be able to scroll through
 	// the list of hits one batch at a time.
 	@JsonIgnore
 	StreamlinedClient esClient = null;	
 	
-	public ScoredHitsIterator(List<Hit<T>> firstResultsBatch, String _scrollID, T _docPrototype, StreamlinedClient _esClient) throws ElasticSearchException {
-			this.documentsBatch = firstResultsBatch;
+	public ScoredHitsIterator(List<Hit<T>> firstResultsBatch, String _scrollID, T _docPrototype, StreamlinedClient _esClient, HitFilter _filter) throws ElasticSearchException, SearchResultsException {
 			this.scrollID = _scrollID;
 			this.docPrototype = _docPrototype;
 			this.esClient = _esClient;		
+			this.filter = _filter;
+			this.retrieveAndFilterUntilNonEmptyBatch(firstResultsBatch);
 	}
 	
+	private void retrieveAndFilterUntilNonEmptyBatch() throws ElasticSearchException, SearchResultsException {
+		retrieveAndFilterUntilNonEmptyBatch(null);
+	}
+
+	
+	private void retrieveAndFilterUntilNonEmptyBatch(List<Hit<T>> initialBatch) throws ElasticSearchException, SearchResultsException {
+		
+		if (initialBatch != null) { 
+			documentsBatch = initialBatch; 
+		} else {
+			documentsBatch = new ArrayList<Hit<T>>();
+		}
+		
+		if (scrollID == null) {
+			// Note: scrollID == null may happen when we are creating 
+			//   dummy list of hits for testing purposes.
+			documentsBatch = initialBatch;
+		} else {
+			int unsuccessfulBatchesCountdown = MAX_CONSEC_UNSUCCESSFUL_BATCHES;
+			while(true) {
+				filterDocumentsBatch();
+				
+				// Last batch retrieved from ES contains some hits that passed the filter
+				if (documentsBatch.size() > 0) break;
+				
+				// Last batch retrieved from ES did NOT contains any hits that pass the filter
+				// Try another batch unless we reached the maximum number of consecutive
+				// unsuccessful batches
+				unsuccessfulBatchesCountdown--;
+				if (unsuccessfulBatchesCountdown == 0) break;
+				
+				documentsBatch = esClient.scrollScoredHits(scrollID, docPrototype);
+				
+				// No more hits to be retrieved from ElasticSearch
+				if (documentsBatch == null) break;
+				
+				
+			}
+		}
+		batchCursor = 0;
+	}		
+		
+
+	private void filterDocumentsBatch() throws SearchResultsException {
+		List<Hit<T>> filteredHits = new ArrayList<Hit<T>>();
+		for (Hit<T> aHit: documentsBatch) {
+			try {
+				if (filter.keep(aHit)) { 
+					filteredHits.add(aHit);							
+				}
+			} catch (HitFilterException e) { 
+				throw new SearchResultsException(e);
+			}
+		}
+		documentsBatch = filteredHits;
+	}
 	@Override
 	public boolean hasNext() {
 		
@@ -44,7 +107,7 @@ public class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> 
 			answer = false;
 		}
 		
-		if (answer == null && documentsBatch != null && documentsBatch.size() == 0) {
+		if (answer == null && documentsBatch.size() == 0) {
 			// Non null but empty batch --> false;
 			answer = false;
 		}
@@ -55,9 +118,9 @@ public class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> 
 			// if so, retrieve next batch, and check again
 			if (batchCursor == documentsBatch.size()) {
 				try {
-					retrieveNewBatch();
+					retrieveAndFilterUntilNonEmptyBatch();
 					answer = hasNext();
-				} catch (ElasticSearchException e) {
+				} catch (ElasticSearchException | SearchResultsException e) {
 					answer = false;
 					e.printStackTrace();
 				}
@@ -69,16 +132,39 @@ public class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> 
 		return (boolean) answer;
 	}
 	
-	private void retrieveNewBatch() throws ElasticSearchException {
-		if (scrollID == null) {
-			// Note: scrollID == null may happen when we are creating 
-			//   dummy list of hits for testing purposes.
-			documentsBatch = null;
-		} else {
-			documentsBatch = esClient.scrollScoredHits(scrollID, docPrototype);
-		}
-		batchCursor = 0;
-	}
+//	private void retrieveNewBatch() throws ElasticSearchException, SearchResultsException {
+//		
+//		if (scrollID == null) {
+//			// Note: scrollID == null may happen when we are creating 
+//			//   dummy list of hits for testing purposes.
+//			documentsBatch = null;
+//		} else {
+//			int unsuccessfulBatchesCountdown = 10;
+//			while(true) {
+//				documentsBatch = null;
+//				List<Hit<T>> nextBatch = esClient.scrollScoredHits(scrollID, docPrototype);
+//				
+//				// No more hits to be retrieved from ElasticSearch
+//				if (nextBatch == null) break;
+//				
+//				filterDocumentsBatch();
+//				
+//				if (documentsBatch.size() > 0) {
+//					break;
+//				} else {
+//					// The batch retrieved from ElasticSearch did not contain any
+//					// hit that passed the filter
+//					// Try again unless we have reached the maximum number of
+//					// consecutive unsuccessful batches
+//					//
+//					unsuccessfulBatchesCountdown--;
+//					if (unsuccessfulBatchesCountdown == 0) break; 
+//				}
+//				
+//			}
+//		}
+//		batchCursor = 0;
+//	}
 	
 	@Override
 	public Hit<T> next() {

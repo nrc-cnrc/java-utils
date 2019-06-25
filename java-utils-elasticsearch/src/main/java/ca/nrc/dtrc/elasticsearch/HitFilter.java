@@ -13,7 +13,7 @@ import ca.nrc.datastructure.Pair;
 // This class allows you to run a simple filter on the results of an MLT search.
 //
 
-public class HitFilter {
+public class HitFilter<T extends Document> {
 	
 	Set<Pair<String,String>> terms = new HashSet<Pair<String,String>>();
 
@@ -31,7 +31,6 @@ public class HitFilter {
 	private void initialize(String filterSpecs) {
 		if (filterSpecs != null) {
 			Matcher matcher = 
-//					Pattern.compile("^\\s*([+-])?\\s*((AND|OR)q(?=\\s))?([\\s\\S]*)$", Pattern.CASE_INSENSITIVE)
 					Pattern.compile("^\\s*([+-])?\\s*((AND|OR)\\s+)?([\\s\\S]+)$", Pattern.CASE_INSENSITIVE)
 					.matcher(filterSpecs);
 			if (matcher.matches()) {
@@ -41,10 +40,11 @@ public class HitFilter {
 				if (andOr != null && andOr.toLowerCase().startsWith("or")) termsAreANDed = false; 
 				
 				String termsStr = matcher.group(4);
-				matcher = Pattern.compile("([^\\s:]+):((\\\")?([^\\s\\\":]+)(\\\")?)").matcher(termsStr);
+				matcher = Pattern.compile("([^\\s:]+):([^\"\\s]+|\"[^\"]+\")").matcher(termsStr);
 				while (matcher.find()) {
 					String fieldName = matcher.group(1);
-					String fieldValue = matcher.group(4);
+					String fieldValue = matcher.group(2);
+					fieldValue =fieldValue.replaceAll("\"", "");
 					this.terms.add(Pair.of(fieldName,fieldValue));
 				}
 				
@@ -53,7 +53,7 @@ public class HitFilter {
 		
 	}
 
-	public boolean keep(Hit<Document> aHit) throws HitFilterException {
+	public boolean keep(Hit<T> aHit) throws HitFilterException {
 		
 		Document doc = aHit.getDocument();
 		int totalTermsMatched = 0;

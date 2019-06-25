@@ -115,8 +115,8 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 	public Iterator<Hit<T>> iterator() {
 		ScoredHitsIterator<T> iter = null;
 		try {
-			iter = new ScoredHitsIterator<T>(scoredHitsBatch, scrollID, docPrototype, esClient);
-		} catch (ElasticSearchException e) {
+			iter = new ScoredHitsIterator<T>(scoredHitsBatch, scrollID, docPrototype, esClient, filter);
+		} catch (ElasticSearchException | SearchResultsException e) {
 			logger.error(e);
 		}
 		return iter;

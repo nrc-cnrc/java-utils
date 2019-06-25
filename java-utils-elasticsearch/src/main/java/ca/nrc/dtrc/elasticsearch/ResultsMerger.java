@@ -36,7 +36,9 @@ public class ResultsMerger<T extends Document> {
 		// Compile hits in hits1
 		{
 			int counter = 0;
-			for (Hit<Document> aHit: hits1) {
+			Iterator<Hit<Document>> iter = hits1.iterator();
+			while (iter.hasNext()) {
+				Hit<Document> aHit = iter.next();
 				counter++;
 				if (maxHits != null && counter > maxHits) break;
 				String docID = aHit.getDocument().getId();
@@ -55,7 +57,9 @@ public class ResultsMerger<T extends Document> {
 		// Compile hits in hits2
 		{
 			int counter = 0;
-			for (Hit<Document> aHit: hits2) {
+			Iterator<Hit<Document>> iter = hits2.iterator();
+			while (iter.hasNext()) {
+				Hit<Document> aHit = iter.next();
 				counter++;
 				if (maxHits != null && counter > maxHits) break;
 				String docID = aHit.getDocument().getId();

@@ -212,6 +212,18 @@ public class HitFilterTest {
 		AssertHelpers.assertUnOrderedSameElements("Filtered hits not as expected", expFilteredIDs, gotFilteredIDs);
 	}
 	
+	@Test
+	public void test__constructor__SpacesInFieldName() throws Exception {
+		HitFilter filter = new HitFilter("genre:\"Science Fiction\"");		
+		Set<Pair<String,String>> expFields = new HashSet<Pair<String,String>>();
+		{
+			expFields.add(Pair.of("genre", "Science Fiction"));
+		}
+		
+		this.assertFilterCharacteristics(filter, true, true, expFields);
+	}
+
+	
 	//////////////////////////////////////////////
 	// TEST HELPERS
 	//////////////////////////////////////////////
