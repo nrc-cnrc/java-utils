@@ -89,6 +89,13 @@ public class StreamlinedClientTest {
 	
 	@Test
 	public void test__StreamlinedClient__Synopsis() throws Exception {
+		//
+		// StreamlinedClient defines a bunch of easy-to-use, streamlined
+		// methods for interacting with an ElasticSearch index
+		//
+		// To create a client:
+		//
+		
 		String indexName = "es-test";
 		StreamlinedClient client = new StreamlinedClient(indexName);
 
@@ -104,9 +111,16 @@ public class StreamlinedClientTest {
 		
 
 		// You can then use the client to do all sorts of operations
-		// on the index.
+		// on the index, which will be described in the documentation tests below.
+	}
+	
+	@Test
+	public void test__DataManagementOperations__Documents() throws Exception {
+		String indexName = "es-test";
+		StreamlinedClient client = new StreamlinedClient(indexName);
+		
 		//
-		// For example, add some objects to the index...
+		// To add some objects to the index...
 		//
 		Person homer = new Person("Homer", "Simpson");
 		String jsonResponse = client.putDocument(homer);
@@ -125,6 +139,12 @@ public class StreamlinedClientTest {
 		
 		// Delete a document with a specific ID
 		client.deleteDocumentWithID("Homer", Person.class);
+	}
+	
+	@Test
+	public void test__Search__Freeform() throws Exception {
+		String indexName = "es-test";
+		StreamlinedClient client = new StreamlinedClient(indexName);
 		
 		//
 		// Search for some objects. You can specify an arbitrary query as a JSON string
@@ -140,7 +160,7 @@ public class StreamlinedClientTest {
 		Long totalHits = hits.getTotalHits();
 		
 		// Scroll through list of scored hits
-		iter = hits.iterator();
+		Iterator<Hit<Person>> iter = hits.iterator();
 		while (iter.hasNext()) {
 			Hit<Person> scoredHit = iter.next();
 			Person hitDocument = scoredHit.getDocument();
@@ -158,6 +178,12 @@ public class StreamlinedClientTest {
 		// Freeform queries support quoted expressions
 		query = "\"lisa simpson\"";
 		hits = client.searchFreeform(query, personPrototype);
+	}
+	
+	@Test
+	public void test__SearchSimilarDocs() throws Exception {
+		String indexName = "es-test";
+		StreamlinedClient client = new StreamlinedClient(indexName);
 		
 		
 		// 
@@ -175,7 +201,20 @@ public class StreamlinedClientTest {
 		queryPeople.add(new Person("Bart", "Simpson"));
 		searchResults = client.moreLikeThese(queryPeople);
 		
-		// You can then scroll through the hits as described above...
+		
+		// You can then scroll through the hits ...
+		Iterator<Hit<Person>> iter = searchResults.iterator();
+		while (iter.hasNext()) {
+			Hit<Person> scoredHit = iter.next();
+			Person hitDocument = scoredHit.getDocument();
+			Double hitScore = scoredHit.getScore();
+		}
+	}
+		
+	@Test
+	public void test__ExplicitlyDefiningTypeOfFields() throws Exception {
+		String indexName = "es-test";
+		StreamlinedClient client = new StreamlinedClient(indexName);
 		
 		//
 		// When you add documents to an index, the system automatically guesses 
@@ -193,8 +232,14 @@ public class StreamlinedClientTest {
 		client.defineFieldTypes(fieldTypes);
 		
 							// Now when we add Person documents, their birthday 
-							// field will be trated as a Date
+							// field will be treated as a Date
 		client.putDocument(new Person("Marg", "Simpson"));
+	}
+	
+	@Test
+	public void test__CluserDocuments() throws Exception {
+		String indexName = "es-test";
+		StreamlinedClient client = new StreamlinedClient(indexName);		
 		
 		//
 		// You can cluster a set of documents.
@@ -206,7 +251,7 @@ public class StreamlinedClientTest {
 		// We will cluster all the lines that are spoken by Hamlet
 		//
 		StreamlinedClient hamletClient = ESTestHelpers.makeHamletTestClient();
-		query = "speaker:Hamlet";
+		String query = "speaker:Hamlet";
 		Integer maxDocs = 1000; // Only cluster the first 1000 hits. We recommend no less than 100
 		
 		// Specify the clustering algorithm.
@@ -230,32 +275,14 @@ public class StreamlinedClientTest {
 			int size = aCluster.getSize();
 			// and so on...
 		}
+	}
 		
-		// In all of the above, we were using "statically typed" documents whose fields and 
-		// structure were known at compile time (ex: DummyObject).
-		//
-		// But you can also use "dynamically typed" documents whose fields are not determined
-		// at compile time.
-		// 
-		// Here is how you do this.
-		//   - First, you define the dynamic document
-		//
-		String idFieldName = "part_number";		
-		Document_DynTyped doc = new Document_DynTyped(idFieldName, "X18D98KL9");
-		doc.setField("name", "6in screw");
-		doc.setField("weight_grams", 0.4);
-		
-		// Next, you add the document to ES. Note that contrarily to statically typed
-		// docs, you need to specify a document type for ES to store the doc under
-		String docType = "ca.nrc.dtrc.Part";
-		client.putDocument(docType, doc);
-		
-		// In general, you always need to specify an ES document type name 
-		// to search, put, retrieve, etc... dynamically typed docs in ES
-		// For example...
-		//
-		Document_DynTyped retrievedDoc = (Document_DynTyped) client.getDocumentWithID("X18D98KL9", Document_DynTyped.class, docType);
-		
+
+	@Test
+	public void test__IndexManagement() throws Exception {
+		StreamlinedClient client = ESTestHelpers.makeHamletTestClient();
+		String docType = new PlayLine().getClass().getName();		
+			
 		//
 		// You can delete all documents for a given doc type
 		//
@@ -268,6 +295,7 @@ public class StreamlinedClientTest {
 		settings.put("index.mapping.total_fields.limit", new Integer(2000));
 		client.changeIndexSettings(settings);
 	}
+	
 	
 	/*********************************
 	 * VERIFICATION TESTS
