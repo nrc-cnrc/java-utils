@@ -88,7 +88,7 @@ public class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> 
 		List<Hit<T>> filteredHits = new ArrayList<Hit<T>>();
 		for (Hit<T> aHit: documentsBatch) {
 			try {
-				if (filter.keep(aHit)) { 
+				if (filter == null || filter.keep(aHit)) { 
 					filteredHits.add(aHit);							
 				}
 			} catch (HitFilterException e) { 
