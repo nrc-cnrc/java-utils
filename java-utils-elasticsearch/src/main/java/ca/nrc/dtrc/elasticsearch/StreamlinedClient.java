@@ -295,7 +295,7 @@ public class StreamlinedClient {
 
 	
 	public <T extends Document> List<T> listFirstNDocuments(T docPrototype, Integer maxN) throws ElasticSearchException {
-		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.listAll");
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.listFirstNDocuments");
 		@SuppressWarnings("unchecked")
 		Class<T> docClass = (Class<T>) docPrototype.getClass();
 		String type = docClass.getName();
@@ -354,6 +354,21 @@ public class StreamlinedClient {
 		
 		return results;
 	}		
+
+	public <T extends Document> Iterator<T> typeIterator(String esDocTypeName , T docPrototype) throws ElasticSearchException {
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.listAll");
+		tLogger.trace("searching for all type="+esDocTypeName);
+		URL url = esUrlBuilder().forDocType(esDocTypeName).forEndPoint("_search").scroll().build();
+		
+		tLogger.trace("invoking url="+url);
+		String jsonResponse = post(url, "{}");
+		
+		SearchResults<T> results = new SearchResults<T>(jsonResponse, docPrototype, this);
+		Iterator<T> iterator = new ESDocumentIterator<>(results);
+		
+		return iterator;
+	}		
+	
 	
 	public String post(URL url) throws IOException, ElasticSearchException, InterruptedException {
 		return post(url, null);
