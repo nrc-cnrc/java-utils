@@ -14,12 +14,11 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
-import ca.nrc.ui.commandline.SubCommand.Verbosity;
 
 public abstract class SubCommand {
-	
-	public static enum Verbosity {Levelnull, Level0, Level1, Level2, Level3, Level4, Level5};
-	protected static Verbosity verbosity = Verbosity.Level1;
+		
+//	public static enum Verbosity {Levelnull, Level0, Level1, Level2, Level3, Level4, Level5};
+//	protected static UserIO.Verbosity verbosity = UserIO.Verbosity.Level1;
 	
 	public static final String OPT_VERBOSITY = "verbosity";	
 	
@@ -29,7 +28,15 @@ public abstract class SubCommand {
 	@SuppressWarnings("unused")
 	private String usageOneLiner = null;
 	
-	public UserIO user_io = new UserIO();
+//	private UserIO user_io = new UserIO();
+	private UserIO user_io = null;
+		protected UserIO getUserIO() {
+			if (user_io == null) {
+				UserIO.Verbosity verbosity = getVerbosity();
+				user_io = new UserIO(verbosity);
+			}
+			return user_io;
+		}
 	
 	private static int currentIndentation = 0;
 	public static final Map<Integer,String> indentation = new HashMap<Integer,String>();
@@ -98,11 +105,13 @@ public abstract class SubCommand {
 	
 	
 	public void run(CommandLine _cmdLine, String commandName) throws Exception {
-		if (verbosity != Verbosity.Levelnull && verbosity != Verbosity.Level0) {
+		this.cmdLine = _cmdLine;
+		
+		UserIO.Verbosity currVerbosity = getUserIO().verbosity;
+		if (currVerbosity != UserIO.Verbosity.Levelnull && currVerbosity != UserIO.Verbosity.Level0) {
 			echo("Executing sub-command "+commandName);
 		}
 		
-		this.cmdLine = _cmdLine;
 		this.execute();
 	}
 	
@@ -141,89 +150,51 @@ public abstract class SubCommand {
 		System.exit(1);
 	}
 	
-	public static void echo() {
-		echo("");
+	public void echo() {
+		getUserIO().echo();
 	}
 
-	public static void echo(int indentLevelChange) {
-		if (indentLevelChange > 0) currentIndentation += 2;
-		if (currentIndentation > 10) currentIndentation = 10;
-		if (indentLevelChange < 0) currentIndentation -= 2;
-		if (currentIndentation < 0) currentIndentation = 0;
+	public void echo(int indentLevelChange) {
+		getUserIO().echo(indentLevelChange);
 	}
 	
-	public static void echo(String message, boolean newline) {
-		echo(message, 0, Verbosity.Level0, newline);
+	public void echo(String message, boolean newline) {
+		getUserIO().echo(message, newline);
 	}
 	
-	public static void echo(String message, Verbosity level, boolean newline) {
-		echo(message, 0, level, newline);
+	public void echo(String message, UserIO.Verbosity level, boolean newline) {
+		getUserIO().echo(message, level, newline);
 	}
 
 	
-	public static void echo(String message) {
-		echo(message, 0, Verbosity.Level1);
+	public  void echo(String message) {
+		getUserIO().echo(message);
 	}
 	
-	public static void echo(String message, Verbosity level) {
-		echo(message, 0, level);
+	public void echo(String message, UserIO.Verbosity level) {
+		getUserIO().echo(message, level);
 	}
 	
-	public static void echo(String message, int indentLevelChange) {
-		echo(message, indentLevelChange, Verbosity.Level1);
+	public  void echo(String message, int indentLevelChange) {
+		getUserIO().echo(message, indentLevelChange);
 	}
 
-	public static void echo(String message, int indentLevelChange, Verbosity level) {
-		echo(message, indentLevelChange, level, null);
+	public void echo(String message, int indentLevelChange, UserIO.Verbosity level) {
+		getUserIO().echo(message, indentLevelChange, level);
 	}
 	
-	public static void echo(String message, int indentLevelChange, Verbosity level, Boolean newline) {
-		if (newline == null) newline = true;
-		if (verbosityLevelIsMet(level)) {
-			
-			String indentPadding = indentation.get(currentIndentation);
-		
-			if (indentLevelChange > 0) currentIndentation += 1;
-			if (currentIndentation > 10) currentIndentation = 10;
-			
-			message = message.replaceAll("\n", "\n"+indentPadding);
-			
-			message = indentPadding + message;
-			System.out.print(message);
-			
-			if (newline) {
-				System.out.println();
-				if (indentLevelChange < 0) currentIndentation -= 1;
-				if (currentIndentation < 0) currentIndentation = 0;
-			}
-	
-		}
+	public void echo(String message, int indentLevelChange, UserIO.Verbosity level, Boolean newline) {
+		getUserIO().echo(message, indentLevelChange, level, newline);
 	}
 	
-	protected static boolean verbosityLevelIsMet(Verbosity minLevel) {
-		boolean answer = false;
-		Integer minLevelInt = verbosityToInt(minLevel);
-		Integer verbosityInt = verbosityToInt(verbosity);
-		if (verbosityInt != null && minLevelInt != null && verbosityInt >= minLevelInt) answer = true;
-		return answer;
+	protected boolean verbosityLevelIsMet(UserIO.Verbosity minLevel) {
+		return getUserIO().verbosityLevelIsMet(minLevel);
 	}
 
-	protected static Integer verbosityToInt(Verbosity level) {
-		Integer levelNum = null;
-		if (level != null) {
-			String minLevelStr = level.toString();
-			
-			Pattern pattern = Pattern.compile("^Level([\\d]+|null)$");
-	        Matcher matcher = pattern.matcher(minLevelStr);
-	        boolean matches = matcher.matches();
-			String levelNumStr = matcher.group(1);
-			
-			if (!levelNumStr.equals("null")) {
-				levelNum = Integer.parseInt(levelNumStr);
-			}
-		}
-		return levelNum;
+	protected  Integer verbosityToInt(UserIO.Verbosity level) {
+		return getUserIO().verbosityToInt(level);
 	}
+	
 
 	public void usageMissingOption(String optionName) {
 		usage("Sub-command '"+name+"' requires a value for the '"+optionName+"' option.");
@@ -241,10 +212,10 @@ public abstract class SubCommand {
 		usage("Bad value of option '"+optionName+"' : "+reason);
 	}
 
-	public static void error(String message) {
-		echo("*********************************************************************", Verbosity.Level0);
-		echo("* ERROR: "+message, Verbosity.Level0);
-		echo("*********************************************************************", Verbosity.Level0);
+	public void error(String message) {
+		echo("*********************************************************************", UserIO.Verbosity.Level0);
+		echo("* ERROR: "+message, UserIO.Verbosity.Level0);
+		echo("*********************************************************************", UserIO.Verbosity.Level0);
 		
 		if (sysexitOnBadUsage) {
 			System.exit(1);
@@ -253,17 +224,17 @@ public abstract class SubCommand {
 		}
 	}
 	
-	public static Verbosity verbosityLevel(Integer levelNum) {
-		Verbosity level = Verbosity.Level0;
+	public static UserIO.Verbosity verbosityLevel(Integer levelNum) {
+		UserIO.Verbosity level = UserIO.Verbosity.Level0;
 		if (levelNum > 5) levelNum = 5;
 		if (levelNum < 0) levelNum = 0;
 		String levelStr = "Level"+levelNum;
-		level = Verbosity.valueOf(levelStr);
+		level = UserIO.Verbosity.valueOf(levelStr);
 		return level;
 	}
 	
-	protected  Verbosity getVerbosity() {
-		Verbosity verbLevel = Verbosity.Level0;
+	protected  UserIO.Verbosity getVerbosity() {
+		UserIO.Verbosity verbLevel = UserIO.Verbosity.Level0;
 		String verbOptionStr = getOptionValue(OPT_VERBOSITY, false);
 		if (verbOptionStr == null) verbOptionStr = "0";
 			try {
@@ -272,7 +243,7 @@ public abstract class SubCommand {
 				} else {
 					Integer verbLevelInt = Integer.parseInt(verbOptionStr);
 					String verbLevelStr = "Level"+verbLevelInt;
-					verbLevel = Verbosity.valueOf(verbLevelStr);
+					verbLevel = UserIO.Verbosity.valueOf(verbLevelStr);
 				}
 			} catch (Exception e) {
 				usageBadOption(OPT_VERBOSITY, "should have benn an integer");
@@ -281,24 +252,25 @@ public abstract class SubCommand {
 		return verbLevel;
 	}
 	
-	protected Boolean prompt_yes_or_no(String mess) {
-		Pattern patt = Pattern.compile("^\\s*([yn])");
-		boolean answer = false;
-		while (true) {
-			echo("\n"+mess+" (y/n)\n> ", false);	
-			Scanner input = new Scanner(System.in);
-			String yn = input.nextLine();
-			Matcher matcher = patt.matcher(yn);
-			if (matcher.matches()) {
-				answer = false;
-				String ynGroup = matcher.group(1);
-				if (ynGroup.equals("y")) {
-					answer = true;
-				}
-				break;
-			}
-		}
-		return answer;
-	}
+//	protected Boolean prompt_yes_or_no(String mess) {
+//		Pattern patt = Pattern.compile("^\\s*([yn])");
+//		boolean answer = false;
+//		while (true) {
+//			echo("\n"+mess+" (y/n)\n> ", false);	
+//			Scanner input = new Scanner(System.in);
+//			String yn = input.nextLine();
+//			Matcher matcher = patt.matcher(yn);
+//			if (matcher.matches()) {
+//				answer = false;
+//				String ynGroup = matcher.group(1);
+//				if (ynGroup.equals("y")) {
+//					answer = true;
+//				}
+//				break;
+//			}
+//		}
+//		return answer;
+//	}
+	
 
 }

@@ -8,13 +8,22 @@ import java.util.Map;
 import org.junit.Test;
 
 public class SubCommandTest {
+	
+	public static class DummySubCommand extends SubCommand {
+
+		@Override
+		public void execute() throws Exception {}
+		@Override
+		public String getUsageOverview() {return "";}
+		
+	}
 
 	@Test
 	public void test_verbosityToInt() {
-		Integer gotInt = SubCommand.verbosityToInt(SubCommand.Verbosity.Level2);
+		Integer gotInt = new DummySubCommand().verbosityToInt(UserIO.Verbosity.Level2);
 		assertEquals(new Integer(2), gotInt);
 		
-		gotInt = SubCommand.verbosityToInt(SubCommand.Verbosity.Levelnull);
+		gotInt = new DummySubCommand().verbosityToInt(UserIO.Verbosity.Levelnull);
 		assertEquals(null, gotInt);
 		
 	}

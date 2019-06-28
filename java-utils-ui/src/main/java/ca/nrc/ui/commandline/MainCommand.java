@@ -23,10 +23,22 @@ import ca.nrc.datastructure.Pair;
 
 public class MainCommand {
 	
+	// This class exists only so MainCommand can invoke the error() method of
+	//   SubCommand (which cannot be instantiated because it is abstract).
+	//
+	protected class SubCommandNull extends SubCommand {
+		@Override
+		public void execute() throws Exception {}
+		@Override
+		public String getUsageOverview() {return "";}
+		
+	}
+	
 	private String usageOneLiner = null;
 	Options allCommandsOptions = new Options();
 	Map<String,SubCommand> subCommands = new HashMap<String,SubCommand>();
 	String subCommandName = null;
+	
 	
 	
 	public MainCommand(String _usageOneLiner) {
@@ -48,10 +60,9 @@ public class MainCommand {
 		Pair<SubCommand, CommandLine> cmdAndConfig = makeSubCommandAndConfig(args);
 		SubCommand command = cmdAndConfig.getFirst();
 		CommandLine cmdLine = cmdAndConfig.getSecond();
+				
 		command.run(cmdLine, subCommandName);
-		if (command.verbosity != SubCommand.Verbosity.Levelnull && command.verbosity != SubCommand.Verbosity.Level0) {
-			SubCommand.echo("Done");
-		}
+		command.echo("Done");
 	}
 	
 	public Pair<SubCommand, CommandLine> makeSubCommandAndConfig(String[] args) {
@@ -77,6 +88,9 @@ public class MainCommand {
 		if (argsList.size() > 1) {
 			usageBadCommandLine("Too many arguments. The command should have only one argument.\nArguments were: "+String.join(", ", argsList));
 		}
+		
+		
+		
 		
 		return Pair.of(command, cmdLine);
 	}
@@ -115,15 +129,14 @@ public class MainCommand {
 	}
 	
 	private void echo(String message) {
-		SubCommand.echo(message);
+		new UserIO().echo(message);
 	}
 	
 	private void echo(int indentLevelChange) {
-		SubCommand.echo(indentLevelChange);
+		new UserIO().echo(indentLevelChange);
 	}
 	
 	private void error(String message) {
-		SubCommand.error(message);
+		new SubCommandNull().error(message);
 	}
-
 }

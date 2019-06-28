@@ -1,13 +1,11 @@
 package ca.nrc.ui.commandline;
 
-import java.security.InvalidParameterException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import ca.nrc.ui.commandline.SubCommand.Verbosity;
 
 /*
  * Allows a class to 'listen' to echo (aka 'print') messages sent by another class.
@@ -21,8 +19,19 @@ import ca.nrc.ui.commandline.SubCommand.Verbosity;
 public class UserIO {
 	
 	public static enum Verbosity {Levelnull, Level0, Level1, Level2, Level3, Level4, Level5};
-	protected static Verbosity verbosity = Verbosity.Level1;
+	protected Verbosity verbosity = Verbosity.Level1;
 	
+	
+	public UserIO() { initialize(Verbosity.Levelnull); }
+	
+	
+	public UserIO(Verbosity _verbosity) { initialize(_verbosity); }
+
+	public void initialize(Verbosity _verbosity) {
+		if (_verbosity == null) _verbosity = Verbosity.Levelnull;
+		this.verbosity = _verbosity;
+	}
+			
 	
 	private static int currentIndentation = 0;
 	public static final Map<Integer,String> indentation = new HashMap<Integer,String>();
