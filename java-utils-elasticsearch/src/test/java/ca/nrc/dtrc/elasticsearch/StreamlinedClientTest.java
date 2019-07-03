@@ -897,6 +897,26 @@ public class StreamlinedClientTest {
 		ESTestHelpers.assertDocTypeContainsDoc("Bulk indexed index did not contain the expected documents",
 				esClient.getIndexName(), "books", expDocIDs, new Document());
 	}
+	
+	@Test(expected=BadDocProtoException.class)
+	public void test__listAll__WrongDocType__RaisesBadDocProtoException() throws Exception {
+		String indexName = "es-test";
+		StreamlinedClient client = new StreamlinedClient(indexName);
+		
+		//
+		// Create a collection with an object of type Person
+		//
+		String collection = "cartoon_character";
+		Person homer = new Person("Homer", "Simpson");
+		String jsonResponse = client.putDocument(collection, homer);
+		
+		//
+		// Try to listAll that collection, giving it a prototype of
+		// the wrong type (Playline)
+		//
+		PlayLine badProto = new PlayLine();
+		client.listAll(collection, badProto);
+	}
 
 	/*************************
 	 * TEST HELPERS

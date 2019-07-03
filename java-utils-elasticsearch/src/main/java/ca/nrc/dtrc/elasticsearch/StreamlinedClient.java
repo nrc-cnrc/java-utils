@@ -350,7 +350,12 @@ public class StreamlinedClient {
 		tLogger.trace("invoking url="+url);
 		String jsonResponse = post(url, "{}");
 		
-		SearchResults<T> results = new SearchResults<T>(jsonResponse, docPrototype, this);
+		SearchResults<T> results;
+		try {
+			results = new SearchResults<T>(jsonResponse, docPrototype, this);
+		} catch (ElasticSearchException e) {
+			throw new BadDocProtoException(e);
+		}
 		
 		return results;
 	}		
