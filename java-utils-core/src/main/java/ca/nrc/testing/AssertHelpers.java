@@ -432,6 +432,31 @@ public class AssertHelpers {
 		}
 		assertUnOrderedSameElements(failMessageStart, exp, gotList);
 	}
+
+	public static <T> void assertUnOrderedSameElements(String failMessageStart, T[] exp, Set<T> got) throws IOException {
+		List<T> expList = new ArrayList<T>();
+		for (T elt: exp) {
+			expList.add(elt);
+		}
+		List<T> gotList = new ArrayList<T>();
+		for (T elt: exp) {
+			gotList.add(elt);
+		}
+		assertUnOrderedSameElements(failMessageStart, expList, gotList);
+	}
+	
+	public static <T> void assertUnOrderedSameElements(String failMessageStart, Set<T> exp, T[] got) throws IOException {
+		List<T> expList = new ArrayList<T>();
+		for (T elt: exp) {
+			expList.add(elt);
+		}
+		List<T> gotList = new ArrayList<T>();
+		for (T elt: exp) {
+			gotList.add(elt);
+		}
+		assertUnOrderedSameElements(failMessageStart, expList, gotList);
+	}
+	
 	
 	/**
 	 * Indicates if elements in two collections are the same, ignoring the order of elements
