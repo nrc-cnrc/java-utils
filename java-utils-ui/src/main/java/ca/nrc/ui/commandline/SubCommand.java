@@ -29,7 +29,7 @@ public abstract class SubCommand {
 	private String usageOneLiner = null;
 	
 //	private UserIO user_io = new UserIO();
-	private UserIO user_io = null;
+	protected UserIO user_io = null;
 		protected UserIO getUserIO() {
 			if (user_io == null) {
 				UserIO.Verbosity verbosity = getVerbosity();
