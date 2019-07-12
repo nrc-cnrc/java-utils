@@ -31,10 +31,10 @@ public class MainCommand {
 		public void execute() throws Exception {}
 		@Override
 		public String getUsageOverview() {return "";}
-		
 	}
 	
 	private String usageOneLiner = null;
+	private Option optVerbosity = null;
 	Options allCommandsOptions = new Options();
 	Map<String,SubCommand> subCommands = new HashMap<String,SubCommand>();
 	String subCommandName = null;
@@ -42,10 +42,20 @@ public class MainCommand {
 	
 	
 	public MainCommand(String _usageOneLiner) {
+		initialize(_usageOneLiner);
+	}
+	
+	private void initialize(String _usageOneLiner) {
 		this.usageOneLiner = _usageOneLiner;
+		
+		optVerbosity = Option.builder(null).longOpt(SubCommand.OPT_VERBOSITY)
+				.desc("Verbosity level.").hasArg().argName("VERBOSITY_LEVEL")
+				.build();
+		allCommandsOptions.addOption(optVerbosity);
 	}
 
 	public void addSubCommand(SubCommand subCommand) throws CommandLineException {
+		subCommand.addOption(optVerbosity);
 		for (Option anOpt: subCommand.options.getOptions()) {
 			allCommandsOptions.addOption(anOpt);
 		}
