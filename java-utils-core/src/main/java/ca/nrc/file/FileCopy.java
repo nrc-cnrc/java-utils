@@ -1,5 +1,6 @@
 package ca.nrc.file;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -7,6 +8,12 @@ import java.nio.file.Path;
 import org.apache.commons.io.FileUtils;
 
 public class FileCopy {
+
+	public static void copyFolder(File srcFolder, File destFolder) {
+		copyFolder(srcFolder.toPath(), destFolder.toPath());
+	}
+	
+	
 	public static void copyFolder(Path srcFolder, Path destFolder) {
 		try {
 	        Files.walk( srcFolder ).forEach( s -> {
