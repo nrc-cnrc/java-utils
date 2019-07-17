@@ -71,7 +71,7 @@ public class UserIO {
 
 	
 	public void echo(String message) {
-		echo(message, 0, Verbosity.Level1);
+		echo(message, 0, Verbosity.Level0);
 	}
 	
 	public void echo(String message, Verbosity level) {
@@ -79,7 +79,7 @@ public class UserIO {
 	}
 	
 	public void echo(String message, int indentLevelChange) {
-		echo(message, indentLevelChange, Verbosity.Level1);
+		echo(message, indentLevelChange, Verbosity.Level0);
 	}
 
 	public void echo(String message, int indentLevelChange, Verbosity level) {
