@@ -51,7 +51,7 @@ public class ObjectStreamReader implements Closeable {
 	Map<String,String> bodyEndMarkerChoices = new HashMap<String,String>();
 	{
 		bodyEndMarkerChoices.put("BLANK_LINE", "^\\s*$");
-		bodyEndMarkerChoices.put("NEW_LINE", "^[\\s\\S]*$");
+		bodyEndMarkerChoices.put("NEW_LINE", "^\\s*\\S+[\\s\\S]*$"); // Non-blank line
 	}
 	String regexBodyLast = bodyEndMarkerChoices.get("BLANK_LINE");
 	

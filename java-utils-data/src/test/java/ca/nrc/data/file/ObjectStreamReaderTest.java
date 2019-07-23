@@ -7,11 +7,13 @@ import java.io.IOException;
 import java.io.StringReader;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import ca.nrc.data.file.ObjectStreamReader;
 import ca.nrc.file.ResourceGetter;
+import ca.nrc.json.PrettyPrinter;
 import ca.nrc.testing.AssertHelpers;
 
 public class ObjectStreamReaderTest {
@@ -177,6 +179,34 @@ public class ObjectStreamReaderTest {
 		expJson = "{\"greetings\": \"yo man!\"}";
 		AssertHelpers.assertEqualsJsonCompare(expJson, obj);
 	}
+	
+	
+	@Test
+	public void test__read__OneObjecPerLineButBlankLinesBetweenObjects() throws Exception {
+		StringReader strReader = 
+				new StringReader(
+						  "bodyEndMarker=NEW_LINE"
+						+ "\n"
+						+ "class=ca.nrc.data.file.DummyClass1\n"
+						+ "\n"
+						+ "{\"greetings\": \"hello world\"}\n"
+						+ "\n"
+						+ "{\"greetings\": \"yo man!\"}"
+						);
+		ObjectStreamReader reader = new ObjectStreamReader(strReader);
+		
+		Object obj =  reader.readObject();
+		assertObjectHasClass(obj, DummyClass1.class);
+		
+		String expJson = "{\"greetings\": \"hello world\"}";
+		AssertHelpers.assertEqualsJsonCompare(expJson, obj);
+		
+		obj =  reader.readObject();	
+		expJson = "{\"greetings\": \"yo man!\"}";
+		AssertHelpers.assertEqualsJsonCompare(expJson, obj);
+	}
+	
+	
 	private void assertObjectHasClass(Object obj, Class type) {
 		if (obj == null) {
 			fail("Object was null. Should have been non-null instance of "+type);
