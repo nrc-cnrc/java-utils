@@ -206,6 +206,25 @@ public class ObjectStreamReaderTest {
 		AssertHelpers.assertEqualsJsonCompare(expJson, obj);
 	}
 	
+
+	@Test
+	public void test__read__UnescapedQuoteInOneOfTheObjects() throws Exception {
+		StringReader strReader = 
+				new StringReader(
+						  "bodyEndMarker=NEW_LINE"
+						+ "\n"
+						+ "class=ca.nrc.data.file.DummyClass1\n"
+						+ "\n"
+						+ "{\"greetings\": \"hello \"world\"\"}\n"
+						+ "\n"
+						+ "{\"greetings\": \"yo man!\"}"
+						);
+		ObjectStreamReader reader = new ObjectStreamReader(strReader);
+		
+		Object obj =  reader.readObject();
+		String expJson = "{\"greetings\": \"yo man!\"}";
+		AssertHelpers.assertEqualsJsonCompare(expJson, obj);
+	}
 	
 	private void assertObjectHasClass(Object obj, Class type) {
 		if (obj == null) {

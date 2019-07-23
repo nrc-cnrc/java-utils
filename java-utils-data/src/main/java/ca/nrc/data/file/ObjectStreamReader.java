@@ -31,6 +31,9 @@ public class ObjectStreamReader implements Closeable {
 	
 	public boolean verbose = true;
 	
+	public boolean stopOnMalformedObject = false;
+	public boolean currentObjWasMalformed = true;
+	
 	BufferedReader buffReader = null;
 	public int lineCount = 1;
 	public int startLine = 1;
@@ -38,6 +41,7 @@ public class ObjectStreamReader implements Closeable {
 	public String currentLine = null;
 	
 	private Class currentObjClass = Object.class;
+
 	private boolean insideOfBody = false;
 	private StringBuilder objectBodyBuilder = null;
 	
@@ -119,32 +123,42 @@ public class ObjectStreamReader implements Closeable {
 				continue;
 			} else if (lineType.equals("bodyEndMarker")) {
 				onBodyEndMarkerDefinition(lineParameters);
+				continue;
 			} else if (lineType.equals("bodyFirstAndLast") && !currentLine.isEmpty()) {
-				return onObjectBodyFirstAndLast(currentLine);
+				object = onObjectBodyFirstAndLast(currentLine);
+				if (! currentObjWasMalformed) break;
 			} else if (lineType.equals("objectBody")) {
 				onObjectBodyMiddleLine(currentLine);
+				continue;
 			} else if (lineType.equals("objectBodyLast")) {
-				return onObjectBodyEnd(currentLine);
+				object = onObjectBodyEnd(currentLine);
+				if (! currentObjWasMalformed) break;
 			} else if (lineType.equals("eof")) {
 				if (insideOfBody) {
-					return onObjectBodyEnd("");
+					object = onObjectBodyEnd("");
+					break;
 				} else {
 					close(); // close the reader when you reach the end
-					return null;
+					object = null;
+					break;
 				}
 			} else if (lineType.equals("class")) {
 				onClassLine(lineParameters);
+				continue;
 			} else if (lineType.equals("bodyLast")) {
 				if (insideOfBody) {
 					// bodyEnd line while processing body of an object means
 					// we reached the end of the object's body.
-					return onObjectBodyEnd(currentLine);
+					object = onObjectBodyEnd(currentLine);
+					if (! currentObjWasMalformed) break;
 				} else {
 					// Skip blank lines before start of a class body
 					continue;
 				}
 			}			
 		}
+		
+		return object;
 	}
 
 	private void onBodyEndMarkerDefinition(Map<String, String> lineParameters) {
@@ -168,6 +182,7 @@ public class ObjectStreamReader implements Closeable {
 	private Object onObjectBodyEnd(String currentLine) throws JsonParseException, IOException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.json.ObjectStreamReader.onObjectBodyEnd");
 		tLogger.trace("invoked");
+		currentObjWasMalformed = false;
 		objectBodyBuilder.append(currentLine);
 		
 		Object object = null;
@@ -184,13 +199,14 @@ public class ObjectStreamReader implements Closeable {
 		try {
 			object = getMapper().readValue(objectJson, currentObjClass);
 		} catch (Exception exc) {
+			currentObjWasMalformed = true;
 			String mess = badJsonMess+"\nCould not map object to an instance of "+currentObjClass;
 			Exception excToInclude = null;
 			if (verbose) {
 				mess += "\nBody of object was:\n"+objectJson;
 				excToInclude = exc;
 			}
-			error(mess, excToInclude);
+			error(mess, excToInclude, stopOnMalformedObject);
 		}
 		
 				
@@ -226,16 +242,26 @@ public class ObjectStreamReader implements Closeable {
 		
 	}
 
+	private void errorMalformedJSON(String message, Exception exc) {
+		currentObjWasMalformed = true;
+		error(message, exc, null);
+	}
+	
 	private void error(String message) {
-		error(message, null);
+		error(message, null, null);
 	}
 
-	private void error(String message, Exception exc) {
+	private void error(String message, Exception exc, Boolean raiseException)  {
+		if (raiseException == null) { raiseException = true; }
 		message = "Error at line "+lineCount + ":\n   " + currentLine + "\n" + message;
 		if (exc != null) {
 			message += "\n\n" + exc.getMessage();
 		}
-		throw new InputMismatchException(message);
+		if (raiseException) {
+			throw new InputMismatchException(message);
+		} else {
+			System.out.println("ERROR in JSON file.\n"+message+"Skipping to next JSON entry.");
+		}
 	}
 
 	private Pair<String, Map<String, String>> parseLineInfo(String line) {
