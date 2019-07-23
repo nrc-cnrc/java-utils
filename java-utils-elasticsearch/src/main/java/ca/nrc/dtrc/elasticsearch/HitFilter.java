@@ -1,12 +1,12 @@
 package ca.nrc.dtrc.elasticsearch;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import ca.nrc.datastructure.Pair;
+import ca.nrc.dtrc.elasticsearch.HitFilter;
 
 //
 // ElasticSearch does not support use of filters with MLT (More Like This) search.

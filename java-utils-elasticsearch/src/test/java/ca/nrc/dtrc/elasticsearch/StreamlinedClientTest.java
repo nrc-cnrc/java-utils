@@ -909,13 +909,15 @@ public class StreamlinedClientTest {
 		String collection = "cartoon_character";
 		Person homer = new Person("Homer", "Simpson");
 		String jsonResponse = client.putDocument(collection, homer);
+		Thread.sleep(1*1000);
 		
 		//
 		// Try to listAll that collection, giving it a prototype of
 		// the wrong type (Playline)
 		//
 		PlayLine badProto = new PlayLine();
-		client.listAll(collection, badProto);
+		
+		SearchResults<PlayLine> result =  client.listAll(collection, badProto);
 	}
 
 	/*************************

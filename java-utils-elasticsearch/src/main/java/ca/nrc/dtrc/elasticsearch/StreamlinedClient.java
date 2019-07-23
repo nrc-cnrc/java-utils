@@ -6,7 +6,6 @@ import java.beans.IntrospectionException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -350,12 +349,7 @@ public class StreamlinedClient {
 		tLogger.trace("invoking url="+url);
 		String jsonResponse = post(url, "{}");
 		
-		SearchResults<T> results;
-		try {
-			results = new SearchResults<T>(jsonResponse, docPrototype, this);
-		} catch (ElasticSearchException e) {
-			throw new BadDocProtoException(e);
-		}
+		SearchResults<T> results = new SearchResults<T>(jsonResponse, docPrototype, this);
 		
 		return results;
 	}		
@@ -514,7 +508,7 @@ public class StreamlinedClient {
 		}
 		
 		if (exception == null && responseObj.containsKey("error")) {
-			exception = new ElasticSearchException(responseObj);
+			exception = makeElasticSearchException(responseObj);
 		}
 		
 		if (exception != null) throw exception;
@@ -765,13 +759,9 @@ public class StreamlinedClient {
 		try {
 			delete(url);	
 			clearFieldTypesCache();
-		} catch (ElasticSearchException exc) {
-			if (exc.getMessage().contains("index_not_found_exception")) {
-				// OK... we tried to delete an index that did not exist
-			} else {
-				// This was something else... so re-throw the exception
-				throw exc;
-			}
+		} catch (NoSuchIndexException e) {
+			// OK... we tried to delete an index that did not exist
+			// All other exception types must be passed along 
 		}
 	}
 
@@ -1577,4 +1567,32 @@ public class StreamlinedClient {
 			throw new ElasticSearchException(e);
 		}
 	}
+	
+	private static ElasticSearchException makeElasticSearchException(Map<String, Object> responseObj) {
+		ElasticSearchException exc = new ElasticSearchException(responseObj);
+		
+		if (responseObj.containsKey("error")) {
+			Map<String,Object> error = (Map<String, Object>) responseObj.get("error");
+			if (error.containsKey("root_cause")) {
+				List<Object> rootCauseLst = (List<Object>) error.get("root_cause");
+				if (rootCauseLst.size() > 0) {
+					Map<String,Object> rootCause = (Map<String, Object>) rootCauseLst.get(0);
+					if (rootCause.containsKey("type")) {
+						String errorType = (String) rootCause.get("type");
+						if (errorType.equals("index_not_found_exception")) {
+							String indexName = "<unknown>";
+							if (rootCause.containsKey("index")) {
+								indexName = (String) rootCause.get("index");
+							}
+							exc =  new NoSuchIndexException("No such index: "+indexName);
+						} 
+					}
+				}
+			}
+		}
+		
+		
+		return exc;
+	}
+	
 }

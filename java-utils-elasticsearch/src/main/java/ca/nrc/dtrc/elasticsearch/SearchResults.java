@@ -97,7 +97,12 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 			String hitJson = null;
 			for (int ii=0; ii < hitsArrNode.size(); ii++) {
 				hitJson = hitsArrNode.get(ii).get("_source").toString();
-				T hitObject = (T) mapper.readValue(hitJson, docPrototype.getClass());
+				T hitObject = null;
+				try {
+					hitObject = (T) mapper.readValue(hitJson, docPrototype.getClass());
+				} catch (Exception e) {
+					throw new BadDocProtoException(e);
+				}
 				Double hitScore = hitsArrNode.get(ii).get("_score").asDouble();
 				
 				scoredDocuments.add(new Hit<T>(hitObject, hitScore, hitsArrNode.get(ii).get("highlight")));
