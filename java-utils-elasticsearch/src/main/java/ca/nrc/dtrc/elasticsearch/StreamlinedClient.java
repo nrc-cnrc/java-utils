@@ -537,6 +537,16 @@ public class StreamlinedClient {
 	}
 	
 	public <T extends Document> SearchResults<T> searchFreeform(String query, String docTypeName, T docPrototype) throws ElasticSearchException {
+		return searchFreeform(query, docTypeName, docPrototype, null);	
+	}
+
+	public <T extends Document> SearchResults<T> searchFreeform(String query, String docTypeName, 
+			T docPrototype, List<Pair<String,String>> sortBy) throws ElasticSearchException {
+				
+		if (sortBy == null) {
+			sortBy = new ArrayList<Pair<String,String>>();
+		}
+		
 		String jsonQuery = null;
 		
 		query = escapeQuotes(query);
@@ -544,16 +554,32 @@ public class StreamlinedClient {
 		if (query == null) {
 			jsonQuery= "{}";
 		} else {
-			jsonQuery = 
-					"{"+
+			String jsonQueryInner = 
+//					"{"+
 					   "\"query\": {"+
 							"\"query_string\": {\"query\": \""+query+"\"}"+
 						"},"+
 						"\"highlight\": {"+
 							"\"fields\": {\"longDescription\": {}}"+
-						"}"+
-					"}"
+						"}"
+//					"}"
 					;
+			
+			if (sortBy.size() > 0) {
+				jsonQueryInner += ", \"sort\": [";
+				int counter = 0;
+				for (Pair<String,String> sortCriterion: sortBy) {
+					if (counter > 0) {
+						jsonQueryInner += ",";
+					}
+					jsonQueryInner += "{\""+sortCriterion.getFirst()+"\": \""+sortCriterion.getSecond()+"\"}";
+					counter++;
+				}
+				jsonQueryInner += "]";
+			}
+			
+			jsonQuery = "{"+jsonQueryInner+"}";
+
 		}
 		SearchResults<T> hits = search(jsonQuery, docTypeName, docPrototype);
 		
