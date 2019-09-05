@@ -186,6 +186,8 @@ public class StreamlinedClientTest {
 		hits = client.searchFreeform(query, personPrototype);
 	}
 	
+
+	
 	@Test
 	public void test__SearchSimilarDocs() throws Exception {
 		String indexName = "es-test";
@@ -429,7 +431,26 @@ public class StreamlinedClientTest {
 		String query = "\"state of denmark\"";
 		SearchResults<ESTestHelpers.PlayLine> gotSearchResults = client.searchFreeform(query, new PlayLine());		
 		assertIsInFirstNHits("Something is rotten in the state of Denmark.", 3, "longDescription", gotSearchResults);
+	}	
+	
+	// Ignore for now because I need to set the 'id' field of the hamlet index to be of type 'keyword'
+	@Test @Ignore
+	public void test__searchFreeform__SortOrder() throws Exception {
+		ESTestHelpers.PlayLine line = new ESTestHelpers.PlayLine("hello world");
+		Introspection.getFieldValue(line, "longDescription", true);
+		
+		StreamlinedClient client = ESTestHelpers.makeHamletTestClient();	
+		Thread.sleep(1*1000);
+
+		String query = "denmark AND rotten";
+		List<Pair<String,String>> sortBy = new ArrayList<Pair<String,String>>();
+		{
+			sortBy.add(Pair.of("id", "desc"));
+		}
+		SearchResults<ESTestHelpers.PlayLine> gotSearchResults = client.searchFreeform(query, new PlayLine(), sortBy);		
+		assertIsInFirstNHits("Something is rotten in the state of Denmark.", 3, "longDescription", gotSearchResults);
 	}		
+	
 
 	@Test
 	public void test__escapeQuotes__HappyPath() {
