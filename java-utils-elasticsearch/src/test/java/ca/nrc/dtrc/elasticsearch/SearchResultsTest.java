@@ -1,10 +1,7 @@
 package ca.nrc.dtrc.elasticsearch;
 
-import static org.junit.Assert.*;
 
 import java.util.Iterator;
-
-import static ca.nrc.dtrc.elasticsearch.ESTestHelpers.PlayLine;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -60,6 +57,7 @@ public class SearchResultsTest {
 	@Test
 	public void test__setFilter__HappyPath() throws Exception {
 		StreamlinedClient client = ESTestHelpers.makeHamletTestClient();
+		Thread.sleep(1*1000);
 		
 		String query = "+content:kingdom";
 		SearchResults<PlayLine> results = client.searchFreeform(query, new PlayLine());
