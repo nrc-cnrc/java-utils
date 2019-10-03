@@ -1,5 +1,6 @@
 package ca.nrc.ui.commandline;
 
+import java.security.InvalidParameterException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -146,7 +147,16 @@ public class MainCommand {
 		new UserIO().echo(indentLevelChange);
 	}
 	
-	private void error(String message) {
-		new SubCommandNull().error(message);
+	public void error(String message) {
+		System.out.println("*********************************************************************");
+		System.out.println("* ERROR: "+message);
+		System.out.println("*********************************************************************");
+		
+		if (SubCommand.sysexitOnBadUsage) {
+			System.exit(1);
+		} else {
+			throw new InvalidParameterException(message);
+		}
 	}
+	
 }
