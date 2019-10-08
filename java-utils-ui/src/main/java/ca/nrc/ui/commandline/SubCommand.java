@@ -89,7 +89,7 @@ public abstract class SubCommand {
 		return getOptionValue(optName, true);
 	}
 	
-	public String getOptionValue(String optName, boolean failIfAbsent) {
+	public String getOptionValue(String optName, Boolean failIfAbsent) {
 		String optValue = cmdLine.getOptionValue(optName);
 		if (optValue == null && failIfAbsent) {
 			usageMissingOption(optName);
@@ -235,19 +235,21 @@ public abstract class SubCommand {
 	
 	protected  UserIO.Verbosity getVerbosity() {
 		UserIO.Verbosity verbLevel = UserIO.Verbosity.Level0;
-		String verbOptionStr = getOptionValue(OPT_VERBOSITY, false);
-		if (verbOptionStr == null) verbOptionStr = "0";
-			try {
-				if (verbOptionStr.matches("^\\s*null\\s*$")) {
-					verbLevel = null;
-				} else {
-					Integer verbLevelInt = Integer.parseInt(verbOptionStr);
-					String verbLevelStr = "Level"+verbLevelInt;
-					verbLevel = UserIO.Verbosity.valueOf(verbLevelStr);
+		if (cmdLine != null) {
+			String verbOptionStr = getOptionValue(OPT_VERBOSITY, false);
+			if (verbOptionStr == null) verbOptionStr = "0";
+				try {
+					if (verbOptionStr.matches("^\\s*null\\s*$")) {
+						verbLevel = null;
+					} else {
+						Integer verbLevelInt = Integer.parseInt(verbOptionStr);
+						String verbLevelStr = "Level"+verbLevelInt;
+						verbLevel = UserIO.Verbosity.valueOf(verbLevelStr);
+					}
+				} catch (Exception e) {
+					usageBadOption(OPT_VERBOSITY, "should have benn an integer");
 				}
-			} catch (Exception e) {
-				usageBadOption(OPT_VERBOSITY, "should have benn an integer");
-			}
+		}
 		
 		return verbLevel;
 	}
