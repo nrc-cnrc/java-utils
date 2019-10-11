@@ -18,7 +18,7 @@ public class HistogramTest {
 	///////////////////////////////////
 	
 	@Test
-	public void test__Histogram__Synopsis() {
+	public void test__Histogram__Synopsis() throws Exception {
 		// Use this class to build a histogram of numbers
 		//
 
@@ -29,7 +29,7 @@ public class HistogramTest {
 		}
 
 		int numBins = 10;
-		Histogram hist = new Histogram(numBins);
+		Histogram hist = new Histogram(numBins, 0.0, 100.0);
 		hist.load(data);
 		
 		for (int ii=0; ii < hist.numBins; ii++) {
@@ -48,20 +48,20 @@ public class HistogramTest {
 	public void test__Histogram__HappyPath() throws Exception {
 		// Assume we have the following numbers
 		double[] data = new double[] {
-				3.0, 4.0, 103.0, 51.0, 15.
+				3.0, 4.0, 99.0, 51.0, 15.
 		};
 		
 		int numBins = 4;
-		Histogram hist = new Histogram(numBins);
+		Histogram hist = new Histogram(numBins, 0.0, 100.0);
 		hist.load(data);
 		HashMap<String,String> blah;
 		
 		List<Histogram.Bin> expBins = new ArrayList<Histogram.Bin>();
 		{
-			expBins.add(new Histogram.Bin(3.0, 28.0, 3));
-			expBins.add(new Histogram.Bin(28.0, 53.0, 1));
-			expBins.add(new Histogram.Bin(53, 78.0, 0));
-			expBins.add(new Histogram.Bin(78.0, 103.0, 1));
+			expBins.add(new Histogram.Bin(0.0, 25.0, 3));
+			expBins.add(new Histogram.Bin(25.0, 50.0, 0));
+			expBins.add(new Histogram.Bin(50, 75.0, 1));
+			expBins.add(new Histogram.Bin(75.0, 100.0, 1));
 		};
 		Histogram.Bin[] gotBins = hist.bins;
 		AssertHelpers.assertDeepEquals("Bins were not as expected", 
