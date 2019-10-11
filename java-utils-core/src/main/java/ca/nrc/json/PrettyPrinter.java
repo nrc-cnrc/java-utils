@@ -300,6 +300,9 @@ public class PrettyPrinter {
 
 	private String prettyPrintObject(Object obj, Set<String> fieldsToIgnore, int indentLevel) {
 		String baseIndentation = indentation(indentLevel);
+		if (fieldsToIgnore == null) {
+			fieldsToIgnore = new HashSet<String>();
+		}
 		
 		alreadySeen.add(obj);
 		List<Field> fields = getAllFields(obj);
