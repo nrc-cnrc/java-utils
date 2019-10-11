@@ -560,14 +560,12 @@ public class StreamlinedClient {
 			jsonQuery= "{}";
 		} else {
 			String jsonQueryInner = 
-//					"{"+
 					   "\"query\": {"+
 							"\"query_string\": {\"query\": \""+query+"\"}"+
 						"},"+
 						"\"highlight\": {"+
 							"\"fields\": {\"longDescription\": {}}"+
 						"}"
-//					"}"
 					;
 			
 			if (sortBy.size() > 0) {
