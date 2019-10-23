@@ -24,7 +24,8 @@ public class IndexDefTest {
 		// Use a FieldDef to define the characteristics of a field of a 
 		// document type in ElasticSearch
 		//
-		IndexDef iDef = new IndexDef();
+		String indexName = "some_index";
+		IndexDef iDef = new IndexDef(indexName);
 		
 		//
 		// Here is how you get the definition of a particular type in that index.
@@ -76,7 +77,8 @@ public class IndexDefTest {
 
 	@Test
 	public void test__toMap__HappyPath() throws Exception {
-		IndexDef iDef = new IndexDef();
+		String name = "books";
+		IndexDef iDef = new IndexDef(name);
 
 		// Define a BOOKS type
 		final String BOOKS = "books";

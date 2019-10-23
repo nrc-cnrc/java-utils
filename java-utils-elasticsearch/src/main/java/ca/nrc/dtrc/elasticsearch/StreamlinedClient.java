@@ -27,6 +27,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -58,7 +59,7 @@ public class StreamlinedClient {
 	// nodes and shards.
 	private double sleepSecs = 0.0;
 
-	private String indexName;
+	protected String indexName;
 		public String getIndexName() {return indexName;}
 		
 	private String serverName = "localhost";
@@ -72,7 +73,7 @@ public class StreamlinedClient {
 		}
 	
 	// Stores the types of the various fields for a given document type
-	private static Map<String,Map<String,String>> fieldTypesCache = null;
+//	private static Map<String,Map<String,String>> fieldTypesCache = null;
 
 	private static Builder requestBuilder = new Request.Builder();
 	
@@ -86,6 +87,10 @@ public class StreamlinedClient {
 
 	private List<StreamlinedClientObserver> observers = new ArrayList<StreamlinedClientObserver>();
 
+	public StreamlinedClient() {
+		initialize(null);
+	}
+	
 	public StreamlinedClient(String _indexName) {
 		initialize(_indexName);
 	}
@@ -93,7 +98,7 @@ public class StreamlinedClient {
 	public StreamlinedClient(String _indexName, double _sleepSecs) {
 		initialize(_indexName, _sleepSecs);
 	}
-
+	
 	public void initialize(String _indexName) {
 		initialize(_indexName, 0.0);
 	}
@@ -108,11 +113,20 @@ public class StreamlinedClient {
 		return this;
 	}
 
-	public StreamlinedClient setIndex(String _indexName) {
+	public StreamlinedClient setIndexName(String _indexName) {
 		this.indexName = canonicalIndexName(_indexName);
 		
 		return this;
 	}
+	
+	Index index = null;
+		@JsonIgnore
+		public Index getIndex() {
+			if (index == null) {
+				index = new Index(indexName);;
+			}
+			return index;
+		}
 
 	public StreamlinedClient setServer(String _serverName) {
 		this.serverName = _serverName;
@@ -146,32 +160,7 @@ public class StreamlinedClient {
 	
 	
 	public void defineIndex(Map<String, Object> indexSettings, Map<String, Object> indexMappings) throws ElasticSearchException {
-		
-		if (indexExists()) {
-			deleteIndex();
-		}
-		
-		String jsonString;
-		try {
-			jsonString = new ObjectMapper().writeValueAsString(indexMappings);
-		} catch (JsonProcessingException e) {
-			throw new ElasticSearchException(e);
-		}
-		
-		URL url = esUrlBuilder().build();
-		String json = put(url, jsonString);
-				
-		try {
-			jsonString = new ObjectMapper().writeValueAsString(indexSettings);
-		} catch (JsonProcessingException e) {
-			throw new ElasticSearchException(e);
-		}
-		
-		url = esUrlBuilder().forEndPoint("_settings").build();
-		json = put(url, jsonString);
-		
-		
-		
+		getIndex().setDefinition(indexSettings, indexMappings, null);
 		return;
 	}
 
@@ -191,7 +180,7 @@ public class StreamlinedClient {
 		return settings;
 	}
 
-	private boolean indexExists() {
+	protected boolean indexExists() {
 		URL url = null;
 		boolean exists = true;
 		try {
@@ -276,7 +265,7 @@ public class StreamlinedClient {
 		
 		String jsonResponse = post(url, jsonDoc);
 		
-		clearFieldTypesCache(type);		
+		getIndex().clearFieldTypesCache(type);		
 		
 		sleep();
 		return jsonResponse;
@@ -406,7 +395,7 @@ public class StreamlinedClient {
 	    return jsonResponse;
 	  }
 	
-	private String get(URL url) throws ElasticSearchException {
+	protected String get(URL url) throws ElasticSearchException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.get");
 		Request request = requestBuilder.get()
 		      .url(url)
@@ -783,15 +772,16 @@ public class StreamlinedClient {
 	}		
 	
 	public void deleteIndex() throws ElasticSearchException {
-		URL url = esUrlBuilder().build();
+		getIndex().deleteIndex();
+//		URL url = esUrlBuilder().build();
 		
-		try {
-			delete(url);	
-			clearFieldTypesCache();
-		} catch (NoSuchIndexException e) {
-			// OK... we tried to delete an index that did not exist
-			// All other exception types must be passed along 
-		}
+//		try {
+//			delete(url);	
+//			clearFieldTypesCache();
+//		} catch (NoSuchIndexException e) {
+//			// OK... we tried to delete an index that did not exist
+//			// All other exception types must be passed along 
+//		}
 	}
 
 	public <T extends Document> SearchResults<T> moreLikeThis(T queryDoc) throws ElasticSearchException, IOException, InterruptedException {
@@ -1078,7 +1068,7 @@ public class StreamlinedClient {
 		put(url, jsonContent);
 		
 		// A bulk operation may have changed the properties of different document types in different indices
-		clearFieldTypesCache();
+		getIndex().clearFieldTypesCache();
 	}
 	
 	public Document bulkIndex(String dataFPath, String defDocTypeName) throws ElasticSearchException {
@@ -1092,7 +1082,6 @@ public class StreamlinedClient {
 	public Document bulkIndex(String dataFPath, String defDocTypeName, int batchSize, boolean verbose) throws ElasticSearchException {
 		int docCounter = 0;
 		Document docPrototype = null;
-		deleteIndex();
 		ObjectMapper mapper = new ObjectMapper();
 		String currDocTypeName = defDocTypeName;
 		if (currDocTypeName == null) {
@@ -1113,7 +1102,11 @@ public class StreamlinedClient {
 				
 				if (obj instanceof IndexDef) {
 					if (firstDocumentWasRead) {
-						throw new ElasticSearchException("IndexDef object did not precede the first Document object in the json file: "+dataFPath);
+						String errMess = 
+								"\nIndexDef object did not precede the first Document object in the json file: "+dataFPath+"\n"+
+								"Error was found at line "+reader.lineCount+" of json data file.\n";
+						System.err.println(errMess);
+						throw new ElasticSearchException(errMess);
 					} else {
 						defineIndex((IndexDef) obj);
 					}
@@ -1184,37 +1177,6 @@ public class StreamlinedClient {
 		return docPrototype;
 	}
 	
-	
-
-//	private void configureIndexAnalyzer() throws ElasticSearchException {
-//		String jsonBody = 
-//				"{\n" + 
-//				"  \"settings\" : {\n" + 
-//				"    \"analysis\": {\n" + 
-//				"      \"filter\": {\n" + 
-//				"        \"filter_snowball_en\": {\n" + 
-//				"          \"type\": \"snowball\",\n" + 
-//				"          \"language\": \"English\"\n" + 
-//				"        }\n" + 
-//				"      },\n" + 
-//				"      \"analyzer\": {\n" + 
-//				"        \"my_analyzer\": {\n" + 
-//				"            \"filter\": [\n" + 
-//				"              \"lowercase\",\n" + 
-//				"              \"filter_snowball_en\"\n" + 
-//				"            ],\n" + 
-//				"          \"type\": \"custom\",\n" + 
-//				"          \"tokenizer\": \"whitespace\"\n" + 
-//				"        }\n" + 
-//				"      }\n" + 
-//				"    }\n" + 
-//				"  }\n" + 
-//				"}"
-//				;
-//
-//		URL url = esUrlBuilder().build();
-//		put(url, jsonBody);
-//	}
 
 	public void bulkIndex(BufferedReader br, String docTypeName, int batchSize, boolean verbose) throws IOException, ElasticSearchException {
 		if (batchSize < 0) batchSize = 100;
@@ -1301,13 +1263,13 @@ public class StreamlinedClient {
 	}
 
 	public Map<String,String> getFieldTypes(Class<? extends Document> docClass) throws ElasticSearchException {
-		return getFieldTypes(docClass.getName());
+		return getIndex().getFieldTypes(docClass.getName());
 	}
 
 	public String getFieldType(String fieldName, String docType) throws ElasticSearchException {
 		String fieldType = null;
 		
-		Map<String,String> allFieldTypes = getFieldTypes(docType);
+		Map<String,String> allFieldTypes = getIndex().getFieldTypes(docType);
 		if (allFieldTypes.containsKey(fieldName)) {
 			fieldType = allFieldTypes.get(fieldName);
 		}
@@ -1316,102 +1278,102 @@ public class StreamlinedClient {
 	}
 	
 	
-	public Map<String,String> getFieldTypes(String type) throws ElasticSearchException {
-		Map<String,String> fieldTypes = uncacheFieldTypes(type);
-		if (fieldTypes == null) {
-			fieldTypes = new HashMap<String,String>();
-			URL url = esUrlBuilder().forDocType(type)
-						.forEndPoint("_mapping")
-						.endPointBeforeType(true).build();
-			String jsonResponse = get(url);
-			ObjectNode oNode = objectNode();
-			ObjectMapper mapper = new ObjectMapper();
-			try {
-				oNode = mapper.readValue(jsonResponse, oNode.getClass());
-			} catch (IOException exc) {
-				throw new ElasticSearchException(exc);
-			}
-			
-			ObjectNode fieldsProps = (ObjectNode) oNode.get(indexName).get("mappings").get(type).get("properties");
-			
-			Iterator<Entry<String, JsonNode>> iterator = fieldsProps.fields();
-			while (iterator.hasNext()) {
-				Entry<String, JsonNode> entry = iterator.next();
-			    String aFldName = entry.getKey();
-			    JsonNode aFldProps = entry.getValue();			    
-			    if (aFldName.equals("additionalFields")) {
-			    	fieldTypes = collectAdditionalFields(aFldProps, fieldTypes);
-			    } else {
-				    String aFldType = null;
-				    if (aFldProps.has("type")) {
-				    	aFldType = aFldProps.get("type").asText();
-				    } else {
-				    	aFldType = "_EMBEDDED_STRUCTURE";
-				    }
-				    fieldTypes.put(aFldName, aFldType);
-			    }
-			}
-			
-			cacheFieldTypes(fieldTypes, type);
-		}
-		
-		return fieldTypes;
-	}
+//	public Map<String,String> getFieldTypes(String type) throws ElasticSearchException {
+//		Map<String,String> fieldTypes = uncacheFieldTypes(type);
+//		if (fieldTypes == null) {
+//			fieldTypes = new HashMap<String,String>();
+//			URL url = esUrlBuilder().forDocType(type)
+//						.forEndPoint("_mapping")
+//						.endPointBeforeType(true).build();
+//			String jsonResponse = get(url);
+//			ObjectNode oNode = objectNode();
+//			ObjectMapper mapper = new ObjectMapper();
+//			try {
+//				oNode = mapper.readValue(jsonResponse, oNode.getClass());
+//			} catch (IOException exc) {
+//				throw new ElasticSearchException(exc);
+//			}
+//			
+//			ObjectNode fieldsProps = (ObjectNode) oNode.get(indexName).get("mappings").get(type).get("properties");
+//			
+//			Iterator<Entry<String, JsonNode>> iterator = fieldsProps.fields();
+//			while (iterator.hasNext()) {
+//				Entry<String, JsonNode> entry = iterator.next();
+//			    String aFldName = entry.getKey();
+//			    JsonNode aFldProps = entry.getValue();			    
+//			    if (aFldName.equals("additionalFields")) {
+//			    	fieldTypes = collectAdditionalFields(aFldProps, fieldTypes);
+//			    } else {
+//				    String aFldType = null;
+//				    if (aFldProps.has("type")) {
+//				    	aFldType = aFldProps.get("type").asText();
+//				    } else {
+//				    	aFldType = "_EMBEDDED_STRUCTURE";
+//				    }
+//				    fieldTypes.put(aFldName, aFldType);
+//			    }
+//			}
+//			
+//			cacheFieldTypes(fieldTypes, type);
+//		}
+//		
+//		return fieldTypes;
+//	}
 	
-	private Map<String, String> collectAdditionalFields(JsonNode dynFieldsMapping, Map<String, String> fieldTypes) {
-		ObjectNode props = (ObjectNode) dynFieldsMapping.get("properties");
-		if (props != null) {
-			Iterator<Entry<String, JsonNode>> iterator = props.fields();
-			while (iterator.hasNext()) {
-				Entry<String, JsonNode> entry = iterator.next();
-			    String aFldName = entry.getKey();
-			    JsonNode aFldProps = entry.getValue();			    
-			    String aFldType = null;
-			    if (aFldProps.has("type")) {
-			    	aFldType = aFldProps.get("type").asText();
-			    } else {
-			    	aFldType = "_EMBEDDED_STRUCTURE";
-			    }
-			    fieldTypes.put("additionalFields."+aFldName, aFldType);			
-			}
-		}
-		
-		return fieldTypes;
-	}
+//	private Map<String, String> collectAdditionalFields(JsonNode dynFieldsMapping, Map<String, String> fieldTypes) {
+//		ObjectNode props = (ObjectNode) dynFieldsMapping.get("properties");
+//		if (props != null) {
+//			Iterator<Entry<String, JsonNode>> iterator = props.fields();
+//			while (iterator.hasNext()) {
+//				Entry<String, JsonNode> entry = iterator.next();
+//			    String aFldName = entry.getKey();
+//			    JsonNode aFldProps = entry.getValue();			    
+//			    String aFldType = null;
+//			    if (aFldProps.has("type")) {
+//			    	aFldType = aFldProps.get("type").asText();
+//			    } else {
+//			    	aFldType = "_EMBEDDED_STRUCTURE";
+//			    }
+//			    fieldTypes.put("additionalFields."+aFldName, aFldType);			
+//			}
+//		}
+//		
+//		return fieldTypes;
+//	}
 
-	private static Map<String,String> uncacheFieldTypes(String docClassName) {
-		Map<String,String> fieldTypes = null;
-		if (fieldTypesCache != null && fieldTypesCache.containsKey(docClassName)) {
-			fieldTypes = fieldTypesCache.get(docClassName);
-		}
-		return fieldTypes;
-	}
-	
-	public static void cacheFieldTypes(Map<String,String> types, String docClassName) {
-		if (fieldTypesCache == null) {
-			fieldTypesCache = new HashMap<String,Map<String,String>>();
-		}
-		fieldTypesCache.put(docClassName, types);
-	}
+//	private static Map<String,String> uncacheFieldTypes(String docClassName) {
+//		Map<String,String> fieldTypes = null;
+//		if (fieldTypesCache != null && fieldTypesCache.containsKey(docClassName)) {
+//			fieldTypes = fieldTypesCache.get(docClassName);
+//		}
+//		return fieldTypes;
+//	}
+//	
+//	public static void cacheFieldTypes(Map<String,String> types, String docClassName) {
+//		if (fieldTypesCache == null) {
+//			fieldTypesCache = new HashMap<String,Map<String,String>>();
+//		}
+//		fieldTypesCache.put(docClassName, types);
+//	}
+//
+//	private static void clearFieldTypesCache(Class<? extends Document> docClass) {
+//		clearFieldTypesCache(docClass.getName());
+//	}	
+//	
+//	private static void clearFieldTypesCache(String docTypeName) {
+//		if (fieldTypesCache != null) {
+//			fieldTypesCache.put(docTypeName, null);
+//		}		
+//	}
+//	
+//	
+//	private static void clearFieldTypesCache() {
+//		fieldTypesCache = null;
+//	}	
 
-	private static void clearFieldTypesCache(Class<? extends Document> docClass) {
-		clearFieldTypesCache(docClass.getName());
-	}	
-	
-	private static void clearFieldTypesCache(String docTypeName) {
-		if (fieldTypesCache != null) {
-			fieldTypesCache.put(docTypeName, null);
-		}		
-	}
-	
-	
-	private static void clearFieldTypesCache() {
-		fieldTypesCache = null;
-	}	
-
-	private ObjectNode objectNode() {
-		return new ObjectMapper().createObjectNode();
-	}
+//	private ObjectNode objectNode() {
+//		return new ObjectMapper().createObjectNode();
+//	}
 
 	public void updateDocument(Class<? extends Document> docClass, String docID, Map<String, Object> partialDoc) throws ElasticSearchException {
 		updateDocument(docClass.getName(), docID, partialDoc);
@@ -1444,7 +1406,7 @@ public class StreamlinedClient {
 		post(url, jsonBody);
 	}
 	
-	private ESUrlBuilder esUrlBuilder() throws ElasticSearchException  {
+	protected ESUrlBuilder esUrlBuilder() throws ElasticSearchException  {
 		ESUrlBuilder builder = null;
 		try {
 			builder = new ESUrlBuilder(indexName, ESConfig.host(), ESConfig.port());

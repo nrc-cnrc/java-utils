@@ -27,7 +27,7 @@ public class Document {
 
 	private String id = null;
 		public String getId() {return this.id;}
-		public void setId(String _id) {this.id = _id;}
+		public Document setId(String _id) {this.id = _id; return this;}
 		
 	private String shortDescription = null;
 		public void setShortDescription(String _shortDescription) {
@@ -38,7 +38,7 @@ public class Document {
 		
 	// Note: longDescription is synonymous with content 		
 	private String content = null;
-		public void setContent(String _content) {this.content = _content;}
+		public Document setContent(String _content) {this.content = _content; return this;}
 		public String getContent() {return this.content;}
 		
 		// Note: longDescription is an alias for content.

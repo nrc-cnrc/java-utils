@@ -5,8 +5,14 @@ import java.util.Map;
 
 public class IndexDef {
 	
+	public String indexName = null;
+	
 	public Map<String,TypeDef> types = new HashMap<String,TypeDef>();
 	public Integer totalFieldsLimit = null;
+	
+	public IndexDef(String _name) {
+		this.indexName = _name;
+	}
 	
 	public IndexDef setTotalFieldsLimit(Integer limit) {
 		totalFieldsLimit = limit;
@@ -49,6 +55,37 @@ public class IndexDef {
 		
 		// TODO Auto-generated method stub
 		return imMap;
+	}
+
+	public IndexDef loadSettings(Map<String, Object> settings) {
+		Map<String,Object> field = (Map<String, Object>) settings.get(indexName);
+		while (true)
+		{
+			if (!field.containsKey("settings")) break;
+			field = (Map<String, Object>) field.get("settings");
+			
+			if (!field.containsKey("index")) break;			
+			field = (Map<String, Object>) field.get("index");
+			
+			if (!field.containsKey("mapping")) break;			
+			field = (Map<String, Object>) field.get("mapping");
+			
+			if (!field.containsKey("total_fields")) break;
+			field = (Map<String, Object>) field.get("total_fields");
+			
+			if (!field.containsKey("limit")) break;
+			this.totalFieldsLimit = (Integer) Integer.parseInt((String) field.get("limit"));
+			
+			break;
+		}
+		
+		return this;
+	}
+
+	public IndexDef loadMappings(Map<String, Object> mappings) {
+		
+		
+		return this;
 	}
 
 	

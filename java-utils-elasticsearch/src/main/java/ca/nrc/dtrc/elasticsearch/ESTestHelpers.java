@@ -233,7 +233,7 @@ public class ESTestHelpers {
 		while (iter.hasNext()) {
 			gotDocIDs.add(iter.next().getDocument().getId());
 		}
-		AssertHelpers.assertDeepEquals(message+"Doc type "+docType+" of index "+indexName+" did not contain the expected document IDs.", 
+		AssertHelpers.assertUnOrderedSameElements(message+"Doc type "+docType+" of index "+indexName+" did not contain the expected document IDs.", 
 				expDocIDs, gotDocIDs);
 	}
 

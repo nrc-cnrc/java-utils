@@ -612,8 +612,6 @@ public class StreamlinedClientTest {
 		AssertHelpers.assertDeepEquals("Negative filter did not produce expected field names", expFilteredFields, gotFilteredFields);
 	}
 
-	
-
 	@Test
 	public void test__filterFields__HappyPath() throws Exception {
 		StreamlinedClient esClient = ESTestHelpers.makeEmptyTestClient();		
@@ -651,7 +649,7 @@ public class StreamlinedClientTest {
 		String type = "CartoonCharacters";
 		esClient.putDocument(type, homer);
 		
-		Map<String, String> gotTypes = esClient.getFieldTypes(type);
+		Map<String, String> gotTypes = esClient.getIndex().getFieldTypes(type);
 		Map<String,String> expTypes = new HashMap<String,String>();
 		{
 			expTypes.put("id", "text");
@@ -684,7 +682,7 @@ public class StreamlinedClientTest {
 		// The field types should be the union of the types for both
 		// the dynamically and statically typed docs
 		//
-		Map<String, String> gotTypes = esClient.getFieldTypes(type);
+		Map<String, String> gotTypes = esClient.getIndex().getFieldTypes(type);
 		Map<String,String> expTypes = new HashMap<String,String>();
 		{
 			expTypes.put("id", "text");
@@ -708,7 +706,7 @@ public class StreamlinedClientTest {
 		String type = "CartoonCharacters";
 		esClient.putDocument(type, homer);
 		
-		Map<String, String> gotTypes = esClient.getFieldTypes(type);
+		Map<String, String> gotTypes = esClient.getIndex().getFieldTypes(type);
 		Map<String,String> expTypes = new HashMap<String,String>();
 		{
 			expTypes.put("id", "text");
@@ -918,6 +916,38 @@ public class StreamlinedClientTest {
 		ESTestHelpers.assertDocTypeContainsDoc("Bulk indexed index did not contain the expected documents",
 				esClient.getIndexName(), "books", expDocIDs, new Document());
 	}
+	
+	@Test
+	public void test__bulkIndex__LoadTwoFilesIntoSameIndexWithSameDefinition__DocsShouldBeAdded() throws Exception {
+		StreamlinedClient esClient = ESTestHelpers.makeEmptyTestClient();
+		
+		File jsonFile = ResourceGetter.copyResourceToTempLocation("test_data/ca/nrc/dtrc/elasticsearch/small_index_content.json");
+		esClient.bulkIndex(jsonFile.getAbsolutePath(), null);
+		
+		Thread.sleep(ESTestHelpers.LONG_WAIT);
+		
+		String[] expDocIDs = new String[] {
+				"For whom the bell tolls",
+				"The old man and the sea"
+		};
+		ESTestHelpers.assertDocTypeContainsDoc("Bulk indexed index did not contain the expected documents",
+				esClient.getIndexName(), "books", expDocIDs, new Document());
+
+		jsonFile = ResourceGetter.copyResourceToTempLocation("test_data/ca/nrc/dtrc/elasticsearch/other_small_index_content.json");
+		esClient.bulkIndex(jsonFile.getAbsolutePath(), null);
+	
+		Thread.sleep(ESTestHelpers.LONG_WAIT);
+		
+		expDocIDs = new String[] {
+				"For whom the bell tolls",
+				"The old man and the sea",
+				"Of mice and men"
+		};
+		ESTestHelpers.assertDocTypeContainsDoc("Bulk indexed index did not contain the expected documents",
+				esClient.getIndexName(), "books", expDocIDs, new Document());
+	
+	}
+
 	
 	@Test(expected=BadDocProtoException.class)
 	public void test__listAll__WrongDocType__RaisesBadDocProtoException() throws Exception {
