@@ -2,6 +2,8 @@ package ca.nrc.dtrc.stats;
 
 import org.apache.commons.math3.stat.StatUtils;
 
+import ca.nrc.dtrc.stats.HistogramException;
+
 public class Histogram {
 
 	public int numBins = 0;
