@@ -226,7 +226,7 @@ public abstract class SearchEngineTest {
 		SearchEngine.Query query = 
 				new SearchEngine.Query("machine learning").setSite(site);
 		List<SearchEngine.Hit> results = engine.search(query); 
-		assertResultsFitTheQuery(results, query, 2);
+		assertResultsFitTheQuery(results, query, 3);
 	}	
 
 	
@@ -238,7 +238,7 @@ public abstract class SearchEngineTest {
 		SearchEngine.Query query = new SearchEngine.Query("machine learning");
 		query.setSite(site);
 		List<SearchEngine.Hit> results = engine.search(query); 
-		assertResultsFitTheQuery(results, query, 1);
+		assertResultsFitTheQuery(results, query, 3);
 	}
 	
 	@Test
@@ -343,10 +343,14 @@ public abstract class SearchEngineTest {
 			matches = true;
 		} else {
 			if (query.fuzzyQuery != null) {
-				matches = hitMatchesContent_FuzzyQuery(query.fuzzyQuery, wholeContent);
-				if (! matches) {
-					String actualContent = getHitActualContent(hit);
-					matches = hitMatchesContent_FuzzyQuery(query.fuzzyQuery, actualContent);
+				if (wholeContent != null) {
+					matches = hitMatchesContent_FuzzyQuery(query.fuzzyQuery, wholeContent);
+					if (! matches) {
+						String actualContent = getHitActualContent(hit);
+						if (actualContent != null) {
+							matches = hitMatchesContent_FuzzyQuery(query.fuzzyQuery, actualContent);
+						}
+					}
 				}
 			} else {
 				matches = hitMatchesContent_TermsList(query.terms, wholeContent);
@@ -385,7 +389,8 @@ public abstract class SearchEngineTest {
 				break;
 			}
 		}
-		return foundWord;
+
+			return foundWord;
 	}
 	
 	private boolean hitHasCorrectType(Query query, SearchEngine.Hit hit) {
