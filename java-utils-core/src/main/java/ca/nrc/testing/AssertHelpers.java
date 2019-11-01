@@ -226,21 +226,35 @@ public class AssertHelpers {
 	}
 
 	public static void assertStringContains(String gotString, String expSubstring) {
-		assertStringContains(null, gotString, expSubstring);
+		assertStringContains(null, gotString, expSubstring, null, null);
 	}
 
 	public static void assertStringContains(String message,
 			String gotString, String expSubstring) {
 		boolean caseSensitive = true;
-		assertStringContains(message, gotString, expSubstring, caseSensitive);
+		assertStringContains(message, gotString, expSubstring, null, null);
 	}
 
 	public static void assertStringContains(String message,
-			String gotString, String expSubstring, boolean caseSensitive) {
+			String gotString, String pattern, Boolean caseSensitive) {
 		
-		if (!caseSensitive) {
+		assertStringContains(message, gotString, pattern, caseSensitive, null);
+	}
+	
+	public static void assertStringContains(String message, String gotString, 
+			String pattern, Boolean caseSensitive, Boolean isRegexp) {
+		
+		if (caseSensitive == null) {
+			caseSensitive = true;
+		}
+		
+		if (isRegexp == null) {
+			isRegexp = false;
+		}
+		
+		if (!caseSensitive && !isRegexp) {
 			gotString = gotString.toLowerCase();
-			expSubstring = expSubstring.toLowerCase();
+			pattern = pattern.toLowerCase();
 		}
 		
 		if (message == null) {
@@ -248,13 +262,26 @@ public class AssertHelpers {
 		} else {
 			message = message + "\n";
 		}
+		
+		String type = "substring";
+		if (isRegexp) {type = "regexp";}
+		
 		message = message + 
-				   "String did not contain expected substring.\n"
-						  + "== Expected substring: \n"+expSubstring+"\n\n"
+				   "String did not contain an expected "+type+".\n"
+						  + "== Expected "+type+": \n"+pattern+"\n\n"
 						  + "== Got string : \n"+gotString+"\n\n";
 
-		Assert.assertTrue(message, gotString.contains(expSubstring));
-	}
+		if (isRegexp) {
+			Pattern patt = Pattern.compile(pattern);
+			Matcher matcher = patt.matcher(gotString);
+			Assert.assertTrue(message+"\nDid not find any occurence of regepx "+pattern, 
+					matcher.find());
+		} else {
+			Assert.assertTrue(message+"\nDid not find any occurence of regepx "+pattern,
+					gotString.contains(pattern));			
+		}
+	}	
+	
 	
 	public static void assertStringDoesNotContain(String gotString, String unexpSubstring) {
 		boolean caseSensitive = true;
@@ -313,6 +340,16 @@ public class AssertHelpers {
 		}
 	}	
 	
+	public static void assertFileContains(String mess, File fPath, String pattern, 
+			Boolean isCaseSensitive, Boolean isRegexp) throws IOException {
+		String fileContent = "";
+		List<String> lines = Files.readAllLines(fPath.toPath());
+		for (String line: lines) {
+			fileContent += "\n"+line;
+		}
+		assertStringContains(mess, fileContent, pattern, isCaseSensitive, isRegexp);
+	}
+
 	public static void assertFileDoesNotContain(String mess, String fPath, String pattern, Boolean isRegexp) throws IOException {
 		String fileContent = "";
 		List<String> lines = Files.readAllLines(Paths.get(fPath));
@@ -610,6 +647,11 @@ public class AssertHelpers {
 				gotValue <= maxValue);
 	}
 
+	public static void assertFileContentIs(String message, String expContent, File filePath) throws IOException {
+		assertFileContentIs(message, expContent, filePath.toString());
+	}
+
+	
 	public static void assertFileContentIs(String message, String expContent, String filePath) throws IOException {
 		BufferedReader reader = new BufferedReader(new FileReader(new File(filePath)));
 		
