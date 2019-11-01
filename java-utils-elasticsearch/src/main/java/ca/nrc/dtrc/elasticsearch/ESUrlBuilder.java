@@ -52,6 +52,10 @@ public class ESUrlBuilder {
 	
 	public ESUrlBuilder forDocID(String _docID) {
 		this.docID = _docID;
+		if (this.docID != null) {
+			docID = docID.replaceAll("%", "%B6");
+			docID = docID.replaceAll("/", "%2F");
+		}
 		return this;
 	}
 	

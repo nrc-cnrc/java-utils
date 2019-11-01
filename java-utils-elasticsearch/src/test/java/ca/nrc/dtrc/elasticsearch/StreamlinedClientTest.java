@@ -754,6 +754,27 @@ public class StreamlinedClientTest {
 		gotCar = (Document_DynTyped) client.getDocumentWithID(modelID, Document_DynTyped.class, esDocType);
 		AssertHelpers.assertDeepEquals("Corolla have been in the index after being added", corolla2009, gotCar);
 	}
+
+	@Test
+	public void test__put_getDocument__DocIDContainsSlash() throws Exception {
+		StreamlinedClient client = ESTestHelpers.makeEmptyTestClient();
+		
+		String esDocType = "car-model";
+		
+		String modelID = "YTD24211/x";		
+		Document_DynTyped gotCar = (Document_DynTyped) client.getDocumentWithID(modelID, Document_DynTyped.class, esDocType);
+		AssertHelpers.assertDeepEquals("Car model "+modelID+" should NOT have been in the index initially", null, gotCar);
+		
+		Document_DynTyped corolla2009 = new Document_DynTyped("model-number", modelID);
+		corolla2009.setField("maker", "Toyota");
+		corolla2009.setField("model", "Corolla");
+		corolla2009.setField("year", "2009");
+		client.putDocument(esDocType, corolla2009);
+		
+		gotCar = (Document_DynTyped) client.getDocumentWithID(modelID, Document_DynTyped.class, esDocType);
+		AssertHelpers.assertDeepEquals("Corolla have been in the index after being added", corolla2009, gotCar);
+	}
+	
 	
 	@Test
 	public void test_clearDocType__HappyPath() throws Exception {
