@@ -528,12 +528,13 @@ public class StreamlinedClient {
 	public <T extends Document> SearchResults<T> searchFreeform(String query, T docPrototype, List<Pair<String,String>> sortBy) throws ElasticSearchException {
 		return searchFreeform(query, null, docPrototype, sortBy);	
 	}
-	
-	
-	public <T extends Document> SearchResults<T> searchFreeform(String query, String docTypeName, T docPrototype) throws ElasticSearchException {
-		return searchFreeform(query, docTypeName, docPrototype, null);	
+		
+	public <T extends Document> SearchResults<T> searchFreeform(String query, String docTypeName, 
+			T docPrototype) throws ElasticSearchException {
+		return searchFreeform(query, docTypeName, docPrototype, null);
 	}
 
+	
 	public <T extends Document> SearchResults<T> searchFreeform(String query, String docTypeName, 
 			T docPrototype, List<Pair<String,String>> sortBy) throws ElasticSearchException {
 				
