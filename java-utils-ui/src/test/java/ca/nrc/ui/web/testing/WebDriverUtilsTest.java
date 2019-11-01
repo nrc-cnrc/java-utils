@@ -31,7 +31,7 @@ public class WebDriverUtilsTest {
 	private WebDriverUtils wdUtils;
 	
 	@BeforeClass 
-	public static void setUpBeforeClass() {	
+	public static void setUpBeforeClass() throws Exception {	
 		theDriver = WebDriverFactory.getDriver();
 	}
 	

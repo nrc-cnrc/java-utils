@@ -23,7 +23,7 @@ public class WebDriverFactoryTest {
 	 ****************************************/
 	
 	@Test
-	public void test__WebDriverFactory__Synopsis() {
+	public void test__WebDriverFactory__Synopsis() throws Exception {
 		
 		// This is how you get a WebDriver instance.
 		// By default, the returned instance will be a FirefoxDriver.
