@@ -8,11 +8,16 @@ import java.util.regex.Pattern;
 import ca.nrc.datastructure.Pair;
 
 public class StringUtils {
+
+	public static List<Pair<String, Boolean>> splitWithDelimiters(String regexp, String text) {
+		Pattern patt = Pattern.compile(regexp);
+		return splitWithDelimiters(patt, text);
+	}
 	
-	public static List<Pair<String, Boolean>> splitWithDelimiters(String regex, String text) {
+	public static List<Pair<String, Boolean>> splitWithDelimiters(Pattern patt, String text) {
 		List<Pair<String,Boolean>> parts = new ArrayList<Pair<String,Boolean>>();
 
-	    Matcher m = Pattern.compile(regex).matcher(text);
+	    Matcher m = patt.matcher(text);
 	    int lastEnd = 0;
 	    while(m.find()) {
 	    	int start = m.start();
