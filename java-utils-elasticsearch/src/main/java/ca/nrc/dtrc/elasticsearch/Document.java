@@ -43,7 +43,7 @@ public class Document {
 			if (this.id == null) {
 				String rawId = getRawId();
 				this.setId(rawId);
-				if (!rawId.equals(id)) {
+				if (rawId != null && !rawId.equals(id)) {
 					System.out.println("-- Document.getId: raw ID was truncated.\n  Original : '"+rawId+"'\n  Truncated : '"+id+"'");;
 				}
 			}
