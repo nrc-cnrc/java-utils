@@ -72,7 +72,7 @@ public class ESTestHelpers {
 		}
 
 		@Override
-		public String getId() {
+		public String getRawId() {
 			return id;
 		}
 	}		

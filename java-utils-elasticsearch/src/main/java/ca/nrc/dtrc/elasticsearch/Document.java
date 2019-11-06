@@ -1,13 +1,16 @@
 package ca.nrc.dtrc.elasticsearch;
 
-import java.beans.IntrospectionException;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+import javax.xml.bind.DatatypeConverter;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -17,6 +20,8 @@ import ca.nrc.json.PrettyPrinter;
 
 public class Document {
 	
+	private static final int MAX_ID_LENGTH = 512;
+	
 	// This makes it possible for a document collection to 
 	// contain documents that are in different languages
 	public boolean _detect_language = true;
@@ -25,9 +30,34 @@ public class Document {
 		
 	public String keyFieldName() {return "id";};
 
-	private String id = null;
-		public String getId() {return this.id;}
-		public Document setId(String _id) {this.id = _id; return this;}
+	
+	//
+	// This complicated get/set Id stuff is here to ensure
+	// that the ID never exceeds the maximum number of bytes
+	// allowed by ElasticSearch.
+	//
+	@JsonIgnore
+	public String getRawId() { return null; }
+	public String id = null;
+		public final String getId() {
+			if (this.id == null) {
+				String rawId = getRawId();
+				this.setId(rawId);
+				if (!rawId.equals(id)) {
+					System.out.println("-- Document.getId: raw ID was truncated.\n  Original : '"+rawId+"'\n  Truncated : '"+id+"'");;
+				}
+			}
+			return this.id;
+		}
+		public final Document setId(String _id) {
+//		public Document setId(String _id) {
+
+		this.id = null;
+			if (_id != null) {
+				this.id = truncateID(_id);
+			}
+			return this;
+		}
 		
 	private String shortDescription = null;
 		public void setShortDescription(String _shortDescription) {
@@ -172,6 +202,30 @@ public class Document {
 		}
 		
 		return doc;
+	}
+	public String truncateID(String origID) {
+		String truncated = origID;
+		try {
+			int rawLenght = truncated.getBytes("UTF-8").length;
+			if (truncated.length() > MAX_ID_LENGTH) {
+				// ID is too long for ElasticSearch
+				// Truncate it and append a unique MD5 hashcode
+				//
+			    MessageDigest md;
+				md = MessageDigest.getInstance("MD5");
+			    md.update(truncated.getBytes());
+			    byte[] digest = md.digest();
+			    String hashCode = DatatypeConverter
+			      .printHexBinary(digest).toUpperCase();
+				
+			    truncated = truncated.substring(0, MAX_ID_LENGTH - (hashCode.length()+1));
+			    truncated += " "+hashCode;
+			}	
+		} catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+			e.printStackTrace();
+		}
+		
+		return truncated;
 	}
 
 }

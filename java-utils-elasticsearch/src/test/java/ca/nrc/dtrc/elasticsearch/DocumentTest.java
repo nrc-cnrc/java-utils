@@ -28,7 +28,7 @@ public class DocumentTest {
 		}
 
 		@Override
-		public String getId() {
+		public String getRawId() {
 			return first;
 		}
 	}
@@ -91,5 +91,50 @@ public class DocumentTest {
 				"}" 
 				;
 		AssertHelpers.assertStringEquals(expJson, gotJson);
+	}
+	
+	@Test
+	public void test__truncateID__IDWithinElasticSearchLimit__DoesNOTGetTruncated() throws Exception {
+		String rawID = "this is a short ID";
+		Document doc = new Document(rawID);
+		String gotID = doc.truncateID(rawID);
+		
+		AssertHelpers.assertStringEquals(rawID, gotID);
+	}
+
+	@Test
+	public void test__truncateID__IDOverElasticSearchLimit__GetsTruncated() throws Exception {
+		String rawID =
+				"This is a very long ID xxxxxxxxxxxxxxxxxxxxxxxxxxx\n" +				
+				"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n" +
+				"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n" +
+				"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n" +
+				"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n" +
+				"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n" +
+				"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n" +
+				"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n" +
+				"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n" +
+				"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n" +
+				"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n" +
+				"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n" +
+				"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n" +
+				"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n";
+		
+		Document doc = new Document(rawID);
+		String gotID = doc.truncateID(rawID);
+
+		String expID = 		
+			"This is a very long ID xxxxxxxxxxxxxxxxxxxxxxxxxxx\n" + 
+			"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n" + 
+			"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n" + 
+			"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n" + 
+			"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n" + 
+			"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n" + 
+			"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n" + 
+			"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n" + 
+			"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx\n" + 
+			"xxxxxxxxxxxxxxxxxxxx DBDAC6CA1926666BDB70FFB33BD344C0";
+		
+		AssertHelpers.assertStringEquals(expID, gotID);
 	}
 }

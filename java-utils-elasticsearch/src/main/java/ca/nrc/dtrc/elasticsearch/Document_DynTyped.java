@@ -43,7 +43,7 @@ public class Document_DynTyped extends Document {
 	// Notice how we repeat the key's value as a compile-tme attribute
 	// eventhough it is already 
 	public String key = null; 
-		public String getId() { return this.key;};
+		public String getRawId() { return this.key;};
 		public void setKey(String _key) throws DocumentException {
 			this.key = _key;
 //			this.setField(this.getKeyFieldName(), key);

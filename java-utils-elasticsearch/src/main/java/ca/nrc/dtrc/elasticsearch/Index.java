@@ -202,6 +202,11 @@ public class Index extends StreamlinedClient {
 			cacheFieldTypes(fieldTypes, type);
 		}
 		
+//		 Type for 'id' may not have been set in ES, if all
+//		 the documents that were put into the type had a null id
+		
+		fieldTypes.put("id", "text");
+		
 		return fieldTypes;
 	}
 	
