@@ -44,13 +44,16 @@ public class Document {
 				String rawId = getRawId();
 				this.setId(rawId);
 				if (rawId != null && !rawId.equals(id)) {
-					System.out.println("-- Document.getId: raw ID was truncated.\n  Original : '"+rawId+"'\n  Truncated : '"+id+"'");;
+					System.out.println(
+							"WARNING: raw ID of document was truncated.\n"+
+							"  Original : '"+rawId+"'\n  Truncated : '"+id+"'"+
+							"Type of document was: "+this.getClass()
+						);
 				}
 			}
 			return this.id;
 		}
 		public final Document setId(String _id) {
-//		public Document setId(String _id) {
 
 		this.id = null;
 			if (_id != null) {
