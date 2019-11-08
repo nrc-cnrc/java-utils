@@ -144,6 +144,16 @@ public class UserIO {
 		return level;
 	}
 	
+	public UserIO setVerbosity(Integer level) {
+		this.verbosity = verbosityLevel(level);
+		return this;
+	}
+
+	public UserIO setVerbosity(Verbosity level) {
+		this.verbosity = level;
+		return this;
+	}
+	
 	public Boolean prompt_yes_or_no(String mess) {
 		Pattern patt = Pattern.compile("^\\s*([yn])");
 		boolean answer = false;
