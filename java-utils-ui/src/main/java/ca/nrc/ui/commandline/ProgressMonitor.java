@@ -65,17 +65,33 @@ public abstract class ProgressMonitor {
 		int percentage = (int) Math.ceil((_progress) * 100);
 		return percentage;
 	}
-	
+
 	protected String formatTimelapse(long _eta) {
-		long secs = _eta / 1000; 
+		return formatTimelapse(_eta, null);
+	}
+	
+	protected String formatTimelapse(long _eta, Boolean includeMsecs) {
+		if (includeMsecs == null) {
+			includeMsecs = false;
+		}
 		
-		long hours = secs / 3600;
-		secs = secs - hours * 3600;
+		long msecs = _eta; 
 		
-		long mins = secs / 60;
-		secs = secs - mins * 60;
+		long hours = msecs / (3600 * 1000);
+		msecs = msecs - hours * (3600 * 1000);
 		
-		String etaStr = secs + "s";
+		long mins = msecs / (60  * 1000);
+		msecs = msecs - mins * (60 * 1000);
+		
+		long secs = msecs / 1000;
+		msecs = msecs - secs * 1000;
+		
+		String etaStr = "";
+		if (includeMsecs) {
+			etaStr = " " + msecs + "ms";
+		}
+		
+		etaStr = secs + "s" + etaStr;
 		if (mins > 0 || hours > 0) {
 			etaStr = mins + "m " + etaStr;
 		}
