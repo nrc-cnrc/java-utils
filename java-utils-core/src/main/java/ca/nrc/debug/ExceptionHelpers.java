@@ -4,6 +4,8 @@ import java.io.FileNotFoundException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+
 public class ExceptionHelpers {
 	
 	public static String whatFileWasNotFound(FileNotFoundException e) {
@@ -18,5 +20,14 @@ public class ExceptionHelpers {
 		}
 		
 		return filePath;
+	}
+	
+	public static String printExceptionCauses(Exception exc) {
+		String causes = ExceptionUtils.getStackTrace(exc);
+
+	    for (Throwable t = exc.getCause(); t != null; t = t.getCause()) {
+	        causes += "\n" + ExceptionUtils.getStackTrace(t);
+	    }
+		return causes;
 	}
 }
