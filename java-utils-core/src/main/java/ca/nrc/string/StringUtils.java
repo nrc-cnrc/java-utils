@@ -1,6 +1,7 @@
 package ca.nrc.string;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -8,6 +9,21 @@ import java.util.regex.Pattern;
 import ca.nrc.datastructure.Pair;
 
 public class StringUtils {
+	
+	public static String join(Iterator<String> iter, String delimiter) {
+		String joined = "";
+
+		boolean isFirst = true;
+		while (iter.hasNext()) {
+			if (!isFirst) {
+				joined += "|";
+			}
+			isFirst = false;
+			joined += iter.next();
+		}
+		
+		return joined;
+	}
 
 	public static List<Pair<String, Boolean>> splitWithDelimiters(String regexp, String text) {
 		Pattern patt = Pattern.compile(regexp);
@@ -45,6 +61,11 @@ public class StringUtils {
 		List<Pair<String,Boolean>> tokens = StringUtils.splitWithDelimiters(regexp, text);
 		
 		return tokens;
+	}
+
+	public static int countMatches(String text, String expr) {
+		int count = org.apache.commons.lang3.StringUtils.countMatches(text, expr);
+		return count;
 	}
 
 }
