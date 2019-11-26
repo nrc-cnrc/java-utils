@@ -42,4 +42,15 @@ public class StringUtilsTest {
 		
 		AssertHelpers.assertDeepEquals("String was not split properly", expTokens, gotTokens);
 	}
+	
+	@Test
+	public void test__join__Iterator() {
+		List<String> strs = new ArrayList<String>();
+		{
+			strs.add("Hello"); strs.add("world");
+		}
+		String gotJoined = StringUtils.join(strs.iterator(), "|");
+		String expJoined = "Hello|world";
+		AssertHelpers.assertStringEquals(expJoined, gotJoined);
+	}
 }

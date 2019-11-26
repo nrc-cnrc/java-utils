@@ -10,7 +10,7 @@ import ca.nrc.datastructure.Pair;
 
 public class StringUtils {
 	
-	public static String join(Iterator<String> iter, String delimiter) {
+	public static String join(Iterator<?> iter, String delimiter) {
 		String joined = "";
 
 		boolean isFirst = true;
@@ -19,7 +19,7 @@ public class StringUtils {
 				joined += "|";
 			}
 			isFirst = false;
-			joined += iter.next();
+			joined += iter.next().toString();
 		}
 		
 		return joined;
