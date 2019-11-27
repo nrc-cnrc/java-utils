@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.nio.file.attribute.FileAttribute;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -126,6 +127,18 @@ public class ResourceGetter {
 		return;
 	}
 	
+	public static Path copyResourceFilesToTempDir(String resDirRelPath) throws ResourceGetterException {
+		Path tempDir;
+		try {
+			tempDir = Files.createTempDirectory("", new FileAttribute[0]);
+		} catch (IOException e) {
+			throw new ResourceGetterException("Could not create temporary directory", e);
+		}
+		copyResourceFilesToDir(resDirRelPath, tempDir);
+		
+		return tempDir;
+	}
+
 	public static void copyResourceFilesToDir(String resDirRelPath, Path targDir) throws ResourceGetterException {
 		String resPath;
 		try {
