@@ -35,7 +35,11 @@ import org.apache.commons.io.FilenameUtils;
  */
 
 public class ResourceGetter {
-	
+
+	public static String getResourcePath(File resourceRelativePath) throws IOException {
+		return getResourcePath(resourceRelativePath.toString());
+	}
+
 	public static String getResourcePath(String resourceRelativePath) throws IOException
 	{
 		return getResourcePath(resourceRelativePath, null);
@@ -127,6 +131,10 @@ public class ResourceGetter {
 		return;
 	}
 	
+	public static Path copyResourceFilesToTempDir(File resDirRelPath) throws ResourceGetterException {
+		return copyResourceFilesToTempDir(resDirRelPath.toString());
+	}
+
 	public static Path copyResourceFilesToTempDir(String resDirRelPath) throws ResourceGetterException {
 		Path tempDir;
 		try {
