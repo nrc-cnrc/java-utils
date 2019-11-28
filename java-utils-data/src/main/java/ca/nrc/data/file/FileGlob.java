@@ -53,8 +53,32 @@ public class FileGlob {
 		
 	}
 
-	public static File[] listFiles(String pattern)  {
+	
+	public static class DeleteFileVisitor extends SimpleFileVisitor<Path> {
+		private PathMatcher matcher = null;
 		
+		public DeleteFileVisitor(String pattern) {
+			FileSystem fs = FileSystems.getDefault();
+			matcher = fs.getPathMatcher("glob:" + pattern.replace("\\", "\\\\"));
+		}
+		
+	    @Override
+	    public FileVisitResult visitFile(Path file, BasicFileAttributes attribs) {
+	        Path fPath = file.toAbsolutePath();
+	        if (matcher.matches(fPath)) {
+	            file.toFile().delete();
+	        }
+	        return FileVisitResult.CONTINUE;
+	    }
+	    
+	    public FileVisitResult visitFileFailed(Path file, IOException io)
+	    {   
+	        return FileVisitResult.SKIP_SUBTREE;
+	    }	    
+	}
+	
+	
+	public static File[] listFiles(String pattern)  {		
 		Path startDir = Paths.get(getStartingDir(pattern));
 
 		File[] files = new File[0];
@@ -97,6 +121,20 @@ public class FileGlob {
 		return matchingFilesArr;
 	}
 	
+	public static void deleteFiles(String pattern) {
+		Path startDir = Paths.get(getStartingDir(pattern));
+
+		File[] files = new File[0];
+		CollectingFileVisitor matcherVisitor = new CollectingFileVisitor(pattern);
+		try {
+			Files.walkFileTree(startDir, matcherVisitor);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		files = matcherVisitor.getFiles();
+	}
 	
 	public static void main(String[] args)  {
 		String pattern = args[0];
