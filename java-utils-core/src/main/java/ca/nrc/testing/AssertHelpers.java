@@ -380,6 +380,13 @@ public class AssertHelpers {
 		assertStringEquals(mess, expContentEnd, gotContentEnd);
 	}
 	
+	public static void assertFilesHaveSameContent(String mess, File file1, File file2) throws IOException {
+		mess += "\nFiles did not have the same content. File names are:\n  file1: "+file1+"\n  file2: "+file2;
+		String content1 = new String(Files.readAllBytes(file1.toPath()));
+		String content2 = new String(Files.readAllBytes(file2.toPath()));
+		assertStringEquals(mess, content1, content2);
+	}
+	
 	public static void assertDirectoryHasFiles(String message, File dir, String[] expFiles) throws IOException {		
 		File[] gotFiles = dir.listFiles();
 		
@@ -697,5 +704,4 @@ public class AssertHelpers {
 			Assert.fail(mess+"\nElapsed time of "+elapsed+"secs was longer than expected (max="+maxSecs+"secs).");
 		}
 	}
-
 }
