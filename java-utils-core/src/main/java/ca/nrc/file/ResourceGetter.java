@@ -78,7 +78,7 @@ public class ResourceGetter {
 		}
 		
 		URL resourceURL = null;
-		resourceURL = loader.getResource(resourceRelativePath);
+		resourceURL = loader.getResource(resourceRelativePath.replace("\\", "/")); //getResource doesn't recognize Windows file separators
 		
 		if (resourceURL == null) {
 			String message = "Could not find a resource file with path: "+resourceRelativePath+".";
