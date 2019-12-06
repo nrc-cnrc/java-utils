@@ -259,7 +259,7 @@ public class StreamlinedClientTest {
 	}
 	
 	@Test
-	public void test__CluserDocuments() throws Exception {
+	public void test__ClusterDocuments() throws Exception {
 		String indexName = "es-test";
 		StreamlinedClient client = new StreamlinedClient(indexName);		
 		
@@ -268,7 +268,7 @@ public class StreamlinedClientTest {
 		// The  set of documents to be clustered is specified by a free-form query.
 		// 
 		// For this example, we will use a streamlined client that is connected
-		// to an index containing all the lines from Shakespear's play 'Hamlet'
+		// to an index containing all the lines from Shakespeare's play 'Hamlet'
 		//
 		// We will cluster all the lines that are spoken by Hamlet
 		//
@@ -299,7 +299,6 @@ public class StreamlinedClientTest {
 		}
 	}
 		
-
 	@Test
 	public void test__IndexManagement() throws Exception {
 		StreamlinedClient client = ESTestHelpers.makeHamletTestClient();
