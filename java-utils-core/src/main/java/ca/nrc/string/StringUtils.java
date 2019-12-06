@@ -16,7 +16,7 @@ public class StringUtils {
 		boolean isFirst = true;
 		while (iter.hasNext()) {
 			if (!isFirst) {
-				joined += "|";
+				joined += delimiter;
 			}
 			isFirst = false;
 			joined += iter.next().toString();
