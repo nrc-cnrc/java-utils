@@ -39,6 +39,7 @@ import ca.nrc.json.PrettyPrinter;
 import ca.nrc.ui.commandline.UserIO;
 import ca.nrc.config.ConfigException;
 import ca.nrc.data.file.ObjectStreamReader;
+import ca.nrc.data.file.ObjectStreamReaderException;
 import ca.nrc.datastructure.Pair;
 import ca.nrc.dtrc.elasticsearch.ESUrlBuilder;
 import ca.nrc.introspection.Introspection;
@@ -152,15 +153,15 @@ public class StreamlinedClient {
 		return jsonResponse;
 	}
 	
-	public void defineIndex(IndexDef iDef) throws ElasticSearchException {
+	public void defineIndex(IndexDef iDef, Boolean force) throws ElasticSearchException {
 		Map<String,Object> indexMappings = iDef.indexMappings();
-		Map<String,Object> indexSettings = iDef.indexSettings();
-		defineIndex(indexSettings, indexMappings);
+		Map<String,Object> indexSettings = iDef.settingsAsProps();
+		defineIndex(indexSettings, indexMappings, force);
 	}
 	
 	
-	public void defineIndex(Map<String, Object> indexSettings, Map<String, Object> indexMappings) throws ElasticSearchException {
-		getIndex().setDefinition(indexSettings, indexMappings, null);
+	public void defineIndex(Map<String, Object> indexSettings, Map<String, Object> indexMappings, Boolean force) throws ElasticSearchException {
+		getIndex().setDefinition(indexSettings, indexMappings, force);
 		return;
 	}
 
@@ -1073,14 +1074,24 @@ public class StreamlinedClient {
 	}
 	
 	public Document bulkIndex(String dataFPath, String defDocTypeName) throws ElasticSearchException {
-		return bulkIndex(dataFPath, defDocTypeName, -1, false);
+		return bulkIndex(dataFPath, defDocTypeName, -1, null, null);
 	}
 
 	public void bulkIndex(String dataFPath, String defDocTypeName, Boolean verbose) throws ElasticSearchException {
-		bulkIndex(dataFPath, defDocTypeName, -1, verbose);
+		bulkIndex(dataFPath, defDocTypeName, -1, verbose, null);
 	}
 	
-	public Document bulkIndex(String dataFPath, String defDocTypeName, int batchSize, boolean verbose) throws ElasticSearchException {
+	public void bulkIndex(String dataFPath, String defDocTypeName, Boolean verbose, Boolean force) throws ElasticSearchException {
+		bulkIndex(dataFPath, defDocTypeName, -1, verbose, force);
+	}
+
+	public Document bulkIndex(String dataFPath, String defDocTypeName, int batchSize, Boolean verbose, Boolean force) throws ElasticSearchException {
+		if (verbose == null) {
+			verbose = false;
+		}
+		if (force == null) {
+			force = false;
+		}
 		int docCounter = 0;
 		Document docPrototype = null;
 		ObjectMapper mapper = new ObjectMapper();
@@ -1088,12 +1099,13 @@ public class StreamlinedClient {
 		if (currDocTypeName == null) {
 			currDocTypeName = "DefaultType";
 		}
+		ObjectStreamReader reader = null;
 		try {
 			boolean firstDocumentWasRead = false;
 			if (batchSize < 0) batchSize = 100;
 			int batchStart = 1;
 			
-			ObjectStreamReader reader = new ObjectStreamReader(new File(dataFPath));
+			reader = new ObjectStreamReader(new File(dataFPath));
 			Object obj = reader.readObject();
 			String jsonBatch = "";
 			long docNum = 0;
@@ -1109,7 +1121,7 @@ public class StreamlinedClient {
 						System.err.println(errMess);
 						throw new ElasticSearchException(errMess);
 					} else {
-						defineIndex((IndexDef) obj);
+						defineIndex((IndexDef) obj, force);
 					}
 				} else if (obj instanceof CurrentDocType) {
 					currDocTypeName = ((CurrentDocType)obj).name;
@@ -1149,13 +1161,10 @@ public class StreamlinedClient {
 				obj = reader.readObject();
 			}
 			
-		if (!jsonBatch.isEmpty()) {
-			// Process the very last partial batch
-			bulk(jsonBatch, defDocTypeName);
-		}
-			
-			
-			
+			if (!jsonBatch.isEmpty()) {
+				// Process the very last partial batch
+				bulk(jsonBatch, defDocTypeName);
+			}
 		} catch (FileNotFoundException e) {
 			throw new ElasticSearchException("Could not open file "+dataFPath+" for bulk indexing.");
 		} catch (IOException e) {
@@ -1164,6 +1173,14 @@ public class StreamlinedClient {
 			throw(e);
 		} catch (ClassNotFoundException e) {
 			throw new ElasticSearchException(e);
+		} catch (ObjectStreamReaderException e) {
+			throw new ElasticSearchException(e);
+		} finally {
+			try {
+				reader.close();
+			} catch (IOException e) {
+				throw new ElasticSearchException("Problem closing the JSON object reader for file: "+dataFPath, e);
+			}
 		}
 		
 		
@@ -1177,7 +1194,6 @@ public class StreamlinedClient {
 		
 		return docPrototype;
 	}
-	
 
 	public void bulkIndex(BufferedReader br, String docTypeName, int batchSize, boolean verbose) throws IOException, ElasticSearchException {
 		if (batchSize < 0) batchSize = 100;

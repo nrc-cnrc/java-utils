@@ -111,4 +111,38 @@ public class IndexTest {
 	}	
 	
 	
+	@Test
+	public void test__props2map__HappyPath() throws Exception {
+		Map<String,Object> props = new HashMap<String,Object>();
+		
+		
+		Map<String,Object> esSettings = new HashMap<String,Object>();
+		Map<String,Object> A = new HashMap<String,Object>();
+		esSettings.put("A", A);
+		{
+			Map<String,Object> A_x = new HashMap<String,Object>();
+			A.put("x", A_x);
+			{
+				A_x.put("hello", "world");
+				A_x.put("num", 1000);
+			}
+			Map<String,Object> A_y = new HashMap<String,Object>();
+			A.put("y", A_y);
+			{
+				A_y.put("greetings", "universe");
+			}
+		}
+	
+		Map<String,Object> gotSettings = IndexDef.tree2props(esSettings);
+		Map<String,Object> expSettings = new HashMap<String,Object>();
+		{
+			expSettings.put("A.y.greetings", "universe");
+			expSettings.put("A.x.num", 1000);
+			expSettings.put("A.x.hello", "world");
+		}
+		
+		AssertHelpers.assertDeepEquals("Converted settings not as expected", 
+				expSettings, gotSettings);
+	}
+	
 }

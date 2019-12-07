@@ -135,4 +135,40 @@ public class IndexDefTest {
 				expMap, gotMap);
 	}	
 
+	@Test
+	public void test__map2props__AND__props2map__HappyPath() throws Exception {
+		Map<String,Object> tree = new HashMap<String,Object>();
+		Map<String,Object> A = new HashMap<String,Object>();
+		tree.put("A", A);
+		{
+			Map<String,Object> A_x = new HashMap<String,Object>();
+			A.put("x", A_x);
+			{
+				A_x.put("hello", "world");
+				A_x.put("num", 1000);
+			}
+			Map<String,Object> A_y = new HashMap<String,Object>();
+			A.put("y", A_y);
+			{
+				A_y.put("greetings", "universe");
+			}
+		}
+	
+		Map<String,Object> gotProps = IndexDef.tree2props(tree);
+		Map<String,Object> expProps = new HashMap<String,Object>();
+		{
+			expProps.put("A.y.greetings", "universe");
+			expProps.put("A.x.num", 1000);
+			expProps.put("A.x.hello", "world");
+		}
+		
+		AssertHelpers.assertDeepEquals("Props converted from tree not as expected", 
+				expProps, gotProps);
+		
+		Map<String,Object> gotTree = IndexDef.props2tree(gotProps);
+		
+		AssertHelpers.assertDeepEquals("Tree converted from props not as expected", 
+				tree, gotTree);
+	}
+	
 }

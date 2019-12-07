@@ -893,7 +893,7 @@ public class StreamlinedClientTest {
 		DocClusterSet clusters = hamletClient.clusterDocuments(query, esDocTypeName, useFields, algName, maxDocs);
 		
 		String[] expClusterNamesSuperset = new String[] {
-				"Other Topics", "Shall", "King", "Thou", "Sir", "Thee", "Know", 
+				"Ay", "Other Topics", "Shall", "King", "Thou", "Sir", "Thee", "Know", 
 				"Mother", "Speak", "Play", "Love", "Heaven", "Tis", "Horatio", "Father", "Soul",
 				"Heaven", "Thy", "Eyes", "Matter", "Enter", "Dost Thou", "Lord"
 		};
@@ -925,7 +925,8 @@ public class StreamlinedClientTest {
 		StreamlinedClient esClient = ESTestHelpers.makeEmptyTestClient();
 		
 		File jsonFile = ResourceGetter.copyResourceToTempLocation("test_data/ca/nrc/dtrc/elasticsearch/small_index_content.json");
-		esClient.bulkIndex(jsonFile.getAbsolutePath(), null);
+		Boolean force = true;
+		esClient.bulkIndex(jsonFile.getAbsolutePath(), null, null, force);
 		
 		Thread.sleep(ESTestHelpers.LONG_WAIT);
 		
@@ -942,7 +943,8 @@ public class StreamlinedClientTest {
 		StreamlinedClient esClient = ESTestHelpers.makeEmptyTestClient();
 		
 		File jsonFile = ResourceGetter.copyResourceToTempLocation("test_data/ca/nrc/dtrc/elasticsearch/small_index_content.json");
-		esClient.bulkIndex(jsonFile.getAbsolutePath(), null);
+		Boolean force = true;
+		esClient.bulkIndex(jsonFile.getAbsolutePath(), null, null, force);
 		
 		Thread.sleep(ESTestHelpers.LONG_WAIT);
 		
@@ -954,7 +956,7 @@ public class StreamlinedClientTest {
 				esClient.getIndexName(), "books", expDocIDs, new Document());
 
 		jsonFile = ResourceGetter.copyResourceToTempLocation("test_data/ca/nrc/dtrc/elasticsearch/other_small_index_content.json");
-		esClient.bulkIndex(jsonFile.getAbsolutePath(), null);
+		esClient.bulkIndex(jsonFile.getAbsolutePath(), null, null, force);
 	
 		Thread.sleep(ESTestHelpers.LONG_WAIT);
 		

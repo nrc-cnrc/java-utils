@@ -27,48 +27,66 @@ public class Index extends StreamlinedClient {
 	}
 	
 	@JsonIgnore
-	public IndexDef getDefinition() throws ElasticSearchException {
-		Map<String,Object> settings = new HashMap<String,Object>();
+	public IndexDef getDefinition() throws ElasticSearchException, IndexDefException {
 		
-		URL url = esUrlBuilder().forEndPoint("_settings").build();
-		String json = get(url);
+		Map<String,Object> settingProps = null;
+		// Get the Index settings
+		{
 		
-		try {
-			settings = (Map<String, Object>) new ObjectMapper().readValue(json, settings.getClass());
-		} catch (IOException e) {
-			throw new ElasticSearchException(e);
+			URL url = esUrlBuilder().forEndPoint("_settings").build();
+			String json = get(url);
+			
+			Map<String,Object> esSettings = new HashMap<String,Object>();
+			try {
+				esSettings = (Map<String, Object>) new ObjectMapper().readValue(json, esSettings.getClass());
+				esSettings = (Map<String, Object>) esSettings.get(this.indexName);
+				esSettings = (Map<String, Object>) esSettings.get("settings");
+			} catch (IOException e) {
+				throw new ElasticSearchException(e);
+			}		
+			settingProps = IndexDef.tree2props(esSettings);
 		}
 		
+		// Get the index mappings
 		Map<String,Object> mappings = new HashMap<String,Object>();
-		try {
-			json = new ObjectMapper().writeValueAsString(mappings);
-		} catch (JsonProcessingException e) {
-			throw new ElasticSearchException(e);
-		}
-		
-		url = esUrlBuilder().forEndPoint("_mappings").build();
-		json = get(url);
-		try {
-			mappings = (Map<String, Object>) new ObjectMapper().readValue(json, mappings.getClass());
-		} catch (IOException e) {
-			throw new ElasticSearchException(e);
+		{
+			String json = null;
+			try {
+				json = new ObjectMapper().writeValueAsString(mappings);
+			} catch (JsonProcessingException e) {
+				throw new ElasticSearchException(e);
+			}
+			
+			URL url = esUrlBuilder().forEndPoint("_mappings").build();
+			json = get(url);
+			try {
+				mappings = (Map<String, Object>) new ObjectMapper().readValue(json, mappings.getClass());
+			} catch (IOException e) {
+				throw new ElasticSearchException(e);
+			}
 		}
 		
 		IndexDef iDef = 
 				new IndexDef(indexName)
-				.loadSettings(settings)
+				.loadSettings(settingProps)
 				.loadMappings(mappings)
 				;
 		
 		return iDef;
 	}
 
+
+
 	public void setDefinition(IndexDef def) throws ElasticSearchException {
 		setDefinition(def, null);
 		
 	}
 
-	public void setDefinition(Map<String,Object> settings, Map<String,Object> mappings, Boolean force) throws ElasticSearchException {
+	public void setDefinition(Map<String,Object> settings, Map<String,Object> mappings, Boolean force) throws ElasticSearchException, IndexDefException {
+		if (force == null) {
+			force = false;
+		}
+		
 		IndexDef iDef = new IndexDef(indexName);
 		iDef.loadSettings(settings);
 		iDef.loadMappings(mappings);
@@ -83,29 +101,39 @@ public class Index extends StreamlinedClient {
 		
 		if (indexExists()) {
 			if (!force) {
-				throw new IndexException("Tried to change settings of existing index "+getIndexName()+" without force=false");
+				throw new IndexException("Tried to change settings of existing index "+getIndexName()+" eventhough force=false");
 			} 
 			deleteIndex();
 		}
 		
 		String jsonString;
-		try {
-			jsonString = new ObjectMapper().writeValueAsString(def.indexMappings());
-		} catch (JsonProcessingException e) {
-			throw new IndexException(e);
-		}
+		String json;
+		URL url;
 		
-		URL url = esUrlBuilder().build();
-		String json = put(url, jsonString);
-				
-		try {
-			jsonString = new ObjectMapper().writeValueAsString(def.indexSettings());
-		} catch (JsonProcessingException e) {
-			throw new ElasticSearchException(e);
+		// Set the index mappings
+		{		
+			try {
+				jsonString = new ObjectMapper().writeValueAsString(def.indexMappings());
+			} catch (JsonProcessingException e) {
+				throw new IndexException(e);
+			}
+			
+			url = esUrlBuilder().build();
+			json = put(url, jsonString);
 		}
+			
 		
-		url = esUrlBuilder().forEndPoint("_settings").build();
-		json = put(url, jsonString);
+		// Set the index settings
+		{
+			try {
+				jsonString = new ObjectMapper().writeValueAsString(def.settingsAsTree());
+			} catch (JsonProcessingException e) {
+				throw new ElasticSearchException(e);
+			}
+			
+			url = esUrlBuilder().forEndPoint("_settings").build();
+			json = put(url, jsonString);
+		}
 		
 		try {
 			Thread.sleep(5*1000);
@@ -229,5 +257,5 @@ public class Index extends StreamlinedClient {
 		}
 		
 		return fieldTypes;
-	}	
+	}
 }
