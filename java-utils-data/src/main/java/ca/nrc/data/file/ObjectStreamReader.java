@@ -11,8 +11,10 @@ import java.io.InputStreamReader;
 import java.io.ObjectStreamException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.InputMismatchException;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -26,12 +28,15 @@ import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ca.nrc.datastructure.Pair;
+import ca.nrc.debug.ExceptionHelpers;
 
 public class ObjectStreamReader implements Closeable {
 	
+	public static enum OnError {LOG_ERROR, IMMEDIATE_EXCEPTION, EXCEPTION_AT_CLOSING};
+	public OnError onError = OnError.EXCEPTION_AT_CLOSING;
+	
 	public boolean verbose = true;
 	
-	public boolean stopOnMalformedObject = false;
 	public boolean currentObjWasMalformed = true;
 	
 	BufferedReader buffReader = null;
@@ -65,6 +70,8 @@ public class ObjectStreamReader implements Closeable {
 	
 	// Line that defines the class of objects being read from file
 	Pattern regexClass = Pattern.compile("^\\s*class=(.+)$");
+	
+	List<String> errorMessages = new ArrayList<String>();
 
 	public ObjectStreamReader(File file) throws FileNotFoundException {
 		FileReader fileReader = new FileReader(file);
@@ -88,6 +95,10 @@ public class ObjectStreamReader implements Closeable {
 	private void initialize(Reader _reader) {
 		this.buffReader = new BufferedReader(_reader);
 	}
+	
+	protected void finalize() throws Throwable {
+		close();
+	}
 
 	@JsonIgnore
 	public ObjectStreamReader setEndOfBodyMarker(String markerType) throws ObjectStreamReaderException {
@@ -104,7 +115,7 @@ public class ObjectStreamReader implements Closeable {
 		return this;
 	}
 
-	public Object readObject() throws IOException, ClassNotFoundException {		
+	public Object readObject() throws IOException, ClassNotFoundException, ObjectStreamReaderException {		
 		Logger tLogger = LogManager.getLogger("ca.nrc.json.ObjectStreamReader.readObject");
 		Object object = null;
 		int startLine = lineCount;
@@ -161,7 +172,7 @@ public class ObjectStreamReader implements Closeable {
 		return object;
 	}
 
-	private void onBodyEndMarkerDefinition(Map<String, String> lineParameters) {
+	private void onBodyEndMarkerDefinition(Map<String, String> lineParameters) throws ObjectStreamReaderException {
 		String markerType = lineParameters.get("markerType");
 		if (markerType.equals("NEW_LINE") || markerType.equals("BLANK_LINE")) {
 			regexBodyLast = bodyEndMarkerChoices.get(markerType);
@@ -171,7 +182,7 @@ public class ObjectStreamReader implements Closeable {
 		
 	}
 
-	private Object onObjectBodyFirstAndLast(String line) throws JsonParseException, IOException {
+	private Object onObjectBodyFirstAndLast(String line) throws JsonParseException, IOException, ObjectStreamReaderException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.json.ObjectStreamReader.onObjectBodyFirstAndLast");
 		tLogger.trace("invoked");		
 		onObjectBodyMiddleLine(line);
@@ -179,7 +190,7 @@ public class ObjectStreamReader implements Closeable {
 		return obj;
 	}
 
-	private Object onObjectBodyEnd(String currentLine) throws JsonParseException, IOException {
+	private Object onObjectBodyEnd(String currentLine) throws JsonParseException, IOException, ObjectStreamReaderException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.json.ObjectStreamReader.onObjectBodyEnd");
 		tLogger.trace("invoked");
 		currentObjWasMalformed = false;
@@ -206,7 +217,7 @@ public class ObjectStreamReader implements Closeable {
 				mess += "\nBody of object was:\n"+objectJson;
 				excToInclude = exc;
 			}
-			error(mess, excToInclude, stopOnMalformedObject);
+			error(mess, excToInclude);
 		}
 		
 				
@@ -214,7 +225,7 @@ public class ObjectStreamReader implements Closeable {
 		
 	}
 
-	private void onObjectBodyMiddleLine(String line) {
+	private void onObjectBodyMiddleLine(String line) throws ObjectStreamReaderException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.json.ObjectStreamReader.onObjectBodyMiddleLine");
 		tLogger.trace("invoked");
 		if (currentObjClass == null) {
@@ -227,7 +238,7 @@ public class ObjectStreamReader implements Closeable {
 		objectBodyBuilder.append(line+"\n");
 	}
 
-	private void onClassLine(Map<String, String> parameters) {
+	private void onClassLine(Map<String, String> parameters) throws ObjectStreamReaderException {
 		String className = parameters.get("class");
 		try {
 			if (className.equals("Map")) {
@@ -242,25 +253,25 @@ public class ObjectStreamReader implements Closeable {
 		
 	}
 
-	private void errorMalformedJSON(String message, Exception exc) {
+	private void errorMalformedJSON(String message, Exception exc) throws ObjectStreamReaderException {
 		currentObjWasMalformed = true;
-		error(message, exc, null);
+		error(message, exc);
 	}
 	
-	private void error(String message) {
-		error(message, null, null);
+	private void error(String message) throws ObjectStreamReaderException {
+		error(message, null);
 	}
 
-	private void error(String message, Exception exc, Boolean raiseException)  {
-		if (raiseException == null) { raiseException = true; }
-		message = "Error at line "+lineCount + ":\n   " + currentLine + "\n" + message;
+	private void error(String errMess, Exception exc) throws ObjectStreamReaderException  {
+		errMess = "Error at line "+lineCount + ":\n   " + currentLine + "\n" + errMess;
 		if (exc != null) {
-			message += "\n\n" + exc.getMessage();
+			errMess += "\n\n" + exc.getMessage()+"\n"+ExceptionHelpers.printExceptionCauses(exc);
 		}
-		if (raiseException) {
-			throw new InputMismatchException(message);
-		} else {
-			System.out.println("ERROR in JSON file.\n"+message+"Skipping to next JSON entry.");
+		errorMessages.add(errMess);
+		if (onError != OnError.IMMEDIATE_EXCEPTION) {
+			System.out.println(errMess);
+		} else  {
+			throw new ObjectStreamReaderException(errMess);
 		}
 	}
 
@@ -314,7 +325,15 @@ public class ObjectStreamReader implements Closeable {
 
 	public void close() throws IOException {
 		if (buffReader != null) buffReader.close();
-		
+		if (onError == OnError.EXCEPTION_AT_CLOSING) {
+			if (errorMessages.size() > 0) {
+				System.out.println("Some errors were raised while reading JSON object stream.\nErrors were:\n+");
+				for (String err: errorMessages) {
+					System.out.println("\n"+err);
+				}
+				throw new IOException("Some errors were raised while reading JSON object stream.");
+			}
+		}
 	}
 
 	private ObjectMapper getMapper() {
