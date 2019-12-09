@@ -17,7 +17,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -145,6 +144,7 @@ public class StreamlinedClient {
 
 	
 	public String refreshIndex(String type) throws IOException, ElasticSearchException, InterruptedException {
+		
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.refreshIndex");
 		URL url = esUrlBuilder().forDocType(type).forEndPoint("_refresh").build();
 		String jsonResponse = post(url);
@@ -154,6 +154,7 @@ public class StreamlinedClient {
 	}
 	
 	public void defineIndex(IndexDef iDef, Boolean force) throws ElasticSearchException {
+				
 		Map<String,Object> indexMappings = iDef.indexMappings();
 		Map<String,Object> indexSettings = iDef.settingsAsProps();
 		defineIndex(indexSettings, indexMappings, force);
@@ -539,8 +540,15 @@ public class StreamlinedClient {
 	public <T extends Document> SearchResults<T> searchFreeform(String query, String docTypeName, 
 			T docPrototype, List<Pair<String,String>> sortBy) throws ElasticSearchException {
 				
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.searchFreeform");
+
 		if (sortBy == null) {
 			sortBy = new ArrayList<Pair<String,String>>();
+		}
+		
+		System.out.println("** searchFreeform: Invoked with query='"+query+"', docTypeName='"+docTypeName+"', docPrototype="+docPrototype.getClass()+"\n  sortBy="+PrettyPrinter.print(sortBy));
+		if (tLogger.isTraceEnabled()) {
+			tLogger.trace("Invoked with query='"+query+"', docTypeName='"+docTypeName+"', docPrototype="+docPrototype.getClass()+"\n  sortBy="+PrettyPrinter.print(sortBy));
 		}
 		
 		String jsonQuery = null;
@@ -575,8 +583,13 @@ public class StreamlinedClient {
 			jsonQuery = "{"+jsonQueryInner+"}";
 
 		}
+		
 		SearchResults<T> hits = search(jsonQuery, docTypeName, docPrototype);
 		
+		
+		System.out.println("** searchFreeform: Returning results with #hits="+hits.getTotalHits());
+		tLogger.trace("Returning results with #hits="+hits.getTotalHits());
+
 		return hits;
 	}
 	
@@ -1077,12 +1090,12 @@ public class StreamlinedClient {
 		return bulkIndex(dataFPath, defDocTypeName, -1, null, null);
 	}
 
-	public void bulkIndex(String dataFPath, String defDocTypeName, Boolean verbose) throws ElasticSearchException {
-		bulkIndex(dataFPath, defDocTypeName, -1, verbose, null);
+	public Document bulkIndex(String dataFPath, String defDocTypeName, Boolean verbose) throws ElasticSearchException {
+		return bulkIndex(dataFPath, defDocTypeName, -1, verbose, null);
 	}
 	
-	public void bulkIndex(String dataFPath, String defDocTypeName, Boolean verbose, Boolean force) throws ElasticSearchException {
-		bulkIndex(dataFPath, defDocTypeName, -1, verbose, force);
+	public Document bulkIndex(String dataFPath, String defDocTypeName, Boolean verbose, Boolean force) throws ElasticSearchException {
+		return bulkIndex(dataFPath, defDocTypeName, -1, verbose, force);
 	}
 
 	public Document bulkIndex(String dataFPath, String defDocTypeName, int batchSize, Boolean verbose, Boolean force) throws ElasticSearchException {
@@ -1106,6 +1119,7 @@ public class StreamlinedClient {
 			int batchStart = 1;
 			
 			reader = new ObjectStreamReader(new File(dataFPath));
+			reader.onError = ObjectStreamReader.OnError.LOG_ERROR;
 			Object obj = reader.readObject();
 			String jsonBatch = "";
 			long docNum = 0;
@@ -1177,7 +1191,7 @@ public class StreamlinedClient {
 			throw new ElasticSearchException(e);
 		} finally {
 			try {
-				reader.close();
+				if (reader != null) { reader.close(); }
 			} catch (IOException e) {
 				throw new ElasticSearchException("Problem closing the JSON object reader for file: "+dataFPath, e);
 			}

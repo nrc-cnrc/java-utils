@@ -325,15 +325,17 @@ public class ObjectStreamReader implements Closeable {
 
 	public void close() throws IOException {
 		if (buffReader != null) buffReader.close();
-		if (onError == OnError.EXCEPTION_AT_CLOSING) {
-			if (errorMessages.size() > 0) {
-				System.out.println("Some errors were raised while reading JSON object stream.\nErrors were:\n+");
-				for (String err: errorMessages) {
-					System.out.println("\n"+err);
-				}
-				throw new IOException("Some errors were raised while reading JSON object stream.");
+		
+		if (errorMessages.size() > 0) {
+			System.out.println("Some errors were raised while reading JSON object stream.\nErrors were:\n+");
+			for (String err: errorMessages) {
+				System.out.println("\n"+err);
 			}
-		}
+
+			if (onError == OnError.EXCEPTION_AT_CLOSING) {
+				throw new IOException("Some errors were raised while reading JSON object stream.");				
+			}
+		}		
 	}
 
 	private ObjectMapper getMapper() {
