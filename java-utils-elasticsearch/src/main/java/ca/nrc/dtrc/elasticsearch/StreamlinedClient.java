@@ -378,11 +378,8 @@ public class StreamlinedClient {
 	    
 	    Response response;
 		try {
-			tLogger.trace("** executing http request");
 			response = httpClient.newCall(request).execute();
-			tLogger.trace("** DONEexecuting http request");
 		} catch (IOException e) {
-			tLogger.trace("** Caught exception e="+e.getLocalizedMessage());
 			throw new ElasticSearchException("Could not execute ElasticSearch request.\n  url="+url+"\n   body="+body.toString(), e);
 		}
 	    String jsonResponse;
@@ -440,12 +437,9 @@ public class StreamlinedClient {
 	    Response response;
 	    String jsonResponse;
 		try {
-			tLogger.trace("** making the http call");
 			response = httpClient.newCall(request).execute();
-			tLogger.trace("** DONEmaking the http call");
 		    jsonResponse = response.body().string();			
 		} catch (IOException exc) {
-			tLogger.trace("** There was an exception making the call: exc="+exc.getLocalizedMessage());
 			throw new ElasticSearchException(exc);
 		}
 
@@ -546,7 +540,6 @@ public class StreamlinedClient {
 			sortBy = new ArrayList<Pair<String,String>>();
 		}
 		
-		System.out.println("** searchFreeform: Invoked with query='"+query+"', docTypeName='"+docTypeName+"', docPrototype="+docPrototype.getClass()+"\n  sortBy="+PrettyPrinter.print(sortBy));
 		if (tLogger.isTraceEnabled()) {
 			tLogger.trace("Invoked with query='"+query+"', docTypeName='"+docTypeName+"', docPrototype="+docPrototype.getClass()+"\n  sortBy="+PrettyPrinter.print(sortBy));
 		}
@@ -585,9 +578,7 @@ public class StreamlinedClient {
 		}
 		
 		SearchResults<T> hits = search(jsonQuery, docTypeName, docPrototype);
-		
-		
-		System.out.println("** searchFreeform: Returning results with #hits="+hits.getTotalHits());
+				
 		tLogger.trace("Returning results with #hits="+hits.getTotalHits());
 
 		return hits;
@@ -817,7 +808,6 @@ public class StreamlinedClient {
 		String esType = esDocTypeName;
 		if (esType == null) esType = queryDoc.getClass().getName();
 		String mltBody = moreLikeThisJsonBody(esType, queryDocMap);
-		if (tLogger.isTraceEnabled()) tLogger.trace("** queryDocMap="+PrettyPrinter.print(queryDocMap));
 		
 		SearchResults<T> results = search(mltBody, esType, queryDoc);
 	
@@ -1514,7 +1504,6 @@ public class StreamlinedClient {
 			Iterator<?> iter = results.iterator();
 			while (iter.hasNext()) {
 				Hit<Document> aScoredDoc = (Hit<Document>)iter.next();
-				tLogger.trace("** dumping document with id="+aScoredDoc.getDocument().getId());
 				docMap = mapper.convertValue(aScoredDoc.getDocument(), docMap.getClass()) ;
 				Map<String,Object> additionalFields = (Map<String, Object>) docMap.get("additionalFields");
 				for (String fld: fieldsToIgnore) {
