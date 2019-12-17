@@ -10,7 +10,14 @@ import ca.nrc.datastructure.Pair;
 
 public class StringUtils {
 	
+	public static String join(Iterator<?> iter) {
+		return join(iter, null);
+	}
+
 	public static String join(Iterator<?> iter, String delimiter) {
+		if (delimiter == null) {
+			delimiter = ",";
+		}
 		String joined = "";
 
 		boolean isFirst = true;
