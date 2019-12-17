@@ -16,27 +16,54 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import org.apache.commons.io.FilenameUtils;
 
 public class FileGlob {
 	
-	public static class CollectingFileVisitor extends SimpleFileVisitor<Path> {
-		private PathMatcher matcher = null;
-		private List<File> collectedFiles = null;
+	public static class FileDeleter implements Consumer<File> {
+
+		@Override
+		public void accept(File file) {
+			file.delete();
+		}
 		
-		public CollectingFileVisitor(String pattern) {
-			collectedFiles = new ArrayList<File>();	
+	}
+	
+	public static class FileGlobVisitor extends SimpleFileVisitor<Path> {
+		private PathMatcher matcher = null;
+		private List<File> visitedFiles = null;
+		private Consumer<File> action = null;
+		
+		public FileGlobVisitor(String pattern) {
+			initFileGlobVisitor(pattern, null);
+//			collectedFiles = new ArrayList<File>();	
+//			FileSystem fs = FileSystems.getDefault();
+//			//Have to escape windows file separators since \\ is a glob escape character
+//			matcher = fs.getPathMatcher("glob:" + pattern.replace("\\", "\\\\"));
+		}
+		
+		public FileGlobVisitor(String pattern, Consumer<File> _action) {
+			initFileGlobVisitor(pattern, _action);
+		}
+
+		private void initFileGlobVisitor(String pattern, Consumer<File> _action) {
+			visitedFiles = new ArrayList<File>();	
 			FileSystem fs = FileSystems.getDefault();
 			//Have to escape windows file separators since \\ is a glob escape character
 			matcher = fs.getPathMatcher("glob:" + pattern.replace("\\", "\\\\"));
+			action = _action;
 		}
 		
 	    @Override
 	    public FileVisitResult visitFile(Path file, BasicFileAttributes attribs) {
 	        Path fPath = file.toAbsolutePath();
 	        if (matcher.matches(fPath)) {
-	            collectedFiles.add(new File(file.toString()));
+	            visitedFiles.add(new File(file.toString()));
+	            if (action != null) {
+	            	action.accept(file.toFile());
+	            }
 	        }
 	        return FileVisitResult.CONTINUE;
 	    }
@@ -47,42 +74,17 @@ public class FileGlob {
 	    }	    
 
 	    public File[] getFiles() {
-	    	File[] files = (File[]) collectedFiles.toArray(new File[collectedFiles.size()]);
+	    	File[] files = (File[]) visitedFiles.toArray(new File[visitedFiles.size()]);
 	    	return files;
 	    }
 		
 	}
-
-	
-	public static class DeleteFileVisitor extends SimpleFileVisitor<Path> {
-		private PathMatcher matcher = null;
-		
-		public DeleteFileVisitor(String pattern) {
-			FileSystem fs = FileSystems.getDefault();
-			matcher = fs.getPathMatcher("glob:" + pattern.replace("\\", "\\\\"));
-		}
-		
-	    @Override
-	    public FileVisitResult visitFile(Path file, BasicFileAttributes attribs) {
-	        Path fPath = file.toAbsolutePath();
-	        if (matcher.matches(fPath)) {
-	            file.toFile().delete();
-	        }
-	        return FileVisitResult.CONTINUE;
-	    }
-	    
-	    public FileVisitResult visitFileFailed(Path file, IOException io)
-	    {   
-	        return FileVisitResult.SKIP_SUBTREE;
-	    }	    
-	}
-	
 	
 	public static File[] listFiles(String pattern)  {		
 		Path startDir = Paths.get(getStartingDir(pattern));
 
 		File[] files = new File[0];
-		CollectingFileVisitor matcherVisitor = new CollectingFileVisitor(pattern);
+		FileGlobVisitor matcherVisitor = new FileGlobVisitor(pattern);
 		try {
 			Files.walkFileTree(startDir, matcherVisitor);
 		} catch (IOException e) {
@@ -125,7 +127,7 @@ public class FileGlob {
 		Path startDir = Paths.get(getStartingDir(pattern));
 
 		File[] files = new File[0];
-		CollectingFileVisitor matcherVisitor = new CollectingFileVisitor(pattern);
+		FileGlobVisitor matcherVisitor = new FileGlobVisitor(pattern, new FileDeleter());
 		try {
 			Files.walkFileTree(startDir, matcherVisitor);
 		} catch (IOException e) {
