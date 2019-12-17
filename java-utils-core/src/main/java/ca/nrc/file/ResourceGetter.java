@@ -1,10 +1,12 @@
 package ca.nrc.file;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -271,6 +273,22 @@ public class ResourceGetter {
 		}
 		
 		return answer;
+	}
+
+	public static String readResourceFileToString(String resRelPath) throws IOException {
+		InputStream stream = getResourceAsStream(resRelPath);
+		
+		InputStreamReader isReader = new InputStreamReader(stream);
+	      //Creating a BufferedReader object
+	      BufferedReader reader = new BufferedReader(isReader);
+	      StringBuffer sb = new StringBuffer();
+	      String str;
+	      while((str = reader.readLine())!= null){
+	         sb.append(str);
+	      }
+	      reader.close();
+	      
+	      return sb.toString();
 	}
 
 
