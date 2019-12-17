@@ -27,8 +27,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import ca.nrc.json.PrettyPrinter;
 import ca.nrc.testing.AssertHelpers.Comp;
 
-
-
 /*
  * Additional useful assertions. For example, for easily comparing complex data structures.
  * 
@@ -41,366 +39,262 @@ public class AssertHelpers {
 	
 	public  enum Comp  {AT_LEAST, AT_MOST, EQUAL_TO, DIFFREENT_FROM};
 	
+	/**
+	 * @deprecated  Use AssertObject method instead
+	 */
+	@Deprecated
 	public static void assertDeepEquals(
 			String message, Object expObject, Object gotObject) throws IOException {
-		Set<String> emptyIgnoreFields = new HashSet<String>();
-		assertDeepEquals(message, expObject, gotObject, emptyIgnoreFields, null);
+		AssertObject.assertDeepEquals(message, expObject, gotObject);
 	}
 	
+	/**
+	 * @deprecated  Use AssertObject method instead
+	 */
+	@Deprecated
 	public static void assertDeepEquals(
 			String message, Object expObject, Object gotObject, String[] ignoreFields) throws IOException {
-		Set<String> ignoreFieldsSet = new HashSet<String>();
-		for (String aFieldName: ignoreFields) ignoreFieldsSet.add(aFieldName);
-		assertDeepEquals(message, expObject, gotObject, ignoreFieldsSet, null);
+		AssertObject.assertDeepEquals(message, expObject, gotObject, ignoreFields);
 	}
-
+	
+	/**
+	 * @deprecated  Use AssertObject method instead
+	 */
+	@Deprecated
 	public static void assertDeepEquals(
 			String message, Object expObject, Object gotObject,
 			Set<String> ignoreFields, Integer decimalsTolerance) throws IOException {
-		String expObjectJsonString = PrettyPrinter.print(expObject, ignoreFields, decimalsTolerance);
-		assertEqualsJsonCompare(message, expObjectJsonString, gotObject, ignoreFields, true, decimalsTolerance);		
+		AssertObject.assertDeepEquals(message, expObject, gotObject, ignoreFields, decimalsTolerance);		
 	}
 
+	/**
+	 * @deprecated  Use AssertObject method instead
+	 */
+	@Deprecated
 	public static void assertDeepEquals(
 			String message, Object expObject, Object gotObject,
 			Integer decimalsTolerance) throws IOException {
-		Set<String> ignoreFields = new HashSet<String>();
-		String expObjectJsonString = PrettyPrinter.print(expObject, ignoreFields, decimalsTolerance);
-		assertEqualsJsonCompare(message, expObjectJsonString, gotObject, ignoreFields, true, decimalsTolerance);		
+		AssertObject.assertDeepEquals(message, expObject, gotObject, decimalsTolerance);				
 	}
 	
-	public static void assertDeepNotEqual(String message, Object expObject, Object gotObject) {
-		try {
-			
-			assertDeepEquals("", expObject, gotObject);
-			
-			// NOTE: If the two objects are not equal, then the above assertion should
-			//  fail. Therefore, if we make it to here, it means that the two 
-			//  objects are equal, and that we should raise an exception (since
-			//  we are trying to assert that the two objects are NOT equal).
-			
-			Assert.assertTrue(message+"\nThe two objects should NOT have been equal. But they were both equal to:\n"+PrettyPrinter.print(expObject), 
-					false);
-			
-		} catch (AssertionError | IOException e) {
-			// Nothing to do. We actually WANT the above deepEquals to fail (i.e. we WANT
-			// the two objects to differ ins SOME respect). 
-		}
-		
+	/**
+	 * @throws IOException 
+	 * @deprecated  Use AssertObject method instead
+	 */
+	@Deprecated
+	public static void assertDeepNotEqual(String message, Object expObject, Object gotObject) throws IOException {
+		AssertObject.assertDeepNotEqual(message, expObject, gotObject);		
 	}
 
+	/**
+	 * @deprecated  Use AssertObject method instead
+	 */
+	@Deprecated
 	public static void assertEqualsJsonCompare(String expJsonString, Object gotObject) throws  IOException {
-		assertEqualsJsonCompare("", expJsonString, gotObject);
+		AssertObject.assertEqualsJsonCompare(expJsonString, gotObject);		
 	}
-
+	
+	/**
+	 * @deprecated  Use AssertObject method instead
+	 */
+	@Deprecated
 	public static void assertEqualsJsonCompare(
 			String message, String expJsonString, Object gotObject) throws  IOException {
-		HashSet<String> emptySetOfFieldsToIgnore = new HashSet<String>();
-		assertEqualsJsonCompare(message, expJsonString, gotObject, emptySetOfFieldsToIgnore);
+		AssertObject.assertEqualsJsonCompare(message, expJsonString, gotObject);		
 	}
 
+	/**
+	 * @deprecated  Use AssertObject method instead
+	 */
+	@Deprecated
 	public static void assertEqualsJsonCompare(String expJsonString, Object gotObject,
 			HashSet<String> ignoreFields) throws  IOException {
-		assertEqualsJsonCompare("", expJsonString, gotObject, ignoreFields);
+		AssertObject.assertEqualsJsonCompare(expJsonString, gotObject, ignoreFields);		
 	}
 
+	/**
+	 * @deprecated  Use AssertObject method instead
+	 */
+	@Deprecated
 	public static void assertEqualsJsonCompare( 
 			String expJsonString, Object gotObject,
 			String[] ignoreFields) throws  IOException {
-		assertEqualsJsonCompare("", expJsonString, gotObject, ignoreFields);
+		AssertObject.assertEqualsJsonCompare("", expJsonString, gotObject, ignoreFields);
 	}
 
-		public static void assertEqualsJsonCompare(String message, 
+	/**
+	 * @deprecated  Use AssertObject method instead
+	 */
+	@Deprecated	
+	public static void assertEqualsJsonCompare(String message, 
 			String expJsonString, Object gotObject,
 			String[] ignoreFields) throws  IOException {
-		Set<String> ignoreFieldsSet = new HashSet<String>();
-		for (String aField: ignoreFields) {
-			ignoreFieldsSet.add(aField);
-		}
-		assertEqualsJsonCompare(message, expJsonString, gotObject, ignoreFieldsSet);
+		AssertObject.assertEqualsJsonCompare(message, expJsonString, gotObject, ignoreFields);
 	}
 	
-	
+	/**
+	 * @deprecated  Use AssertObject method instead
+	 */
+	@Deprecated	
 	public static void assertEqualsJsonCompare(String message, 
 			String expJsonString, Object gotObject,
 			Set<String> ignoreFields) throws  IOException {
-		assertEqualsJsonCompare(message, expJsonString, gotObject, ignoreFields, false, null);
+		AssertObject.assertEqualsJsonCompare(message, expJsonString, gotObject, ignoreFields);		
 	}
-		
+
+	/**
+	 * @deprecated  Use AssertObject method instead
+	 */
+	@Deprecated
 	public static void assertEqualsJsonCompare(String message, 
 			String expJsonString, Object gotObject,
 			Set<String> ignoreFields, boolean expJsonIsAlreadyPretty, Integer decimalsTolerance) throws  IOException {
-		/*
-		 * Algorithm is as follows:
-		 * 
-		 * - Transform the gotObject into a json string where the keys of 
-		 *    all dictionaries are guaranteed to be sorted alphabetically
-		 *    
-		 *  - if expJsonIsAlreadyPretty is false, then "prettify" it by
-		 *    - Deserializing it into an Object
-		 *    - PrettyPrinting it to a json string.
-		 *    
-		 *  - Compare the two strings using our own string comparison 
-		 *    which gives a better view of the difference
-		 *    
-		 * Note: For generating a json string with all dictionary keys
-		 *   sorted, we use our own serialization method jsonNodeToString().
-		 *   We could have used the writeValueAsString with 
-		 *   ORDER_MAP_ENTRIES_BY_KEYS set to true, but this does not
-		 *   seem to work for JsonNode objects that have been read from string.
-		 */
-		
-		/*
-		 * Transform the gotObject into a json string where the keys of 
-		 *  all dictionaries are garanteed to be sorted alphabetically.
-		 *  - First we transform the object into a JsonNode
-		 *  - Then we print that JsonNode into a string with keys sorted 
-		 *     alphabetically  
-		*/
-		String gotJsonStrKeysSorted = PrettyPrinter.print(gotObject, ignoreFields, decimalsTolerance);
-		
-		/*
-		 *  Possibly "prettify" the expected json string
-		 */
-		String expJsonPrettyPrint = expJsonString;
-		if (! expJsonIsAlreadyPretty) {
-			ObjectMapper mapper = new ObjectMapper();
-			JsonNode expJsonObj = mapper.readTree(expJsonString);
-			expJsonPrettyPrint = PrettyPrinter.print(expJsonObj);
-		}
-
-		// Ignore differences in \n versus \r\n
-		//  TODO: This should probably be an option
-		expJsonPrettyPrint = expJsonPrettyPrint.replaceAll("\r\n", "\n");
-		gotJsonStrKeysSorted = gotJsonStrKeysSorted.replaceAll("\r\n", "\n");
-		
-		assertStringEquals(
-				message+"\nThe objects was not as expected.\nBelow is a diff of a JSON serialization of the gotten and expected objects.\n",
-				expJsonPrettyPrint, gotJsonStrKeysSorted);		
+		AssertObject.assertEqualsJsonCompare(message, expJsonString, gotObject, ignoreFields, expJsonIsAlreadyPretty, decimalsTolerance);		
 	}
 
+	/**
+	 * @deprecated  Use AssertString method instead
+	 */
+	@Deprecated	
 	public static void assertStringEquals(String message, String expString, String gotString) {
-		message = message +
-				"The two strings differred. Location of the first difference is highlighted below with tag <FIRST_DIFF>.\n";
-		
-		// Ignore differences in \n versus \r\n
-		//  TODO: This should probably be an option
-		if (expString != null) {
-			expString = expString.replaceAll("\r\n", "\n");
-		}
-		if (gotString != null) {
-			gotString = gotString.replaceAll("\r\n", "\n");
-		}
-		
-		
-		int firstDiffOffset = StringUtils.indexOfDifference(expString, gotString);
-		
-		if (expString == null || gotString == null) {
-			Assert.assertEquals(message, expString, gotString);
-		}
-
-		if (firstDiffOffset >= 0) {
-			String commonStart = expString.substring(0, firstDiffOffset);
-			String expectedRest = expString.substring(firstDiffOffset);
-			String gotRest = gotString.substring(firstDiffOffset);
-
-			message = 
-					message + 
-					"== Expected:\n "+
-					commonStart +
-					"<<FIRST_DIFF>>" +
-					expectedRest + "\n";
-			message = 
-					message + 
-					"== Got         :\n "+
-					commonStart +
-					"<<FIRST_DIFF>>" +
-					gotRest + "\n";
-			
-			Assert.fail(message);
-		}
+		AssertString.assertStringEquals(message, expString, gotString);
 	}
 
+	/**
+	 * @deprecated  Use AssertString method instead
+	 */
+	@Deprecated
 	public static void assertStringEquals(String expString, String gotString) {
-		assertStringEquals("", expString, gotString);
+		AssertString.assertStringEquals(expString, gotString);
 	}
 
+	/**
+	 * @deprecated  Use AssertString method instead
+	 */
+	@Deprecated	
 	public static void assertStringContains(String gotString, String expSubstring) {
-		assertStringContains(null, gotString, expSubstring, null, null);
+		AssertString.assertStringContains(gotString, expSubstring);
 	}
 
+	/**
+	 * @deprecated  Use AssertString method instead
+	 */
+	@Deprecated
 	public static void assertStringContains(String message,
 			String gotString, String expSubstring) {
-		boolean caseSensitive = true;
-		assertStringContains(message, gotString, expSubstring, null, null);
+		AssertString.assertStringContains(message, gotString, expSubstring);
 	}
 
+	/**
+	 * @deprecated  Use AssertString method instead
+	 */
+	@Deprecated
 	public static void assertStringContains(String message,
 			String gotString, String pattern, Boolean caseSensitive) {
-		
-		assertStringContains(message, gotString, pattern, caseSensitive, null);
+		AssertString.assertStringContains(message, gotString, pattern, caseSensitive);
 	}
 	
+	/**
+	 * @deprecated  Use AssertString method instead
+	 */
+	@Deprecated
 	public static void assertStringContains(String message, String gotString, 
 			String pattern, Boolean caseSensitive, Boolean isRegexp) {
-		
-		if (caseSensitive == null) {
-			caseSensitive = true;
-		}
-		
-		if (isRegexp == null) {
-			isRegexp = false;
-		}
-		
-		if (!caseSensitive && !isRegexp) {
-			gotString = gotString.toLowerCase();
-			pattern = pattern.toLowerCase();
-		}
-		
-		if (message == null) {
-			message = "";
-		} else {
-			message = message + "\n";
-		}
-		
-		String type = "substring";
-		if (isRegexp) {type = "regexp";}
-		
-		message = message + 
-				   "String did not contain an expected "+type+".\n"
-						  + "== Expected "+type+": \n"+pattern+"\n\n"
-						  + "== Got string : \n"+gotString+"\n\n";
-
-		if (isRegexp) {
-			Pattern patt = Pattern.compile(pattern);
-			Matcher matcher = patt.matcher(gotString);
-			Assert.assertTrue(message+"\nDid not find any occurence of regepx "+pattern, 
-					matcher.find());
-		} else {
-			Assert.assertTrue(message+"\nDid not find any occurence of regepx "+pattern,
-					gotString.contains(pattern));			
-		}
+		AssertString.assertStringContains(message, gotString, pattern, caseSensitive, isRegexp);
 	}	
 	
-	
+	/**
+	 * @deprecated  Use AssertString method instead
+	 */
+	@Deprecated
 	public static void assertStringDoesNotContain(String gotString, String unexpSubstring) {
-		boolean caseSensitive = true;
-		assertStringDoesNotContain("", gotString, unexpSubstring, caseSensitive);
+		AssertString.assertStringDoesNotContain(gotString, unexpSubstring);
 	}
 	
+	/**
+	 * @deprecated  Use AssertString method instead
+	 */
+	@Deprecated
 	public static void assertStringDoesNotContain(String message,
 			String gotString, String unexpSubstring) {
-		boolean caseSensitive = true;
-		assertStringDoesNotContain(message, gotString, unexpSubstring, caseSensitive);
+		AssertString.assertStringDoesNotContain(message, gotString, unexpSubstring);
 	}
 
+	/**
+	 * @deprecated  Use AssertString method instead
+	 */
+	@Deprecated
 	public static void assertStringDoesNotContain(String message, String gotString, 
 			String unexpSubstring, Boolean caseSensitive) {
-		assertStringDoesNotContain(message, gotString, unexpSubstring, caseSensitive, null);
+		AssertString.assertStringDoesNotContain(message, gotString, unexpSubstring, caseSensitive);
 	}
-
 	
+	/**
+	 * @deprecated  Use AssertString method instead
+	 */
+	@Deprecated
 	public static void assertStringDoesNotContain(String message, String gotString, 
 			String unexpSubstring, Boolean caseSensitive, Boolean isRegexp) {
-		
-		if (caseSensitive == null) {
-			caseSensitive = false;
-		}
-		
-		if (isRegexp == null) {
-			isRegexp = false;
-		}
-		
-		if (!caseSensitive && !isRegexp) {
-			gotString = gotString.toLowerCase();
-			unexpSubstring = unexpSubstring.toLowerCase();
-		}
-		
-		if (message == null) {
-			message = "";
-		} else {
-			message = message + "\n";
-		}
-		
-		String type = "substring";
-		if (isRegexp) {type = "regexp";}
-		
-		message = message + 
-				   "String contained an UN-expected "+type+".\n"
-						  + "== Un-expected "+type+": \n"+unexpSubstring+"\n\n"
-						  + "== Got string : \n"+gotString+"\n\n";
-
-		if (isRegexp) {
-			Pattern patt = Pattern.compile(unexpSubstring);
-			Matcher matcher = patt.matcher(gotString);
-			Assert.assertFalse(message+"\nFound at least one occurence of regepx "+unexpSubstring, 
-					matcher.find());
-		} else {
-			Assert.assertFalse(message, gotString.contains(unexpSubstring));			
-		}
+		AssertString.assertStringDoesNotContain(message, gotString, unexpSubstring, caseSensitive, isRegexp);
 	}	
 	
+	/**
+	 * @deprecated  Use AssertFile method instead
+	 */
+	@Deprecated
 	public static void assertFileContains(String mess, File fPath, String pattern, 
 			Boolean isCaseSensitive, Boolean isRegexp) throws IOException {
-		String fileContent = "";
-		List<String> lines = Files.readAllLines(fPath.toPath());
-		for (String line: lines) {
-			fileContent += "\n"+line;
-		}
-		assertStringContains(mess, fileContent, pattern, isCaseSensitive, isRegexp);
+		AssertFile.assertFileContains(mess, fPath, pattern, isCaseSensitive, isRegexp);
 	}
 
+	/**
+	 * @deprecated  Use AssertFile method instead
+	 */
 	public static void assertFileDoesNotContain(String mess, String fPath, String pattern, Boolean isRegexp) throws IOException {
-		String fileContent = "";
-		List<String> lines = Files.readAllLines(Paths.get(fPath));
-		for (String line: lines) {
-			fileContent += line;
-		}
-		assertStringDoesNotContain(mess, fileContent, pattern, null, isRegexp);
+		AssertFile.assertFileDoesNotContain(mess, fPath, pattern, isRegexp);	
 	}
 	
+	/**
+	 * @deprecated  Use AssertFile method instead
+	 */
 	public static void assertFileContentEquals(String mess, File file, String expFileContent) throws IOException {
-		String gotFileContent = new String(Files.readAllBytes(file.toPath()));
-		assertStringEquals(mess+"\nContent of file '"+file+"' was not as expected.",
-				expFileContent, gotFileContent);
-		
+		AssertFile.assertFileContentEquals(mess, file, expFileContent);
 	}
 	
+	/**
+	 * @deprecated  Use AssertFile method instead
+	 */
 	public static void assertFileContentStartsWith(String mess, File file, String expContentStart) throws IOException {
-		mess += "Content of file "+file.toString()+" did not start with the expected string.";
-		String gotFileContent = new String(Files.readAllBytes(file.toPath()));
-		String gotContentStart = gotFileContent.substring(0, expContentStart.length());
-		assertStringEquals(mess, expContentStart, gotContentStart);
+		AssertFile.assertFileContentStartsWith(mess, file, expContentStart);
 	}
 	
+	/**
+	 * @deprecated  Use AssertFile method instead
+	 */
 	public static void assertFileContentEndsWith(String mess, File file, String expContentEnd) throws IOException {
-		mess += "Content of file "+file.toString()+" did not end with the expected string.";
-		String gotFileContent = new String(Files.readAllBytes(file.toPath()));
-		String gotContentEnd = gotFileContent.substring(gotFileContent.length() - expContentEnd.length(), gotFileContent.length());
-		assertStringEquals(mess, expContentEnd, gotContentEnd);
+		AssertFile.assertFileContentEndsWith(mess, file, expContentEnd);
 	}
 	
+	/**
+	 * @deprecated  Use AssertFile method instead
+	 */
 	public static void assertFilesHaveSameContent(String mess, File file1, File file2) throws IOException {
-		mess += "\nFiles did not have the same content. File names are:\n  file1: "+file1+"\n  file2: "+file2;
-		String content1 = new String(Files.readAllBytes(file1.toPath()));
-		String content2 = new String(Files.readAllBytes(file2.toPath()));
-		assertStringEquals(mess, content1, content2);
+		AssertFile.assertFilesHaveSameContent(mess, file1, file2);
 	}
 	
-	public static void assertDirectoryHasFiles(String message, File dir, String[] expFiles) throws IOException {		
-		File[] gotFiles = dir.listFiles();
-		
-		Set<String> gotFilesSet = new HashSet<String>();
-		for (File aFile: gotFiles) gotFilesSet.add(aFile.getName());
-		
-		Set<String> expFilesSet = new HashSet<String>();
-		for (String aFileName: expFiles) expFilesSet.add(aFileName);
-		
-		
-		AssertHelpers.assertDeepEquals(message, expFilesSet, gotFilesSet);	
+	/**
+	 * @deprecated  Use AssertFile method instead
+	 */
+	public static void assertDirectoryHasFiles(String message, File dir, String[] expFiles) throws IOException {
+		AssertFile.assertDirectoryHasFiles(message,  dir, expFiles);
 	}
 
-	
+	/**
+	 * @deprecated  Use AssertFile method instead
+	 */
+	public static void assertFilesEqual(String mess, String[] expFilesStr, File[] gotFiles, File rootDir) throws Exception {
+		AssertFile.assertFilesEqual(mess, expFilesStr, gotFiles, rootDir);
+	}
 
 	public static <T> void assertContainsAll(String message, T[] supersetArr, T[] subsetArr) {
 		Set<Object> superset = new HashSet<Object>();
@@ -415,7 +309,6 @@ public class AssertHelpers {
 		assertContainsAll(message, superset, subsetArr);
 		
 	}
-	
 	
 	public  static <T> void  assertContainsAll(String message, Set<T> superset, T[] subsetArr) {
 		
