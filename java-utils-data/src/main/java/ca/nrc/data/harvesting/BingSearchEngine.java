@@ -29,6 +29,8 @@ import org.json.JSONObject;
 
 import ca.nrc.config.ConfigException;
 import ca.nrc.data.JavaUtilsDataConfig;
+import ca.nrc.data.harvesting.SearchEngine.Query;
+import ca.nrc.data.harvesting.SearchEngine.SearchEngineException;
 import ca.nrc.datastructure.Pair;
 
 
@@ -57,15 +59,13 @@ public class BingSearchEngine extends SearchEngine {
 
 	}
 	
-	
-
 	@Override
-	public List<SearchEngine.Hit> searchRaw(SearchEngine.Query seQuery) throws SearchEngineException {
+	protected SearchResults searchRaw(Query seQuery) throws SearchEngineException {
 		Logger tLogger = Logger.getLogger("ca.nrc.data.harvesting.BingSearchEngine.search");
 		
 		String queryStr = seQuery.fuzzyQuery;
 		
-		final List<SearchEngine.Hit> results = new ArrayList<SearchEngine.Hit>();
+		final List<SearchEngine.Hit> hitList = new ArrayList<SearchEngine.Hit>();
 		final CloseableHttpClient httpClient = HttpClients.createDefault();
 		
 		Pair<Integer,Integer> pageRange = seQuery.computeFirstAndLastPage();
@@ -73,6 +73,8 @@ public class BingSearchEngine extends SearchEngine {
 		Integer lastPage = pageRange.getSecond();
 		
 		String queryString = makeBingQueryString(seQuery);
+		
+		Long totalEstHits = new Long(0);
 		
 		boolean keepGoing = true;
 		while (keepGoing) {
@@ -141,7 +143,7 @@ public class BingSearchEngine extends SearchEngine {
 					keepGoing = false;
 				} else {
 					final JSONObject page = json.getJSONObject("webPages");
-					Long totalEstHits = page.getLong("totalEstimatedMatches");
+					totalEstHits = page.getLong("totalEstimatedMatches");
 					final JSONArray jsonResults = page.getJSONArray("value");
 					final int resultsLength = jsonResults.length();
 					if (resultsLength == 0) {
@@ -162,14 +164,14 @@ public class BingSearchEngine extends SearchEngine {
 											aResult.getString("snippet"));
 							
 							newHit.outOfTotal = totalEstHits;										
-							results.add(newHit);
-							if (seQuery.maxHits != null && results.size() == seQuery.maxHits) break;
+							hitList.add(newHit);
+							if (seQuery.maxHits != null && hitList.size() == seQuery.maxHits) break;
 						}
 					}
 				}
 			}
 			
-			if (seQuery.maxHits != null && results.size() >= seQuery.maxHits) {
+			if (seQuery.maxHits != null && hitList.size() >= seQuery.maxHits) {
 				keepGoing = false;
 			} else {
 				currentPage++;
@@ -182,9 +184,13 @@ public class BingSearchEngine extends SearchEngine {
 			throw new SearchEngineException(exc);
 		}
 		
-		tLogger.trace("Upon exit, for queryStr="+queryStr+", results.size()="+results.size());
+		tLogger.trace("Upon exit, for queryStr="+queryStr+", results.size()="+hitList.size());
 		
-		return results;
+		SearchResults results = new SearchResults();
+		results.retrievedHits = hitList;
+		results.estTotalHits = totalEstHits;
+		
+		return results;		
 	}
 
 	protected String makeBingQueryString(Query seQuery) {

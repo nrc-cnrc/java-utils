@@ -9,7 +9,7 @@ import ca.nrc.datastructure.Pair;
 
 public abstract class SearchEngine {
 
-	protected abstract List<SearchEngine.Hit> searchRaw(Query query) throws SearchEngineException;
+protected abstract SearchResults searchRaw(Query query) throws SearchEngineException;
 	
 	private boolean checkHitLanguage = false;
 	public boolean shouldCheckHitLanguage()  { return checkHitLanguage; }
@@ -19,8 +19,9 @@ public abstract class SearchEngine {
 	}
 
 	
-	public List<SearchEngine.Hit> search(Query seQuery) throws SearchEngineException {
-		List<Hit> rawHits = searchRaw(seQuery);		
+	public SearchResults search(Query seQuery) throws SearchEngineException {
+		SearchResults results = searchRaw(seQuery);	
+		List<Hit> rawHits = results.retrievedHits;
 		List<Hit> filteredHits = rawHits;
 		if (shouldCheckHitLanguage()) {
 			filteredHits = new ArrayList<Hit>();
@@ -35,7 +36,9 @@ public abstract class SearchEngine {
 			}
 		}
 		
-		return filteredHits;	
+		results.retrievedHits = filteredHits;
+		
+		return results;	
 	}
 
 	public enum Type {
@@ -185,6 +188,5 @@ public abstract class SearchEngine {
 	
 	public interface IHitVisitor {
 		public void visitHit(Hit hit) throws Exception;
-	}
-	
+	}	
 }

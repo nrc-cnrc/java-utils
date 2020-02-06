@@ -64,7 +64,7 @@ public abstract class SearchEngineTest {
 		// - respecting the order of the words in the query as much as possible
 		//
 		SearchEngine.Query query = new SearchEngine.Query("how many ways to skin a cat?");
-		List<SearchEngine.Hit> results = engine.search(query); 
+		List<SearchEngine.Hit> results = engine.search(query).retrievedHits; 
 		
 		// You can then peruse the list of hits as follows.
 		for (SearchEngine.Hit aHit: results) {
@@ -121,10 +121,10 @@ public abstract class SearchEngineTest {
 					.setHitsPerPage(hitsPerPage);
 		
 		// Get the first page of hits...
-		results = engine.search(query.setHitsPageNum(0)); 
+		results = engine.search(query.setHitsPageNum(0)).retrievedHits; 
 		
 		// Get the second page, and so on...
-		results = engine.search(query.setHitsPageNum(1)); 
+		results = engine.search(query.setHitsPageNum(1)).retrievedHits; 
 	}
 
 	/*************************
@@ -136,7 +136,7 @@ public abstract class SearchEngineTest {
 		SearchEngine engine = makeSearchEngine();
 		
 		SearchEngine.Query query = new SearchEngine.Query("learn");
-		List<SearchEngine.Hit> results = engine.search(query); 
+		List<SearchEngine.Hit> results = engine.search(query).retrievedHits; 
 		Assert.assertTrue("Found more hits than requested", results.size() <= query.maxHits);
 		assertResultsFitTheQuery(results, query);
 	}
@@ -148,7 +148,7 @@ public abstract class SearchEngineTest {
 		
 		String[] terms = new String[] {"machine learning", "pattern recognition"};
 		SearchEngine.Query query = new SearchEngine.Query(terms).setMaxHits(10);
-		List<SearchEngine.Hit> results = engine.search(query); 
+		List<SearchEngine.Hit> results = engine.search(query).retrievedHits; 
 		Assert.assertEquals("max Hits", query.maxHits, new Integer(results.size()));
 		assertResultsFitTheQuery(results, query, 3);
 	}
@@ -164,7 +164,7 @@ public abstract class SearchEngineTest {
 		// Set the max number of hits to twice the default value;
 		int origMaxHits =query.maxHits;
 		query.setMaxHits(query.maxHits*2 + 5);
-		List<SearchEngine.Hit> results = engine.search(query); 		
+		List<SearchEngine.Hit> results = engine.search(query).retrievedHits; 		
 		
 		Assert.assertTrue("max Hits", results.size() > origMaxHits);
 		
@@ -197,7 +197,7 @@ public abstract class SearchEngineTest {
 					.setMaxHits(numHits)
 					;		
 			
-			List<SearchEngine.Hit> results = engine.search(query); 
+			List<SearchEngine.Hit> results = engine.search(query).retrievedHits; 
 			Assert.assertEquals("Number of hits was not as expected",
 					numHits, results.size());
 			
@@ -214,7 +214,7 @@ public abstract class SearchEngineTest {
 		SearchEngine.Type hitType = SearchEngine.Type.NEWS;
 		SearchEngine.Query query = 
 				new SearchEngine.Query("machine learning").setType(hitType);
-		List<SearchEngine.Hit> results = engine.search(query); 
+		List<SearchEngine.Hit> results = engine.search(query).retrievedHits; 
 		assertResultsFitTheQuery(results, query);
 	}
 	
@@ -225,7 +225,7 @@ public abstract class SearchEngineTest {
 		String site = "nrc-cnrc.gc.ca";
 		SearchEngine.Query query = 
 				new SearchEngine.Query("machine learning").setSite(site);
-		List<SearchEngine.Hit> results = engine.search(query); 
+		List<SearchEngine.Hit> results = engine.search(query).retrievedHits; 
 		assertResultsFitTheQuery(results, query, 3);
 	}	
 
@@ -237,7 +237,7 @@ public abstract class SearchEngineTest {
 		String site = "nrc-cnrc.gc.ca";
 		SearchEngine.Query query = new SearchEngine.Query("machine learning");
 		query.setSite(site);
-		List<SearchEngine.Hit> results = engine.search(query); 
+		List<SearchEngine.Hit> results = engine.search(query).retrievedHits; 
 		assertResultsFitTheQuery(results, query, 3);
 	}
 	
@@ -247,8 +247,8 @@ public abstract class SearchEngineTest {
 		
 		SearchEngine.Query query = new SearchEngine.Query("learn");
 		
-		List<SearchEngine.Hit> gotPage1 = engine.search(query.setHitsPageNum(0)); 
-		List<SearchEngine.Hit> gotPage2 = engine.search(query.setHitsPageNum(1)); 
+		List<SearchEngine.Hit> gotPage1 = engine.search(query.setHitsPageNum(0)).retrievedHits; 
+		List<SearchEngine.Hit> gotPage2 = engine.search(query.setHitsPageNum(1)).retrievedHits; 
 		AssertHelpers.assertDeepNotEqual("First page of hits should have been different from the second one.", gotPage1, gotPage2);
 	}
 
@@ -429,7 +429,7 @@ public abstract class SearchEngineTest {
 		
 		// Search for the word 'nunavut'
 		SearchEngine.Query query = new SearchEngine.Query("ᓄᓇᕗ");
-		List<SearchEngine.Hit> results = engine.search(query); 
+		List<SearchEngine.Hit> results = engine.search(query).retrievedHits; 
 		assertResultsFitTheQuery(results, query, 3);
 	}
 
