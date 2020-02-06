@@ -67,6 +67,10 @@ protected abstract SearchResults searchRaw(Query query) throws SearchEngineExcep
 			this.inURL = inURL;
 		}
 
+		public Query() {
+			initialize(null, null);
+		}
+		
 		public Query(String fuzzyQuery) {
 			initialize(fuzzyQuery, null);
 		}

@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SearchResults {
-	long estTotalHits = 0;
+	public long estTotalHits = 0;
 
-	List<SearchEngine.Hit> retrievedHits = new ArrayList<SearchEngine.Hit>();
+	public List<SearchEngine.Hit> retrievedHits = new ArrayList<SearchEngine.Hit>();
 }

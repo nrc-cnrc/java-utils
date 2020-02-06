@@ -252,18 +252,35 @@ public abstract class SearchEngineTest {
 		AssertHelpers.assertDeepNotEqual("First page of hits should have been different from the second one.", gotPage1, gotPage2);
 	}
 
-	
+	@Test(timeout=10000)
+	public void test__search__InuktutLanguage() throws Exception {
+		// Most search engines (well, at least Bing) tend to return 
+		// non-Inuktut pages, even when you ask specifically for that language
+		//
+		// So for this test, activate the post-processing language filter
+		//
+		SearchEngine engine = makeSearchEngine().setCheckHitLanguage(true);
+		
+		// Search for the word 'nunavut'
+		SearchEngine.Query query = new SearchEngine.Query("ᓄᓇᕗ");
+		List<SearchEngine.Hit> results = engine.search(query).retrievedHits; 
+		assertResultsFitTheQuery(results, query, 3);
+	}
 	
 	/*************************
 	 * TEST HELPER METHODS
 	 * @throws PageHarvesterException 
 	 *************************/	
 
-	private void assertResultsFitTheQuery(List<SearchEngine.Hit> results, SearchEngine.Query query) throws PageHarvesterException {
+	public static void assertResultsFitTheQuery(List<SearchEngine.Hit> results, SearchEngine.Query query) throws PageHarvesterException {
 		assertResultsFitTheQuery(results, query, 0);
 	}
+
+	public static void assertResultsFitTheQuery(SearchResults results, SearchEngine.Query query, int maxNoFit) throws PageHarvesterException {
+		assertResultsFitTheQuery(results.retrievedHits, query, maxNoFit);
+	}
 	
-	private void assertResultsFitTheQuery(List<SearchEngine.Hit> results, SearchEngine.Query query, int maxNoFit) throws PageHarvesterException {
+	public static void assertResultsFitTheQuery(List<SearchEngine.Hit> results, SearchEngine.Query query, int maxNoFit) throws PageHarvesterException {
 		
 		Map<URL, String> hitValidity = new HashMap<URL,String>();
 		for (SearchEngine.Hit hit: results) {
@@ -335,7 +352,7 @@ public abstract class SearchEngineTest {
 
 	}
 	
-	private Boolean hitMatchesQueryKeywords(SearchEngine.Query query, SearchEngine.Hit hit) throws PageHarvesterException {
+	public static Boolean hitMatchesQueryKeywords(SearchEngine.Query query, SearchEngine.Hit hit) throws PageHarvesterException {
 		String wholeContent = hit.toString();
 		Boolean matches = null;
 		if (wholeContent.contains("moved")) {
@@ -363,13 +380,13 @@ public abstract class SearchEngineTest {
 		return matches;
 	}
 	
-	private String getHitActualContent(SearchEngine.Hit hit) throws PageHarvesterException {
+	private static String getHitActualContent(SearchEngine.Hit hit) throws PageHarvesterException {
 		String content = new PageHarvester().harvestSinglePage(hit.url);
 		
 		return content;
 	}
 
-	private Boolean hitMatchesContent_TermsList(List<String> terms, String wholeContent) {
+	public static Boolean hitMatchesContent_TermsList(List<String> terms, String wholeContent) {
 		Boolean foundTerm = false;
 		for (String aTerm: terms) { 
 			if (wholeContent.contains(aTerm.toLowerCase())) {
@@ -380,7 +397,7 @@ public abstract class SearchEngineTest {
 		return foundTerm;
 	}
 
-	private Boolean hitMatchesContent_FuzzyQuery(String fuzzyQuery, String wholeContent) {
+	public static Boolean hitMatchesContent_FuzzyQuery(String fuzzyQuery, String wholeContent) {
 		Boolean foundWord = false;
 		String[] words = fuzzyQuery.split("\\s+");
 		for (String aWord: words) {
@@ -393,7 +410,7 @@ public abstract class SearchEngineTest {
 			return foundWord;
 	}
 	
-	private boolean hitHasCorrectType(Query query, SearchEngine.Hit hit) {
+	private static boolean hitHasCorrectType(Query query, SearchEngine.Hit hit) {
 		boolean hasCorrectType = true;
 		
 		String wholeContent = hit.toString();
@@ -417,21 +434,10 @@ public abstract class SearchEngineTest {
 		
 		return hasCorrectType;
 	}
-
-	@Test(timeout=10000)
-	public void test__search__InuktutLanguage() throws Exception {
-		// Most search engines (well, at least Bing) tend to return 
-		// non-Inuktut pages, even when you ask specifically for that language
-		//
-		// So for this test, activate the post-processing language filter
-		//
-		SearchEngine engine = makeSearchEngine().setCheckHitLanguage(true);
-		
-		// Search for the word 'nunavut'
-		SearchEngine.Query query = new SearchEngine.Query("ᓄᓇᕗ");
-		List<SearchEngine.Hit> results = engine.search(query).retrievedHits; 
-		assertResultsFitTheQuery(results, query, 3);
+	
+	public static void assertSufficientHitsFound(long expMin, SearchResults results) {
+		Assert.assertTrue("Total estimated hits should have been at least "+expMin
+				+", but it was only"+results.estTotalHits, 
+				results.estTotalHits >= expMin);
 	}
-
-
 }
