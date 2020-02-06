@@ -1,14 +1,24 @@
 package ca.nrc.data.harvesting;
 
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.fasterxml.jackson.databind.ObjectWriter.GeneratorSettings;
 
 import ca.nrc.datastructure.Pair;
 
 public abstract class SearchEngine {
 
 	public abstract List<SearchEngine.Hit> search(Query query) throws SearchEngineException;
+	
+	private boolean checkHitLanguage = true;
+		public boolean shouldCheckHitLanguage()  { return checkHitLanguage; }
+		public SearchEngine setCheckHitLanguage(boolean flag)  {
+			checkHitLanguage = flag;
+			return this;
+		}
 	
 	public enum Type {
 	    NEWS, ANY, BLOG
@@ -120,7 +130,7 @@ public abstract class SearchEngine {
 		}
 	}
 	
-	public class Hit {
+	public static class Hit {
 		public URL url;
 		public String title;
 		public String summary;
@@ -137,6 +147,21 @@ public abstract class SearchEngine {
 					"URL: "+this.url.toString().toLowerCase()+"\nTitle: "
 					+this.title.toLowerCase() + "\nSummary: " + this.summary.toLowerCase();
 			return wholeContent;
+		}
+
+		public boolean isInLanguage(String desiredLang) throws IOException {
+			String actualLang = LanguageGuesser.detect(summary);
+			boolean answer = true;
+			if (actualLang != null && desiredLang != null) {
+				answer = (actualLang.equals(desiredLang));
+			} else {
+				// On of the two languages is null. Is the other non-null?
+				if (actualLang != null || desiredLang != null) {
+					answer = false;
+				}
+			}
+					
+			return answer;
 		}
 	}
 	

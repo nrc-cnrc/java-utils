@@ -106,7 +106,7 @@ public class PageHarvesterTest {
 	/*******************************************************************************
 	 * VERIFICATION TESTS
 	 ********************************************************************************/	
-	
+		
 	@Test
 	public void test__harvestSinglePage__HappyPath() throws IOException, BoilerpipeProcessingException, PageHarvesterException {
 		String url = ResourceGetter.getResourceFileUrl("local_html_files/cbcNewsExample.html").toString();

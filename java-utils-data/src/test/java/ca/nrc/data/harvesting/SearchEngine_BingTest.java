@@ -13,6 +13,7 @@ import ca.nrc.data.harvesting.BingSearchEngine;
 import ca.nrc.data.harvesting.SearchEngine;
 import ca.nrc.data.harvesting.SearchEngine.SearchEngineException;
 import ca.nrc.testing.AssertHelpers;
+import ca.nrc.testing.AssertString;
 
 public class SearchEngine_BingTest extends SearchEngineTest {
 
@@ -42,7 +43,7 @@ public class SearchEngine_BingTest extends SearchEngineTest {
 		String bingURL = "https://www.bing.com/cr?IG=4F40DA1845D24932A9D0F66DC4FC14EA&CID=2B66391AD87368C00D4B30F1D9426911&rd=1&h=8If1ewpZIAj-EF57E375KJmLrrKvbvJmfeNbDiXXQwE&v=1&r=https%3a%2f%2fwww.vesselfinder.com%2fvessels%2fARCTIC-IMO-9315173-MMSI-636014506&p=DevEx,5098.1";
 		String gotDirectURL = new BingSearchEngine().getHitDirectURL(bingURL);
 		String expDirectURL = "https://www.vesselfinder.com/vessels/ARCTIC-IMO-9315173-MMSI-636014506";
-		AssertHelpers.assertStringEquals(expDirectURL, gotDirectURL);
+		AssertString.assertStringEquals(expDirectURL, gotDirectURL);
 	}
 
 	@Test
@@ -53,7 +54,7 @@ public class SearchEngine_BingTest extends SearchEngineTest {
 		BingSearchEngine searchEngine = new BingSearchEngine();
 		String gotQueryString = searchEngine.makeBingQueryString(query);
 		String expQueryString = "machine learning, pattern recognition";
-		AssertHelpers.assertStringEquals(expQueryString, gotQueryString);
+		AssertString.assertStringEquals(expQueryString, gotQueryString);
 	}
 
 	@Test
@@ -65,7 +66,7 @@ public class SearchEngine_BingTest extends SearchEngineTest {
 		BingSearchEngine searchEngine = new BingSearchEngine();
 		String gotQueryString = searchEngine.makeBingQueryString(query);
 		String expQueryString = "+site:somesite.com machine learning, pattern recognition";
-		AssertHelpers.assertStringEquals(expQueryString, gotQueryString);
+		AssertString.assertStringEquals(expQueryString, gotQueryString);
 	}
 	
 	
@@ -77,7 +78,7 @@ public class SearchEngine_BingTest extends SearchEngineTest {
 		BingSearchEngine searchEngine = new BingSearchEngine();
 		String gotQueryString = searchEngine.makeBingQueryString(query);
 		String expQueryString = "machine learning";
-		AssertHelpers.assertStringEquals(expQueryString, gotQueryString);
+		AssertString.assertStringEquals(expQueryString, gotQueryString);
 	}
 
 	@Test
@@ -88,7 +89,7 @@ public class SearchEngine_BingTest extends SearchEngineTest {
 		BingSearchEngine searchEngine = new BingSearchEngine();
 		String gotQueryString = searchEngine.makeBingQueryString(query);
 		String expQueryString = "this is a fuzzy query";
-		AssertHelpers.assertStringEquals(expQueryString, gotQueryString);
+		AssertString.assertStringEquals(expQueryString, gotQueryString);
 	}
 	
 	@Test
@@ -99,8 +100,24 @@ public class SearchEngine_BingTest extends SearchEngineTest {
 		BingSearchEngine searchEngine = new BingSearchEngine();
 		String gotQueryString = searchEngine.makeBingQueryString(query);
 		String expQueryString = "this is a fuzzy query AND +(\"news\")";
-		AssertHelpers.assertStringEquals(expQueryString, gotQueryString);
-	}		
+		AssertString.assertStringEquals(expQueryString, gotQueryString);
+	}	
+	
+	@Test
+	public void test__makeBingQueryString__Inuktut() throws Exception {
+		String queryString = "ᐅᑉᐱᕐᓂᕐᒥᒃ";
+		SearchEngine.Query query = 
+				new SearchEngine.Query(queryString).setLang("iu");
+		
+		BingSearchEngine searchEngine = new BingSearchEngine();
+		String gotQueryString = searchEngine.makeBingQueryString(query);
+		String expQueryString = "ᐅᑉᐱᕐᓂᕐᒥᒃ AND -(\"the\")";
+		AssertString.assertStringEquals(expQueryString, gotQueryString);
+	}
+	
+	/////////////////////////////////
+	// TEST HELPERS	
+	/////////////////////////////////
 	
 	private void printHitUrls(List<SearchEngine.Hit> hits, String heading) {
 		System.out.println("\n\nHits for: "+heading);

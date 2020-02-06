@@ -5,9 +5,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import org.apache.commons.io.FileUtils;
+import org.junit.Assert;
 
 public class AssertFile {
 	
@@ -58,6 +63,13 @@ public class AssertFile {
 		AssertString.assertStringEquals(mess, content1, content2);
 	}
 	
+   public static void assertDirectoryHasNFiles(String mess, File dir, int expNum) throws IOException {        
+        File[] gotFiles = dir.listFiles();
+        Assert.assertEquals(mess+"\nDirectory "+dir+" did not contain the expected number of files",
+                    expNum, gotFiles.length);
+    }
+
+	
 	public static void assertDirectoryHasFiles(String message, File dir, String[] expFiles) throws IOException {		
 		File[] gotFiles = dir.listFiles();
 		
@@ -81,6 +93,46 @@ public class AssertFile {
 		}
 		AssertObject.assertDeepEquals(mess+"\nList of files not as expected", 
 				expFilesStr, gotFilesStr);
-	}	
+	}
 
+    public static void assertDirsHaveSameContent(File expDir, File gotDir) throws IOException {
+        assertDirsHaveSameContent("", expDir, gotDir, null);
+    }
+    
+    public static void assertDirsHaveSameContent(String mess, File expDir, File gotDir,
+            String[] ignoreFiles) throws IOException {
+        Set<String> ignoreSet = new HashSet<String>();
+        if (ignoreFiles != null) {
+            for (String aFile: ignoreFiles) {
+                ignoreSet.add(aFile);
+            }
+        }
+        
+        List<File> expFiles = (List<File>) FileUtils.listFiles(expDir, null, true);
+        Map<String,File> expFileNames = new HashMap<String,File>();
+        for (File aFile: expFiles) {
+            if (!ignoreSet.contains(aFile.getName())) {
+                expFileNames.put(aFile.getName(), aFile);
+            }
+        }
+
+        List<File> gotFiles = (List<File>) FileUtils.listFiles(gotDir, null, true);
+        Map<String,File> gotFileNames = new HashMap<String,File>();
+        for (File aFile: gotFiles) {
+            if (!ignoreSet.contains(aFile.getName())) {
+                gotFileNames.put(aFile.getName(), aFile);
+            }
+        }
+        
+        
+        AssertObject.assertDeepEquals(
+                mess+"\nThe two directories did not have the same files", 
+                expFileNames.keySet(), gotFileNames.keySet());
+        
+        for (String aFileName: expFileNames.keySet()) {
+            File anExpFile = expFileNames.get(aFileName);
+            File aGotFile = gotFileNames.get(aFileName);
+            AssertFile.assertFilesHaveSameContent("", anExpFile, aGotFile);
+        }
+    }
 }

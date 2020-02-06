@@ -187,16 +187,17 @@ public abstract class SearchEngineTest {
 			// Make sure that things work OK when we ask more hits than what
 			// can fit on the first page.
 			//
+			
+			// Set the max number of hits to twice the default value;			
 			int numHits = 2*maxHitsPerPage + 3;
 			
-			SearchEngine engine = makeSearchEngine();
+			SearchEngine engine = makeSearchEngine().setCheckHitLanguage(false);;
 			SearchEngine.Query query = 
 					new SearchEngine.Query("wikipedia")
 					.setMaxHits(numHits)
 					;
 			
 			
-			// Set the max number of hits to twice the default value;
 			List<SearchEngine.Hit> results = engine.search(query); 
 			Assert.assertEquals("Number of hits was not as expected",
 					numHits, results.size());
@@ -416,6 +417,16 @@ public abstract class SearchEngineTest {
 		if (foundType) hasCorrectType = true;
 		
 		return hasCorrectType;
+	}
+
+	@Test(timeout=10000)
+	public void test__search__InuktutLanguage() throws Exception {
+		SearchEngine engine = makeSearchEngine();
+		
+		// Search for the word 'nunavut'
+		SearchEngine.Query query = new SearchEngine.Query("ᓄᓇᕗ");
+		List<SearchEngine.Hit> results = engine.search(query); 
+		assertResultsFitTheQuery(results, query, 3);
 	}
 
 

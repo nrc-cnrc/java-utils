@@ -34,7 +34,6 @@ import ca.nrc.datastructure.Pair;
 
 public class BingSearchEngine extends SearchEngine {
 	
-//	private static final String BingPropertyFile = "/ca/nrc/conf/bing.properties";
 	private static final String bingSearchUrl = "https://api.cognitive.microsoft.com/bing/v7.0/search";
 
 	final Map<Object, Object> parameters = new HashMap<Object, Object>();
@@ -161,9 +160,11 @@ public class BingSearchEngine extends SearchEngine {
 							SearchEngine.Hit newHit = 
 									new SearchEngine.Hit(hitURL, aResult.getString("name"),
 											aResult.getString("snippet"));
-							newHit.outOfTotal = totalEstHits;	
 							
-							results.add(newHit);
+							if (hitIsInCorrectLanguage(newHit, seQuery.lang)) {
+								newHit.outOfTotal = totalEstHits;										
+								results.add(newHit);
+							}							
 							if (seQuery.maxHits != null && results.size() == seQuery.maxHits) break;
 						}
 					}
@@ -187,6 +188,20 @@ public class BingSearchEngine extends SearchEngine {
 		tLogger.trace("Upon exit, for queryStr="+queryStr+", results.size()="+results.size());
 		
 		return results;
+	}
+
+	private boolean hitIsInCorrectLanguage(Hit hit, String lang) throws SearchEngineException {
+		boolean answer = true;
+		
+		if (shouldCheckHitLanguage()) {
+			try {
+				answer = hit.isInLanguage(lang);
+			} catch (IOException e) {
+				throw new SearchEngineException("Problem trying to check language of hit "+hit.url, e);
+			}
+		}
+		
+		return answer;
 	}
 
 	private void computeFirstAndLastPage() {
@@ -233,6 +248,20 @@ public class BingSearchEngine extends SearchEngine {
 			queryString = "+site:"+seQuery.getSite()+" "+queryString;
 		}
 		
+		queryString = possiblyAddLanguageHelper(queryString, seQuery.lang);
+		
+		return queryString;
+	}
+
+	/**
+	 * For some languages like Inuktut, Bing needs a bit of "help" in order
+	 * to focus on pages in that language. This method adds some terms to 
+	 * the query string in order to provide such "help".
+	 */
+	private String possiblyAddLanguageHelper(String queryString, String lang) {
+		if (lang.equals("iu")) {
+			queryString += " AND -(\"the\")";
+		}
 		return queryString;
 	}
 
