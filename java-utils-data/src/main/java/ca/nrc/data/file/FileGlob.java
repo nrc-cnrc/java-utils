@@ -6,7 +6,6 @@ import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
 import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
@@ -38,10 +37,6 @@ public class FileGlob {
 		
 		public FileGlobVisitor(String pattern) {
 			initFileGlobVisitor(pattern, null);
-//			collectedFiles = new ArrayList<File>();	
-//			FileSystem fs = FileSystems.getDefault();
-//			//Have to escape windows file separators since \\ is a glob escape character
-//			matcher = fs.getPathMatcher("glob:" + pattern.replace("\\", "\\\\"));
 		}
 		
 		public FileGlobVisitor(String pattern, Consumer<File> _action) {
