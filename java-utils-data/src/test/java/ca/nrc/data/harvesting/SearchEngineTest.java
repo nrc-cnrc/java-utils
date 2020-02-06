@@ -191,12 +191,11 @@ public abstract class SearchEngineTest {
 			// Set the max number of hits to twice the default value;			
 			int numHits = 2*maxHitsPerPage + 3;
 			
-			SearchEngine engine = makeSearchEngine().setCheckHitLanguage(false);;
+			SearchEngine engine = makeSearchEngine();
 			SearchEngine.Query query = 
 					new SearchEngine.Query("wikipedia")
 					.setMaxHits(numHits)
-					;
-			
+					;		
 			
 			List<SearchEngine.Hit> results = engine.search(query); 
 			Assert.assertEquals("Number of hits was not as expected",
@@ -421,7 +420,12 @@ public abstract class SearchEngineTest {
 
 	@Test(timeout=10000)
 	public void test__search__InuktutLanguage() throws Exception {
-		SearchEngine engine = makeSearchEngine();
+		// Most search engines (well, at least Bing) tend to return 
+		// non-Inuktut pages, even when you ask specifically for that language
+		//
+		// So for this test, activate the post-processing language filter
+		//
+		SearchEngine engine = makeSearchEngine().setCheckHitLanguage(true);
 		
 		// Search for the word 'nunavut'
 		SearchEngine.Query query = new SearchEngine.Query("ᓄᓇᕗ");

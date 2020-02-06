@@ -60,7 +60,7 @@ public class BingSearchEngine extends SearchEngine {
 	
 
 	@Override
-	public List<SearchEngine.Hit> search(SearchEngine.Query seQuery) throws SearchEngineException {
+	public List<SearchEngine.Hit> searchRaw(SearchEngine.Query seQuery) throws SearchEngineException {
 		Logger tLogger = Logger.getLogger("ca.nrc.data.harvesting.BingSearchEngine.search");
 		
 		String queryStr = seQuery.fuzzyQuery;
@@ -161,10 +161,8 @@ public class BingSearchEngine extends SearchEngine {
 									new SearchEngine.Hit(hitURL, aResult.getString("name"),
 											aResult.getString("snippet"));
 							
-							if (hitIsInCorrectLanguage(newHit, seQuery.lang)) {
-								newHit.outOfTotal = totalEstHits;										
-								results.add(newHit);
-							}							
+							newHit.outOfTotal = totalEstHits;										
+							results.add(newHit);
 							if (seQuery.maxHits != null && results.size() == seQuery.maxHits) break;
 						}
 					}
@@ -176,7 +174,6 @@ public class BingSearchEngine extends SearchEngine {
 			} else {
 				currentPage++;
 			}			
-
 		}	
 		
 		try {
@@ -188,25 +185,6 @@ public class BingSearchEngine extends SearchEngine {
 		tLogger.trace("Upon exit, for queryStr="+queryStr+", results.size()="+results.size());
 		
 		return results;
-	}
-
-	private boolean hitIsInCorrectLanguage(Hit hit, String lang) throws SearchEngineException {
-		boolean answer = true;
-		
-		if (shouldCheckHitLanguage()) {
-			try {
-				answer = hit.isInLanguage(lang);
-			} catch (IOException e) {
-				throw new SearchEngineException("Problem trying to check language of hit "+hit.url, e);
-			}
-		}
-		
-		return answer;
-	}
-
-	private void computeFirstAndLastPage() {
-		// TODO Auto-generated method stub
-		
 	}
 
 	protected String makeBingQueryString(Query seQuery) {

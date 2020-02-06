@@ -12,7 +12,6 @@ import org.junit.Test;
 import ca.nrc.data.harvesting.BingSearchEngine;
 import ca.nrc.data.harvesting.SearchEngine;
 import ca.nrc.data.harvesting.SearchEngine.SearchEngineException;
-import ca.nrc.testing.AssertHelpers;
 import ca.nrc.testing.AssertString;
 
 public class SearchEngine_BingTest extends SearchEngineTest {

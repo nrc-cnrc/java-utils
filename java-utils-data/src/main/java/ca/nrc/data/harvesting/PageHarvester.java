@@ -146,7 +146,7 @@ public class PageHarvester {
 	public List<SearchEngine.Hit> crawlHits(SearchEngine.Query query, SearchEngine.IHitVisitor hitVisitor)
 			throws IOException, SearchEngineException, PageHarvesterException, ConfigException {
 		SearchEngine engine = new BingSearchEngine();
-		List<SearchEngine.Hit> hits = engine.search(query);
+		List<SearchEngine.Hit> hits = engine.searchRaw(query);
 		for (SearchEngine.Hit aHit : hits) {
 			try {
 				hitVisitor.visitHit(aHit);

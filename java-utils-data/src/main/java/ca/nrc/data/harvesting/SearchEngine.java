@@ -5,21 +5,39 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.fasterxml.jackson.databind.ObjectWriter.GeneratorSettings;
-
 import ca.nrc.datastructure.Pair;
 
 public abstract class SearchEngine {
 
-	public abstract List<SearchEngine.Hit> search(Query query) throws SearchEngineException;
+	protected abstract List<SearchEngine.Hit> searchRaw(Query query) throws SearchEngineException;
 	
-	private boolean checkHitLanguage = true;
-		public boolean shouldCheckHitLanguage()  { return checkHitLanguage; }
-		public SearchEngine setCheckHitLanguage(boolean flag)  {
-			checkHitLanguage = flag;
-			return this;
+	private boolean checkHitLanguage = false;
+	public boolean shouldCheckHitLanguage()  { return checkHitLanguage; }
+	public SearchEngine setCheckHitLanguage(boolean flag)  {
+		checkHitLanguage = flag;
+		return this;
+	}
+
+	
+	public List<SearchEngine.Hit> search(Query seQuery) throws SearchEngineException {
+		List<Hit> rawHits = searchRaw(seQuery);		
+		List<Hit> filteredHits = rawHits;
+		if (shouldCheckHitLanguage()) {
+			filteredHits = new ArrayList<Hit>();
+			for (Hit aHit: rawHits) {
+				try {
+					if (aHit.isInLanguage(seQuery.lang)) {
+						filteredHits.add(aHit);
+					}
+				} catch (IOException e) {
+					throw new SearchEngineException("Problem checking language of hit "+aHit.url, e);
+				}
+			}
 		}
-	
+		
+		return filteredHits;	
+	}
+
 	public enum Type {
 	    NEWS, ANY, BLOG
 	}		
