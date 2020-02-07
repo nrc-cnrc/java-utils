@@ -41,13 +41,6 @@ public class SearchEngineMultiQueryTest {
 	}
 	
 	@Test
-	public void test_TODO() {
-		Assert.fail("Worker 0 should be an OR of all the terms\n" + 
-				"		and we should first emtpy its list of hits before looking at other ones\n" + 
-				"");
-	}
-
-	@Test
 	public void test__search__InuktitutWords() throws Exception {
 		//
 		// Inkutut is one language where we have a lot of problems when

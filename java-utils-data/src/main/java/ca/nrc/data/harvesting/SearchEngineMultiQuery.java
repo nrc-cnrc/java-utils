@@ -78,13 +78,28 @@ public class SearchEngineMultiQuery  {
 	 */
 	
 	private void createAndStartWorkers(Query query) throws SearchEngineException {
-		int numWorkers = query.terms.size();
+		int numWorkers = query.terms.size()+1;
 		workers = new SearchEngineWorker[numWorkers];
-		for (int ii=0; ii < numWorkers; ii++) {
-			String aTerm = query.terms.get(ii);
+
+				
+		// First worker should search for all the terms at once in a 
+		// 'fuzzy search' manner.
+		{
+			String queryStr = String.join(" ", query.terms);
+			workers[0] = 
+					new SearchEngineWorker(queryStr, query, "thr-0-allterms", engineProto);
+		}
+		
+		// Remaining workers each search for a single term.
+		//		
+		for (int ii=1; ii < numWorkers; ii++) {
+			String aTerm = query.terms.get(ii-1);
 			SearchEngineWorker aWorker = 
 					new SearchEngineWorker(aTerm, query, "thr-"+ii+"-"+aTerm, engineProto);
 			workers[ii] = aWorker;
+		}
+		
+		for (SearchEngineWorker aWorker: workers) {
 			aWorker.start();
 		}
 	}
@@ -127,32 +142,74 @@ public class SearchEngineMultiQuery  {
 		
 		List<List<Hit>> allHits = new ArrayList<List<Hit>>();
 		
-		boolean keepGoing = true;
-		while (keepGoing) {
-			int termsWithRemainingHits = 0;
-			for (String aTerm: termResults.keySet()) {
-				List<Hit> remainingHits = termResults.get(aTerm).retrievedHits;
-				if (remainingHits.size() > 0) {
-					termsWithRemainingHits++;
-					Hit aHit = remainingHits.remove(0);
-					results.retrievedHits.add(aHit);
-				}
-				if (results.retrievedHits.size() == maxHits) {
-					keepGoing = false;
-					break;
-				}
-			}
-			if (termsWithRemainingHits == 0 
-					|| results.retrievedHits.size() == maxHits) {
-				keepGoing = false;
-			}
-		}
 		
+		List<Hit> mergedHits = hitsFromAlltermWorker(maxHits);
+		mergedHits = addHitsFromSingleTermWorkers(mergedHits, maxHits);
+		
+		results.retrievedHits = mergedHits;
+				
 		results.estTotalHits = 0;
 		for (String aTerm: termResults.keySet()) {
 			results.estTotalHits += termResults.get(aTerm).estTotalHits;
 		}
 		
 		return results;
+	}
+
+	private List<Hit> hitsFromAlltermWorker(int maxHits) {
+		List<Hit> hits = new ArrayList<Hit>();
+		boolean hitAdded = true;
+		String queryStr = String.join(" ", workers[0].query.terms);
+		while (hitAdded) {
+			hitAdded = addNextHitFromWorker(queryStr, hits, maxHits);
+		}
+		
+		return hits;
+	}
+
+	private List<Hit> addHitsFromSingleTermWorkers(List<Hit> mergedHits, Integer maxHits) {
+		boolean keepGoing = true;
+		// Do a round-robbing loop through each of the workers, pulling
+		// one hit from each worker at a time.
+		//
+		// This allows mixing of the hits from different terms instead of
+		// having all the hits for the same term be consecutive.
+		//
+		while (keepGoing) {
+			int termsWithRemainingHits = 0;
+			for (String aTerm: termResults.keySet()) {
+				
+				boolean foundHits = addNextHitFromWorker(aTerm, mergedHits, maxHits);
+				if (foundHits) {
+					termsWithRemainingHits++;
+				}
+				if (mergedHits.size() == maxHits) {
+					keepGoing = false;
+					break;
+				}
+			}
+			if (termsWithRemainingHits == 0 
+					|| mergedHits.size() == maxHits) {
+				keepGoing = false;
+			}
+		}
+		
+		return mergedHits;
+	}
+
+	private boolean addNextHitFromWorker(String aTerm, List<Hit> mergedHits, Integer maxHits) {
+		boolean hitsFound = false;
+		List<Hit> remainingHits = termResults.get(aTerm).retrievedHits;
+		if (remainingHits.size() > 0) {
+			Hit aHit = remainingHits.remove(0);
+			String aHitUrl = aHit.url.toString();
+			if (!foundURLs.contains(aHitUrl)) {
+				foundURLs.add(aHitUrl);
+				mergedHits.add(aHit);
+				hitsFound = true;
+			}
+		}
+		
+		return hitsFound;
 	}
 }

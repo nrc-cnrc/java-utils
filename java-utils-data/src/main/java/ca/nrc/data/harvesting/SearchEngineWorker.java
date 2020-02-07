@@ -73,7 +73,4 @@ public class SearchEngineWorker implements Runnable {
 	public boolean stillWorking() {
 		return thr.isAlive();
 	}
-	
-	
-
 }
