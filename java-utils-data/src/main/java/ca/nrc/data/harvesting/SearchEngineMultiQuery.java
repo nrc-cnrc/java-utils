@@ -8,9 +8,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.log4j.Logger;
+
 import ca.nrc.data.harvesting.SearchEngine.Hit;
 import ca.nrc.data.harvesting.SearchEngine.Query;
 import ca.nrc.data.harvesting.SearchEngine.SearchEngineException;
+import ca.nrc.json.PrettyPrinter;
 
 /**
  * Some search engines (Bing in particular) have trouble processing queries 
@@ -56,7 +59,11 @@ public class SearchEngineMultiQuery  {
 	}
 	
 
-	protected SearchResults search(Query query) throws SearchEngineException, IOException {
+	public SearchResults search(Query query) throws SearchEngineException, IOException {
+		
+		Logger tLogger = Logger.getLogger("ca.nrc.data.harvesting.SearchEngineMultQuery.search");
+
+		tLogger.trace("Invoked with query="+PrettyPrinter.print(query));
 		
 		initializeSearchEngineMultiQuery();
 		
@@ -69,7 +76,6 @@ public class SearchEngineMultiQuery  {
 		
 		return mergedResults;
 	}
-
 
 	/**
 	 * Creates one worker for each term in the query.

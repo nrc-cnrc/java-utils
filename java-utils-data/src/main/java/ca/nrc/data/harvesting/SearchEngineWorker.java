@@ -30,7 +30,7 @@ public class SearchEngineWorker implements Runnable {
 			SearchEngine engineProto) throws SearchEngineException {
 		Class<? extends SearchEngine> clazz = engineProto.getClass();
 		try {
-			this.searchEngine = clazz.getConstructor().newInstance();
+			this.searchEngine = clazz.getConstructor().newInstance().setCheckHitLanguage(true);
 		} catch (NoSuchMethodException | SecurityException | InstantiationException 
 				| IllegalAccessException | IllegalArgumentException 
 				| InvocationTargetException e) {
@@ -51,16 +51,12 @@ public class SearchEngineWorker implements Runnable {
 	
 	@Override
 	public void run()  {
-		System.out.println("** SearchEngineWorker[thr="+thrName+"]: started running");
 		try {
 			this.results = searchEngine.search(query);
 		} catch (SearchEngineException e) {
-			System.out.println("** SearchEngineWorker[thr="+thrName+"]: Caugh exception: "+e.getMessage());			
 			this.error = e;
 			return;
 		}
-		
-		System.out.println("** SearchEngineWorker[thr="+thrName+"]: returning with #hits="+this.results.retrievedHits.size());		
 	}
 	
 	public void start () {

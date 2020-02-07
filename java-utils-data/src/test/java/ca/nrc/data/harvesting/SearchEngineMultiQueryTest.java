@@ -52,7 +52,7 @@ public class SearchEngineMultiQueryTest {
 				"ᓄᓇᕗ", "ᓄᓇᕗᒻᒥ", "ᓄᓇᕘᒥ", "ᓄᓇᕘᑉ", "ᓄᓇᕗᒻᒥᐅᑦ", "ᓄᓇᕗᑦ"};
 		Query query = new Query(terms).setMaxHits(10);
 		SearchResults results = new SearchEngineMultiQuery().search(query);
-		SearchEngineTest.assertResultsFitTheQuery(results, query, 3);
+		SearchEngineTest.assertResultsFitTheQuery(results, query, 4);
 		SearchEngineTest.assertSufficientHitsFound(Math.round(100), results);
 	}
 }
