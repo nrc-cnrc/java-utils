@@ -26,7 +26,8 @@ public class SearchEngineWorker implements Runnable {
 	private Thread thr;
 	public Exception error;	
 	
-	public SearchEngineWorker(String _term, Query _query, String _threadName, SearchEngine engineProto) throws SearchEngineException {
+	public SearchEngineWorker(String _term, Query _query, String _threadName, 
+			SearchEngine engineProto) throws SearchEngineException {
 		Class<? extends SearchEngine> clazz = engineProto.getClass();
 		try {
 			this.searchEngine = clazz.getConstructor().newInstance();

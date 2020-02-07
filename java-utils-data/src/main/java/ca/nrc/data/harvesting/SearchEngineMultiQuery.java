@@ -31,6 +31,8 @@ public class SearchEngineMultiQuery  {
 	Set<String> foundURLs = new HashSet<String>();
 	long estTotalHits = 0;
 	
+	SearchEngineWorker[] workers = new SearchEngineWorker[0];
+	
 	public SearchEngineMultiQuery() throws IOException, SearchEngineException {
 		initializeSearchEngineMultiQuery();
 	}
@@ -58,10 +60,26 @@ public class SearchEngineMultiQuery  {
 		
 		initializeSearchEngineMultiQuery();
 		
+		// Create one worker per term then wait for them to
+		// finish.
+		createAndStartWorkers(query);
+		waitForWorkersToComplete();
 		
-		// Create one worker per term
+		SearchResults mergedResults = mergeTermResults(query.maxHits);
+		
+		return mergedResults;
+	}
+
+
+	/**
+	 * Creates one worker for each term in the query.
+	 * @param query
+	 * @throws SearchEngineException 
+	 */
+	
+	private void createAndStartWorkers(Query query) throws SearchEngineException {
 		int numWorkers = query.terms.size();
-		SearchEngineWorker[] workers = new SearchEngineWorker[numWorkers];
+		workers = new SearchEngineWorker[numWorkers];
 		for (int ii=0; ii < numWorkers; ii++) {
 			String aTerm = query.terms.get(ii);
 			SearchEngineWorker aWorker = 
@@ -69,8 +87,13 @@ public class SearchEngineMultiQuery  {
 			workers[ii] = aWorker;
 			aWorker.start();
 		}
-		
-		// Monitor the workers until they are all done
+	}
+	
+	/**
+	 * Monitor the term workers until they are done.
+	 */
+	private void waitForWorkersToComplete() {
+		int numWorkers = workers.length;
 		while (true) {
 			int stillRunning = 0;
 			for (int ii=0; ii < numWorkers; ii++) {
@@ -94,12 +117,8 @@ public class SearchEngineMultiQuery  {
 				// Nothing to do if the sleep is interrupted
 			}
 		}
-		
-		SearchResults mergedResults = mergeTermResults(query.maxHits);
-		
-		
-		return mergedResults;
 	}
+	
 
 	private SearchResults mergeTermResults(Integer maxHits) {
 		SearchResults results = new SearchResults();
