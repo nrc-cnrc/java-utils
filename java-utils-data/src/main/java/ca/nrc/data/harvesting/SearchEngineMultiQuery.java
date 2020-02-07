@@ -58,6 +58,7 @@ public class SearchEngineMultiQuery  {
 		
 		initializeSearchEngineMultiQuery();
 		
+		
 		// Create one worker per term
 		int numWorkers = query.terms.size();
 		SearchEngineWorker[] workers = new SearchEngineWorker[numWorkers];
@@ -116,6 +117,10 @@ public class SearchEngineMultiQuery  {
 					termsWithRemainingHits++;
 					Hit aHit = remainingHits.remove(0);
 					results.retrievedHits.add(aHit);
+				}
+				if (results.retrievedHits.size() == maxHits) {
+					keepGoing = false;
+					break;
 				}
 			}
 			if (termsWithRemainingHits == 0 

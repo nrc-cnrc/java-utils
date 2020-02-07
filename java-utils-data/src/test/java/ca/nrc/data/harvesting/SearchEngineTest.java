@@ -286,14 +286,15 @@ public abstract class SearchEngineTest {
 		for (SearchEngine.Hit hit: results) {
 			hitValidity.put(hit.url, "OK");
 		}
+		String resultsJson = PrettyPrinter.print(results);
 		
 		// Checking max number of hits
 		int expNumHits = query.maxHits;
 		int gotNumHits = results.size();
-		String resultsJson = PrettyPrinter.print(results);
 		Assert.assertTrue(
 				"Results did not contain the expected number of hits.\nResults were:\n"+resultsJson,
 				(gotNumHits <= expNumHits));
+		
 		
 		// Checking if hits are from the correct site
 		String expSite = query.getSite();
@@ -315,6 +316,7 @@ public abstract class SearchEngineTest {
 				continue;
 			}
 			
+			System.out.println("** assertResultsFitTheQuery: looking at hit=url="+hit.url+"\n hit: "+PrettyPrinter.print(hit)+"\n  query: \n"+PrettyPrinter.print(query));
 			if (!hitMatchesQueryKeywords(query, hit)) {
 				hitValidity.put(hit.url, "Did not match the keywords");
 				continue;
@@ -348,8 +350,6 @@ public abstract class SearchEngineTest {
 				"Here are the non-matching hits:\n\n" + badHitsDesc
 				);
 		}
-		
-
 	}
 	
 	public static Boolean hitMatchesQueryKeywords(SearchEngine.Query query, SearchEngine.Hit hit) throws PageHarvesterException {
@@ -387,9 +387,10 @@ public abstract class SearchEngineTest {
 	}
 
 	public static Boolean hitMatchesContent_TermsList(List<String> terms, String wholeContent) {
+		System.out.println("** hitMatchesContent_TermsList: terms="+terms+", wholeContent="+wholeContent);
 		Boolean foundTerm = false;
 		for (String aTerm: terms) { 
-			if (wholeContent.contains(aTerm.toLowerCase())) {
+			if (wholeContent != null && wholeContent.contains(aTerm.toLowerCase())) {
 				foundTerm = true;
 				break;
 			}
