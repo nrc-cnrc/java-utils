@@ -63,16 +63,24 @@ public class SearchEngineMultiQuery  {
 		
 		Logger tLogger = Logger.getLogger("ca.nrc.data.harvesting.SearchEngineMultQuery.search");
 
-		tLogger.trace("Invoked with query="+PrettyPrinter.print(query));
+		if (tLogger.isTraceEnabled()) {
+			tLogger.trace("Invoked with query="+PrettyPrinter.print(query));
+		}
+		
 		
 		initializeSearchEngineMultiQuery();
-		
+
 		// Create one worker per term then wait for them to
 		// finish.
 		createAndStartWorkers(query);
+		tLogger.trace("** After createAndStartWorkers");
 		waitForWorkersToComplete();
-		
+				
 		SearchResults mergedResults = mergeTermResults(query.maxHits);
+		
+		if (tLogger.isTraceEnabled()) {
+			tLogger.trace("Returning mergedResults=\n"+PrettyPrinter.print(mergedResults));
+		}
 		
 		return mergedResults;
 	}
@@ -84,12 +92,16 @@ public class SearchEngineMultiQuery  {
 	 */
 	
 	private void createAndStartWorkers(Query query) throws SearchEngineException {
+		Logger tLogger = Logger.getLogger("ca.nrc.data.harvesting.SearchEngineMultQuery.createAndStartWorkers");
+		tLogger.trace("invoked");
+		
 		int numWorkers = query.terms.size()+1;
 		workers = new SearchEngineWorker[numWorkers];
 
 				
 		// First worker should search for all the terms at once in a 
 		// 'fuzzy search' manner.
+		tLogger.trace("Creating first worker which searches for all terms at once");
 		{
 			String queryStr = String.join(" ", query.terms);
 			workers[0] = 
@@ -98,6 +110,7 @@ public class SearchEngineMultiQuery  {
 		
 		// Remaining workers each search for a single term.
 		//		
+		tLogger.trace("Creating several more workers, one per search term");
 		for (int ii=1; ii < numWorkers; ii++) {
 			String aTerm = query.terms.get(ii-1);
 			SearchEngineWorker aWorker = 
@@ -108,6 +121,8 @@ public class SearchEngineMultiQuery  {
 		for (SearchEngineWorker aWorker: workers) {
 			aWorker.start();
 		}
+		
+		tLogger.trace("Started a total of "+workers.length+" search workers");
 	}
 	
 	/**
@@ -142,6 +157,11 @@ public class SearchEngineMultiQuery  {
 	
 
 	private SearchResults mergeTermResults(Integer maxHits) {
+		
+		Logger tLogger = Logger.getLogger("ca.nrc.data.harvesting.SearchEngineMultQuery.mergeTermResults");
+
+		tLogger.trace("invoked with maxHits="+maxHits);
+		
 		SearchResults results = new SearchResults();
 		
 		Set<String> urlsSoFar = new HashSet<String>();
@@ -150,7 +170,10 @@ public class SearchEngineMultiQuery  {
 		
 		
 		List<Hit> mergedHits = hitsFromAlltermWorker(maxHits);
+		tLogger.trace("After adding hits from the worker that searches for all terms at once, #mergedHits="+mergedHits.size());
+
 		mergedHits = addHitsFromSingleTermWorkers(mergedHits, maxHits);
+		tLogger.trace("After adding hits from the various workers that search for a single term, #mergedHits="+mergedHits.size());
 		
 		results.retrievedHits = mergedHits;
 				
@@ -174,6 +197,10 @@ public class SearchEngineMultiQuery  {
 	}
 
 	private List<Hit> addHitsFromSingleTermWorkers(List<Hit> mergedHits, Integer maxHits) {
+		Logger tLogger = Logger.getLogger("ca.nrc.data.harvesting.SearchEngineMultQuery.addHitsFromSingleTermWorkers");
+		
+		tLogger.trace("Adding hits for search for each of the following terms: ["+String.join(", ", termResults.keySet())+"]");
+
 		boolean keepGoing = true;
 		// Do a round-robbing loop through each of the workers, pulling
 		// one hit from each worker at a time.

@@ -5,7 +5,10 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 import ca.nrc.datastructure.Pair;
+import ca.nrc.json.PrettyPrinter;
 
 public abstract class SearchEngine {
 
@@ -20,8 +23,16 @@ protected abstract SearchResults searchRaw(Query query) throws SearchEngineExcep
 
 	
 	public SearchResults search(Query seQuery) throws SearchEngineException {
+		Logger tLogger = Logger.getLogger("ca.nrc.data.harvesting.SearchEngine.search");
+
+		if (tLogger.isTraceEnabled()) {
+			tLogger.trace("Invoked with seQuery=\n"+PrettyPrinter.print(seQuery));
+		}
+		
 		SearchResults results = searchRaw(seQuery);	
 		List<Hit> rawHits = results.retrievedHits;
+		tLogger.trace("Number of retrieved 'raw' hits: "+rawHits.size());
+
 		List<Hit> filteredHits = rawHits;
 		if (shouldCheckHitLanguage()) {
 			filteredHits = new ArrayList<Hit>();
@@ -38,6 +49,8 @@ protected abstract SearchResults searchRaw(Query query) throws SearchEngineExcep
 		
 		results.retrievedHits = filteredHits;
 		
+		tLogger.trace("Number of 'filtered' hits: "+filteredHits.size());
+
 		return results;	
 	}
 

@@ -51,10 +51,18 @@ public class SearchEngineWorker implements Runnable {
 	
 	@Override
 	public void run()  {
+		Logger tLogger = Logger.getLogger("ca.nrc.data.harvesting.SearchEngineWorker.run");
 		try {
+			if (tLogger.isTraceEnabled()) {
+				tLogger.trace("Worker '"+thrName+"' started with query=\n"+PrettyPrinter.print(query));
+			}
 			this.results = searchEngine.search(query);
+			if (tLogger.isTraceEnabled()) {
+				tLogger.trace("Worker '"+thrName+"' retrieved a total of "+results.retrievedHits.size()+" hits");
+			}
 		} catch (SearchEngineException e) {
 			this.error = e;
+			tLogger.trace("Worker '"+thrName+"' raised an exception: "+e.getMessage());
 			return;
 		}
 	}
