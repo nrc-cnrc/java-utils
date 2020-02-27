@@ -387,7 +387,6 @@ public abstract class SearchEngineTest {
 	}
 
 	public static Boolean hitMatchesContent_TermsList(List<String> terms, String wholeContent) {
-		System.out.println("** hitMatchesContent_TermsList: terms="+terms+", wholeContent="+wholeContent);
 		Boolean foundTerm = false;
 		for (String aTerm: terms) { 
 			if (wholeContent != null && wholeContent.contains(aTerm.toLowerCase())) {

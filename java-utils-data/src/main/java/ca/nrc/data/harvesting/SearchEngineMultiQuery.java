@@ -30,7 +30,8 @@ public class SearchEngineMultiQuery  {
 	
 	SearchEngine engineProto = null;
 	
-	Map<String,SearchResults> termResults = new HashMap<String,SearchResults>();
+	SearchResultsCollector resultsCollector = null;
+	
 	Set<String> foundURLs = new HashSet<String>();
 	long estTotalHits = 0;
 	
@@ -53,7 +54,6 @@ public class SearchEngineMultiQuery  {
 			proto = new BingSearchEngine();
 		}
 		engineProto = proto;
-		termResults = new HashMap<String,SearchResults>();
 		foundURLs = new HashSet<String>();
 		estTotalHits = 0;
 	}
@@ -73,8 +73,6 @@ public class SearchEngineMultiQuery  {
 		// Create one worker per term then wait for them to
 		// finish.
 		createAndStartWorkers(query);
-		tLogger.trace("** After createAndStartWorkers");
-		waitForWorkersToComplete();
 				
 		SearchResults mergedResults = mergeTermResults(query.maxHits);
 		
@@ -118,17 +116,23 @@ public class SearchEngineMultiQuery  {
 			workers[ii] = aWorker;
 		}
 		
+		resultsCollector = new SearchResultsCollector();
 		for (SearchEngineWorker aWorker: workers) {
+			aWorker.setCollector(resultsCollector);
 			aWorker.start();
 		}
 		
 		tLogger.trace("Started a total of "+workers.length+" search workers");
+		waitForFirstBatchesOfHits();
+		
+		tLogger.trace("All workers have produced their first batch of hits.");
 	}
 	
 	/**
-	 * Monitor the term workers until they are done.
+	 * Monitor the term workers until they all have produced a first batch of results.
 	 */
-	private void waitForWorkersToComplete() {
+
+	private void waitForFirstBatchesOfHits() {
 		int numWorkers = workers.length;
 		while (true) {
 			int stillRunning = 0;
@@ -137,10 +141,6 @@ public class SearchEngineMultiQuery  {
 				if (currWorker != null) {
 					if (currWorker.stillWorking()) {
 						stillRunning++;
-					} else {
-						// This worker just finished running. Integrate its
-						// results in the total
-						termResults.put(currWorker.query.terms.get(0), currWorker.results);
 					}
 				}				
 			}
@@ -156,30 +156,25 @@ public class SearchEngineMultiQuery  {
 	}
 	
 
-	private SearchResults mergeTermResults(Integer maxHits) {
-		
+	private SearchResults mergeTermResults(Integer maxHits) {		
 		Logger tLogger = Logger.getLogger("ca.nrc.data.harvesting.SearchEngineMultQuery.mergeTermResults");
 
 		tLogger.trace("invoked with maxHits="+maxHits);
 		
 		SearchResults results = new SearchResults();
 		
-		Set<String> urlsSoFar = new HashSet<String>();
-		
-		List<List<Hit>> allHits = new ArrayList<List<Hit>>();
-		
-		
-		List<Hit> mergedHits = hitsFromAlltermWorker(maxHits);
-		tLogger.trace("After adding hits from the worker that searches for all terms at once, #mergedHits="+mergedHits.size());
-
-		mergedHits = addHitsFromSingleTermWorkers(mergedHits, maxHits);
+		List<Hit> mergedHits = addHitsFromSingleTermWorkers(maxHits);
 		tLogger.trace("After adding hits from the various workers that search for a single term, #mergedHits="+mergedHits.size());
 		
 		results.retrievedHits = mergedHits;
 				
 		results.estTotalHits = 0;
-		for (String aTerm: termResults.keySet()) {
-			results.estTotalHits += termResults.get(aTerm).estTotalHits;
+		if (mergedHits.size() < maxHits) {
+			results.estTotalHits = maxHits;
+		} else {
+			for (SearchEngineWorker aWorker: workers) {
+				results.estTotalHits += resultsCollector.getResultsForWorker(aWorker).estTotalHits;
+			}
 		}
 		
 		return results;
@@ -188,18 +183,19 @@ public class SearchEngineMultiQuery  {
 	private List<Hit> hitsFromAlltermWorker(int maxHits) {
 		List<Hit> hits = new ArrayList<Hit>();
 		boolean hitAdded = true;
-		String queryStr = String.join(" ", workers[0].query.terms);
 		while (hitAdded) {
-			hitAdded = addNextHitFromWorker(queryStr, hits, maxHits);
+			hitAdded = addNextHitFromWorker(workers[0], hits, maxHits);
 		}
 		
 		return hits;
 	}
 
-	private List<Hit> addHitsFromSingleTermWorkers(List<Hit> mergedHits, Integer maxHits) {
+	private List<Hit> addHitsFromSingleTermWorkers(Integer maxHits) {
 		Logger tLogger = Logger.getLogger("ca.nrc.data.harvesting.SearchEngineMultQuery.addHitsFromSingleTermWorkers");
 		
-		tLogger.trace("Adding hits for search for each of the following terms: ["+String.join(", ", termResults.keySet())+"]");
+		tLogger.trace("Adding hits for search for each of the workers");
+		
+		List<Hit> mergedHits = new ArrayList<Hit>();		
 
 		boolean keepGoing = true;
 		// Do a round-robbing loop through each of the workers, pulling
@@ -210,9 +206,9 @@ public class SearchEngineMultiQuery  {
 		//
 		while (keepGoing) {
 			int termsWithRemainingHits = 0;
-			for (String aTerm: termResults.keySet()) {
+			for (SearchEngineWorker aWorker: workers) {
 				
-				boolean foundHits = addNextHitFromWorker(aTerm, mergedHits, maxHits);
+				boolean foundHits = addNextHitFromWorker(aWorker, mergedHits, maxHits);
 				if (foundHits) {
 					termsWithRemainingHits++;
 				}
@@ -230,9 +226,9 @@ public class SearchEngineMultiQuery  {
 		return mergedHits;
 	}
 
-	private boolean addNextHitFromWorker(String aTerm, List<Hit> mergedHits, Integer maxHits) {
+	private boolean addNextHitFromWorker(SearchEngineWorker worker, List<Hit> mergedHits, Integer maxHits) {
 		boolean hitsFound = false;
-		List<Hit> remainingHits = termResults.get(aTerm).retrievedHits;
+		List<Hit> remainingHits = resultsCollector.getResultsForWorker(worker).retrievedHits;
 		if (remainingHits.size() > 0) {
 			Hit aHit = remainingHits.remove(0);
 			String aHitUrl = aHit.url.toString();

@@ -3,8 +3,10 @@ package ca.nrc.data.harvesting;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 
@@ -23,9 +25,11 @@ public class SearchEngineWorker implements Runnable {
 	SearchEngine searchEngine = null;
 	SearchResults results = null;
 	
+	SearchResultsCollector resultsCollector = null;
+	
 	private Thread thr;
 	public Exception error;	
-	
+		
 	public SearchEngineWorker(String _term, Query _query, String _threadName, 
 			SearchEngine engineProto) throws SearchEngineException {
 		Class<? extends SearchEngine> clazz = engineProto.getClass();
@@ -60,6 +64,9 @@ public class SearchEngineWorker implements Runnable {
 			if (tLogger.isTraceEnabled()) {
 				tLogger.trace("Worker '"+thrName+"' retrieved a total of "+results.retrievedHits.size()+" hits");
 			}
+			if (resultsCollector != null) {
+				resultsCollector.addResultsForWorker(this, results);
+			}
 		} catch (SearchEngineException e) {
 			this.error = e;
 			tLogger.trace("Worker '"+thrName+"' raised an exception: "+e.getMessage());
@@ -74,7 +81,19 @@ public class SearchEngineWorker implements Runnable {
 	   }
 	}
 	
-	public boolean stillWorking() {
-		return thr.isAlive();
+	public synchronized boolean stillWorking() {
+		
+		Boolean isWorking = null;
+		if (resultsCollector == null) {
+			isWorking = thr.isAlive();
+		} else {
+			isWorking = !resultsCollector.workerProducedResults(this);
+		}
+
+		return isWorking;
+	}
+
+	public void setCollector(SearchResultsCollector collector) {
+		resultsCollector = collector;
 	}
 }
