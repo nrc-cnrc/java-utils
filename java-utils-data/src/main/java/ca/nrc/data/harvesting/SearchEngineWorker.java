@@ -150,6 +150,9 @@ public class SearchEngineWorker implements Runnable {
 		System.out.println("** SearchEngineWorker.fetchNextBatchOfResults: DONE Fetching batch number "+query.hitsPageNum);
 		
 		stopIfCurrBatchIsSameAsPrevious();
+		if (this.currentBatch.retrievedHits.size() == 0) {
+			setStatus(Status.STOP);
+		}
 	}
 
 	private void stopIfCurrBatchIsSameAsPrevious() {
