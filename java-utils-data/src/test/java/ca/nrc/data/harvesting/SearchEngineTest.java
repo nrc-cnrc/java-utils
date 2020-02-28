@@ -292,10 +292,9 @@ public abstract class SearchEngineTest {
 		// Checking max number of hits
 		int expNumHits = query.maxHits;
 		int gotNumHits = results.size();
-		Assert.assertTrue(
-				"Results did not contain the expected number of hits.\nResults were:\n"+resultsJson,
-				(gotNumHits <= expNumHits));
 		
+		AssertNumber.isLessOrEqualTo("Too many results were produced", 
+				new Long(gotNumHits), new Long(expNumHits));
 		
 		// Checking if hits are from the correct site
 		String expSite = query.getSite();
@@ -378,8 +377,14 @@ public abstract class SearchEngineTest {
 			} else {
 				matches = hitMatchesContent_TermsList(query.terms, wholeContent);
 				if (! matches) {
-					String actualContent = getHitActualContent(hit);
-					matches = hitMatchesContent_TermsList(query.terms, actualContent);
+					try {
+						String actualContent = getHitActualContent(hit);
+						matches = hitMatchesContent_TermsList(query.terms, actualContent);
+					} catch (PageHarvesterException e) {
+						// If summary of hit does not match and we are not able
+						// to fetch the page's full content, assume no match
+						matches = false;
+					}
 				}
 			}
 		}

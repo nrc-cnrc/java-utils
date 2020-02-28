@@ -174,12 +174,17 @@ protected abstract SearchResults searchRaw(Query query) throws SearchEngineExcep
 		public String summary;
 		public Long outOfTotal;
 		
+		public Hit() {
+			
+		}		
+		
 		public Hit(URL url, String title, String summary) {
 			this.url = url;
 			this.title = title;
 			this.summary = summary;
 		}
 		
+
 		public String toString() {
 			String wholeContent = 
 					"URL: "+this.url.toString().toLowerCase()+"\nTitle: "

@@ -2,11 +2,14 @@ package ca.nrc.data.harvesting;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.log4j.Logger;
 
@@ -20,11 +23,30 @@ import ca.nrc.json.PrettyPrinter;
 
 public class SearchEngineWorker implements Runnable {
 	
+	public static enum Status {START_FETCHING, FETCHING, NO_MORE_HITS, 
+							   READY_TO_PULL, STOP, };
+		
+	private Status status = Status.START_FETCHING;
+		public synchronized Status getStatus() { return status; }
+		public synchronized void setStatus(Status _status) { this.status = _status; }
+	
+	public static final Hit NO_MORE_HITS = new Hit();
+	public static final Hit WAIT_FOR_MORE = new Hit();
+	
+	private boolean _cancel;
+		public void cancel() {
+			this._cancel = true;
+		}
+	
 	Query query = null;
 	String thrName = null;
 	SearchEngine searchEngine = null;
-	SearchResults results = null;
-	boolean stop = false;
+	
+	SearchResults currentBatch = null;
+	
+	Set<URL> prevBatchURLs = null;
+	
+	long estTotalHits = 0;
 	
 	SearchResultsCollector resultsCollector = null;
 	
@@ -32,7 +54,7 @@ public class SearchEngineWorker implements Runnable {
 	public Exception error;	
 		
 	public SearchEngineWorker(String _term, Query _query, String _threadName, 
-			SearchEngine engineProto) throws SearchEngineException {
+			SearchEngine engineProto, SearchResultsCollector collector) throws SearchEngineException {
 		Class<? extends SearchEngine> clazz = engineProto.getClass();
 		try {
 			this.searchEngine = clazz.getConstructor().newInstance().setCheckHitLanguage(true);
@@ -50,6 +72,8 @@ public class SearchEngineWorker implements Runnable {
 			}
 			this.query.terms = new ArrayList<String>();
 			this.query.terms.add(_term);
+			this.query.hitsPageNum = 0;
+			this.resultsCollector = collector;
 		}
 		this.thrName = _threadName;
 	}
@@ -58,15 +82,30 @@ public class SearchEngineWorker implements Runnable {
 	public void run()  {
 		Logger tLogger = Logger.getLogger("ca.nrc.data.harvesting.SearchEngineWorker.run");
 		try {
-			if (tLogger.isTraceEnabled()) {
-				tLogger.trace("Worker '"+thrName+"' started with query=\n"+PrettyPrinter.print(query));
-			}
-			this.results = searchEngine.search(query);
-			if (tLogger.isTraceEnabled()) {
-				tLogger.trace("Worker '"+thrName+"' retrieved a total of "+results.retrievedHits.size()+" hits");
-			}
-			if (resultsCollector != null) {
-				resultsCollector.addResultsForWorker(this, results);
+			
+			// Keep fetching new batches of results until someone tells the thread
+			// to stop
+			//
+			while(true) {
+
+				if (getStatus() == Status.STOP) {
+					System.out.println("** SearchEngineWorker.run: Worker '"+thrName+"' is STOPPING");
+					break;
+				}
+				
+				if (getStatus() == Status.START_FETCHING) {
+					System.out.println("** SearchEngineWorker.run: Worker '"+thrName+"' is FETCHING results for query=\n"+PrettyPrinter.print(query));
+					setStatus(Status.FETCHING);
+					fetchNextBatchOfResults();
+					System.out.println("** SearchEngineWorker.run: Worker '"+thrName+"' FETCHED a batch with a total of "+currentBatch.retrievedHits.size()+" hits");
+				}
+				
+				
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
 		} catch (SearchEngineException e) {
 			this.error = e;
@@ -75,6 +114,67 @@ public class SearchEngineWorker implements Runnable {
 		}
 	}
 	
+	public Hit pullHit() throws SearchEngineException {
+		Hit hit = null;
+		
+		if (getStatus() == Status.STOP) {
+			hit = NO_MORE_HITS;
+		}
+		
+		if (hit == null && 
+				(getStatus() == Status.FETCHING || 
+				 getStatus() == Status.START_FETCHING)) {
+			hit = WAIT_FOR_MORE;
+		}
+		
+		if (hit == null && getStatus() == Status.READY_TO_PULL) {
+			if (currentBatch.retrievedHits.size() > 0) {
+				hit = currentBatch.retrievedHits.remove(0);
+				System.out.println("** SearchEngineWorker.pullHit: hit="+hit);
+			} else {
+				hit = WAIT_FOR_MORE;
+				setStatus(Status.START_FETCHING);
+			}
+		}
+				
+		return hit;
+	}
+	
+	private void fetchNextBatchOfResults() throws SearchEngineException {
+		System.out.println("** SearchEngineWorker.fetchNextBatchOfResults: Fetching batch number "+query.hitsPageNum);
+		this.setStatus(Status.FETCHING);
+		query.hitsPageNum++;
+		this.currentBatch = searchEngine.search(query);
+		setEstTotalHits(currentBatch.estTotalHits);
+		
+		System.out.println("** SearchEngineWorker.fetchNextBatchOfResults: DONE Fetching batch number "+query.hitsPageNum);
+		
+		stopIfCurrBatchIsSameAsPrevious();
+	}
+
+	private void stopIfCurrBatchIsSameAsPrevious() {
+		boolean newURLsFound = false;
+		Set<URL> urlsThisBatch = new HashSet<URL>();
+		for (Hit hit: currentBatch.retrievedHits) {
+			urlsThisBatch.add(hit.url);
+			if (prevBatchURLs == null || !prevBatchURLs.contains(hit.url)) {
+				newURLsFound = true;
+			}
+		}
+		
+		if (newURLsFound) {
+			prevBatchURLs = urlsThisBatch;
+			setStatus(Status.READY_TO_PULL);			
+		} else {
+			// This batch is EXACTLY the same as the previous batch.
+			// This can happen with certain search engines, when you ask
+			// for more batches than can actually be found on the internet.
+			//
+			setStatus(Status.STOP);
+		}
+		
+	}
+
 	public void start () {
 	   if (thr == null) {
 		   thr = new Thread (this, this.thrName);
@@ -82,21 +182,11 @@ public class SearchEngineWorker implements Runnable {
 	   }
 	}
 	
-	public synchronized boolean stillWorking() {
-		
-		Boolean isWorking = null;
-		if (resultsCollector == null) {
-			isWorking = thr.isAlive();
-		} else {
-			isWorking = !resultsCollector.workerProducedResults(this);
-		}
-
-		return isWorking;
+	private synchronized void setEstTotalHits(long _estTotalHits) {
+		this.estTotalHits = _estTotalHits;
 	}
 
-	public void setCollector(SearchResultsCollector collector) {
-		resultsCollector = collector;
+	public synchronized long getEstTotalHits() {
+		return this.estTotalHits;
 	}
-	
-	
 }

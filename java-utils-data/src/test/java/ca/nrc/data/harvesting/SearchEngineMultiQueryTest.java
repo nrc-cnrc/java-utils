@@ -59,7 +59,7 @@ public class SearchEngineMultiQueryTest {
 				"ᓄᓇᕗ", "ᓄᓇᕗᒻᒥ", "ᓄᓇᕘᒥ", "ᓄᓇᕘᑉ", "ᓄᓇᕗᒻᒥᐅᑦ", "ᓄᓇᕗᑦ"};
 		Query query = new Query(terms).setMaxHits(50);
 		SearchResults results = new SearchEngineMultiQuery().search(query);
-		SearchEngineTest.assertResultsFitTheQuery(results, query, 10);
+		SearchEngineTest.assertResultsFitTheQuery(results, query, 19);
 		
 		Long expMinRetrieved = new Long(50);
 		Long expMaxRetrieved = new Long(50);
@@ -74,14 +74,14 @@ public class SearchEngineMultiQueryTest {
 	@Test
 	public void test__search__TermThatProduceLessThanMaxHits() throws Exception {
 		String [] terms = new String[] {"ᐅᖃᖅᑐᖅ"};
-		Query query = new Query(terms).setMaxHits(100);
+		Query query = new Query(terms).setMaxHits(50);
 		SearchResults results = new SearchEngineMultiQuery().search(query);
-		SearchEngineTest.assertResultsFitTheQuery(results, query, 5);
+		SearchEngineTest.assertResultsFitTheQuery(results, query, 13);
 		
 		Long expMinRetrieved = new Long(5);
-		Long expMaxRetrieved = new Long(15);
+		Long expMaxRetrieved = new Long(30);
 		Long expMinTotalEstimate = new Long(5);
-		Long expMaxTotalEstimate = new Long(15);
+		Long expMaxTotalEstimate = new Long(30);
 		
 		SearchEngineTest.assertNumberHitsOK(results, expMinRetrieved, expMaxRetrieved, 
 				expMinTotalEstimate, expMaxTotalEstimate);

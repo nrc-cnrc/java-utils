@@ -1,7 +1,14 @@
 package ca.nrc.data.harvesting;
 
+import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+
+import ca.nrc.data.harvesting.SearchEngine.Hit;
 
 /** 
  * 
@@ -12,25 +19,18 @@ import java.util.Map;
  */
 public class SearchResultsCollector {
 	
-	private Map<SearchEngineWorker, SearchResults> workerResults = new HashMap<SearchEngineWorker, SearchResults>();
+	public List<Hit> hits = new ArrayList<Hit>();
+	Set<URL> alreadySeen = new HashSet<URL>();
 
-	public synchronized void addResultsForWorker(SearchEngineWorker worker, SearchResults results) {
-		workerResults.put(worker, results);
-	}
-
-	public synchronized SearchResults getResultsForWorker(SearchEngineWorker worker) {
-		SearchResults results = null;
-		if (workerResults.containsKey(worker)) {
-			results = workerResults.get(worker);
+	public void addHit(Hit hit) {
+		if (hit != SearchEngineWorker.NO_MORE_HITS && 
+				hit != SearchEngineWorker.WAIT_FOR_MORE &&
+				hit != null) {
+			URL url = hit.url;
+			if (!alreadySeen.contains(url)) {
+				hits.add(hit);
+				alreadySeen.add(url);
+			}
 		}
-		return results;
-	}
-
-	public synchronized boolean workerProducedResults(SearchEngineWorker worker) {
-		boolean answer = false;
-		if (workerResults.containsKey(worker)) {
-			answer = true;
-		}
-		return answer;
 	}
 }
