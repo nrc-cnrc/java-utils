@@ -24,6 +24,7 @@ public class SearchEngineWorker implements Runnable {
 	String thrName = null;
 	SearchEngine searchEngine = null;
 	SearchResults results = null;
+	boolean stop = false;
 	
 	SearchResultsCollector resultsCollector = null;
 	
@@ -96,4 +97,6 @@ public class SearchEngineWorker implements Runnable {
 	public void setCollector(SearchResultsCollector collector) {
 		resultsCollector = collector;
 	}
+	
+	
 }

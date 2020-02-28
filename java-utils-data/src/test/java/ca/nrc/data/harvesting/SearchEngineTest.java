@@ -25,6 +25,7 @@ import ca.nrc.data.harvesting.SearchEngine.SearchEngineException;
 import ca.nrc.data.harvesting.SearchEngine.Type;
 import ca.nrc.json.PrettyPrinter;
 import ca.nrc.testing.AssertHelpers;
+import ca.nrc.testing.AssertNumber;
 
 public abstract class SearchEngineTest {
 
@@ -316,7 +317,6 @@ public abstract class SearchEngineTest {
 				continue;
 			}
 			
-			System.out.println("** assertResultsFitTheQuery: looking at hit=url="+hit.url+"\n hit: "+PrettyPrinter.print(hit)+"\n  query: \n"+PrettyPrinter.print(query));
 			if (!hitMatchesQueryKeywords(query, hit)) {
 				hitValidity.put(hit.url, "Did not match the keywords");
 				continue;
@@ -363,9 +363,15 @@ public abstract class SearchEngineTest {
 				if (wholeContent != null) {
 					matches = hitMatchesContent_FuzzyQuery(query.fuzzyQuery, wholeContent);
 					if (! matches) {
-						String actualContent = getHitActualContent(hit);
-						if (actualContent != null) {
-							matches = hitMatchesContent_FuzzyQuery(query.fuzzyQuery, actualContent);
+						try {
+							String actualContent = getHitActualContent(hit);
+							if (actualContent != null) {
+								matches = hitMatchesContent_FuzzyQuery(query.fuzzyQuery, actualContent);
+							}
+						} catch (PageHarvesterException e) {
+							// If summary of hit does not match and we are not able
+							// to fetch the page's full content, assume no match
+							matches = false;
 						}
 					}
 				}
@@ -439,5 +445,33 @@ public abstract class SearchEngineTest {
 		Assert.assertTrue("Total estimated hits should have been at least "+expMin
 				+", but it was only"+results.estTotalHits, 
 				results.estTotalHits >= expMin);
+	}
+
+	public static void assertNumberHitsOK(SearchResults results, Long expMinRetrieved, Long expMaxRetrieved,
+			Long expMinTotalEstimate, Long expMaxTotalEstimate) {
+		
+		System.out.println("** assertNumberHitsOK: results.estTotalHits="+results.estTotalHits);
+		System.out.println("** assertNumberHitsOK: results.retrievedHits.size()="+results.retrievedHits.size());
+		
+		
+		int gotRetrieved = results.retrievedHits.size();
+		if (expMinRetrieved != null) {
+			AssertNumber.isGreaterOrEqualTo("Number of retrieved hits was too low.", 
+					new Long(gotRetrieved), expMinRetrieved);
+		}
+		if (expMaxRetrieved != null) {
+			AssertNumber.isLessOrEqualTo("Number of retrieved hits was too high.", 
+					new Long(gotRetrieved), expMaxRetrieved);
+		}
+		
+		Long gotEstimate = new Long(results.estTotalHits);
+		if (expMinTotalEstimate != null) {
+			AssertNumber.isGreaterOrEqualTo("Estimate for total #hits was too low.", 
+					gotEstimate, expMinTotalEstimate);
+		}
+		if (expMaxTotalEstimate != null) {
+			AssertNumber.isLessOrEqualTo("Estimate for total #hits was too high.", 
+					gotEstimate, expMaxTotalEstimate);
+		}
 	}
 }

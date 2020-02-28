@@ -37,7 +37,13 @@ public class SearchEngineMultiQueryTest {
 		Query query = new Query(terms).setMaxHits(50);
 		SearchResults results = new SearchEngineMultiQuery().search(query);
 		SearchEngineTest.assertResultsFitTheQuery(results, query, 3);
-		SearchEngineTest.assertSufficientHitsFound(Math.round(1e6), results);
+		
+		Long expMinRetrieved = new Long(50);
+		Long expMaxRetrieved = new Long(50);
+		Long expMinTotalEstimate = new Long(Math.round(1e6));
+		Long expMaxTotalEstimate = null;		
+		SearchEngineTest.assertNumberHitsOK(results, expMinRetrieved, expMaxRetrieved, 
+				expMinTotalEstimate, expMaxTotalEstimate);
 	}
 	
 	@Test
@@ -48,11 +54,36 @@ public class SearchEngineMultiQueryTest {
 		//
 		// So we make sure to test that it works with the MultiQuery 
 		// engine
+		//
 		String [] terms = new String[] {
 				"ᓄᓇᕗ", "ᓄᓇᕗᒻᒥ", "ᓄᓇᕘᒥ", "ᓄᓇᕘᑉ", "ᓄᓇᕗᒻᒥᐅᑦ", "ᓄᓇᕗᑦ"};
-		Query query = new Query(terms).setMaxHits(10);
+		Query query = new Query(terms).setMaxHits(50);
 		SearchResults results = new SearchEngineMultiQuery().search(query);
-		SearchEngineTest.assertResultsFitTheQuery(results, query, 4);
+		SearchEngineTest.assertResultsFitTheQuery(results, query, 10);
+		
+		Long expMinRetrieved = new Long(50);
+		Long expMaxRetrieved = new Long(50);
+		Long expMinTotalEstimate = new Long(1000);
+		Long expMaxTotalEstimate = null;		
+		SearchEngineTest.assertNumberHitsOK(results, expMinRetrieved, expMaxRetrieved, 
+				expMinTotalEstimate, expMaxTotalEstimate);
+		
 		SearchEngineTest.assertSufficientHitsFound(Math.round(100), results);
+	}
+	
+	@Test
+	public void test__search__TermThatProduceLessThanMaxHits() throws Exception {
+		String [] terms = new String[] {"ᐅᖃᖅᑐᖅ"};
+		Query query = new Query(terms).setMaxHits(100);
+		SearchResults results = new SearchEngineMultiQuery().search(query);
+		SearchEngineTest.assertResultsFitTheQuery(results, query, 5);
+		
+		Long expMinRetrieved = new Long(5);
+		Long expMaxRetrieved = new Long(15);
+		Long expMinTotalEstimate = new Long(5);
+		Long expMaxTotalEstimate = new Long(15);
+		
+		SearchEngineTest.assertNumberHitsOK(results, expMinRetrieved, expMaxRetrieved, 
+				expMinTotalEstimate, expMaxTotalEstimate);
 	}
 }
