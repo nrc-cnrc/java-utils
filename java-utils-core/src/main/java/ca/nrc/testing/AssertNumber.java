@@ -17,4 +17,13 @@ public class AssertNumber {
 				gotNum.floatValue() >= minNum.floatValue());
 	}
 
+	public static void isLessOrEqualTo(Number gotNum, Long maxNum) {
+		isLessOrEqualTo("", gotNum, maxNum);
+	}
+	
+	public static void isLessOrEqualTo(String mess, Number gotNum, Long maxNum) {
+		Assert.assertTrue(mess+"\nNumber was larger than expected.\n   Got : "+gotNum+"\n   Expected at most: "+maxNum,
+				gotNum.floatValue() <= maxNum.floatValue());
+	}
+
 }
