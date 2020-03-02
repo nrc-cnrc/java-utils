@@ -283,9 +283,9 @@ public abstract class SearchEngineTest {
 	
 	public static void assertResultsFitTheQuery(List<SearchEngine.Hit> results, SearchEngine.Query query, int maxNoFit) throws PageHarvesterException {
 		
-		Map<URL, String> hitValidity = new HashMap<URL,String>();
+		Map<Hit, String> hitValidity = new HashMap<Hit,String>();
 		for (SearchEngine.Hit hit: results) {
-			hitValidity.put(hit.url, "OK");
+			hitValidity.put(hit, "OK");
 		}
 		String resultsJson = PrettyPrinter.print(results);
 		
@@ -302,27 +302,28 @@ public abstract class SearchEngineTest {
 			for (SearchEngine.Hit hit: results) {
 				String gotHost = hit.url.getHost();
 				if (!gotHost.contains(expSite)) {
-					hitValidity.put(hit.url, "Is on wrong web site");
+					hitValidity.put(hit, "Is on wrong web site");
 				}
 			}
 		}
 
 		// Checking if hits match the query words and have the correct type
 		for (SearchEngine.Hit hit: results) {
-			if (! hitValidity.get(hit.url).equals("OK")) {continue;}
+			System.out.println("** assertResultsFitTheQuery: Looking at hit="+hit.url);
+			if (! hitValidity.get(hit).equals("OK")) {continue;}
 			
 			if (hit.url.toString().matches("[\\s\\S]*\\.pdf$")) {
-				hitValidity.put(hit.url, "Skipped");
+				hitValidity.put(hit, "Skipped");
 				continue;
 			}
 			
 			if (!hitMatchesQueryKeywords(query, hit)) {
-				hitValidity.put(hit.url, "Did not match the keywords");
+				hitValidity.put(hit, "Did not match the keywords");
 				continue;
 			}
 			
 			if (!hitHasCorrectType(query, hit)) {
-				hitValidity.put(hit.url, "Content does not have the correct type");
+				hitValidity.put(hit, "Content does not have the correct type");
 				continue;
 			}
 		}
@@ -330,13 +331,14 @@ public abstract class SearchEngineTest {
 		int numBadHits = 0;
 		int totalHits = 0;
 		List<String> badHits = new ArrayList<String>();
-		for (URL url: hitValidity.keySet()) {
-			String validity = hitValidity.get(url);
+		for (Hit aHit: hitValidity.keySet()) {
+			String validity = hitValidity.get(aHit);
+			URL url = aHit.url;
 			if (validity.equals("Skipped")) {continue;}
 			totalHits++;
 			if (! validity.equals("OK")) {
 				numBadHits++;
-				badHits.add(url.toString());
+				badHits.add("\n   Problem: "+hitValidity.get(aHit)+"\n   Summary: "+aHit.summary);;
 			}
 		}
 		
@@ -454,10 +456,6 @@ public abstract class SearchEngineTest {
 
 	public static void assertNumberHitsOK(SearchResults results, Long expMinRetrieved, Long expMaxRetrieved,
 			Long expMinTotalEstimate, Long expMaxTotalEstimate) {
-		
-		System.out.println("** assertNumberHitsOK: results.estTotalHits="+results.estTotalHits);
-		System.out.println("** assertNumberHitsOK: results.retrievedHits.size()="+results.retrievedHits.size());
-		
 		
 		int gotRetrieved = results.retrievedHits.size();
 		if (expMinRetrieved != null) {

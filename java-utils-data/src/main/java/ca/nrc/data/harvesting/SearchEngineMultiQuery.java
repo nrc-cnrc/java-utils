@@ -29,6 +29,18 @@ import ca.nrc.json.PrettyPrinter;
 
 public class SearchEngineMultiQuery  {
 	
+	private boolean checkHitSummary = false;
+		public boolean shouldCheckHitSummary()  { return checkHitSummary; }
+		public SearchEngineMultiQuery setCheckHitSummary(boolean flag)  {
+			if (workers != null) {
+				for (SearchEngineWorker aWorker: workers) {
+					aWorker.setCheckHitSummary(flag);
+				}
+			}
+			checkHitSummary = flag;
+			return this;
+		}	
+	
 	SearchEngine engineProto = null;
 	
 	SearchResultsCollector resultsCollector = null;
@@ -93,6 +105,9 @@ public class SearchEngineMultiQuery  {
 		Logger tLogger = Logger.getLogger("ca.nrc.data.harvesting.SearchEngineMultQuery.createAndStartWorkers");
 		tLogger.trace("invoked");
 		
+		
+		System.out.println("** createAndStartWorkers: shouldCheckHitSummary()="+shouldCheckHitSummary());
+		
 		resultsCollector = new SearchResultsCollector();
 		
 		int numWorkers = query.terms.size();
@@ -105,7 +120,9 @@ public class SearchEngineMultiQuery  {
 		for (int ii=0; ii < numWorkers; ii++) {
 			String aTerm = query.terms.get(ii);
 			SearchEngineWorker aWorker = 
-					new SearchEngineWorker(aTerm, query, "thr-"+ii+"-"+aTerm, engineProto, resultsCollector);
+					new SearchEngineWorker(aTerm, query, "thr-"+ii+"-"+aTerm, 
+							engineProto, resultsCollector)
+						.setCheckHitSummary(false);
 			workers[ii] = aWorker;
 			aWorker.start();
 		}

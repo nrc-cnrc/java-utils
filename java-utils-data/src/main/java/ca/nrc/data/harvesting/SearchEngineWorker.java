@@ -31,7 +31,7 @@ public class SearchEngineWorker implements Runnable {
 		public synchronized void setStatus(Status _status) { this.status = _status; }
 	
 	public static final Hit NO_MORE_HITS = new Hit();
-	public static final Hit WAIT_FOR_MORE = new Hit();
+	public static final Hit WAIT_FOR_MORE = new Hit();	
 	
 	private boolean _cancel;
 		public void cancel() {
@@ -55,15 +55,7 @@ public class SearchEngineWorker implements Runnable {
 		
 	public SearchEngineWorker(String _term, Query _query, String _threadName, 
 			SearchEngine engineProto, SearchResultsCollector collector) throws SearchEngineException {
-		Class<? extends SearchEngine> clazz = engineProto.getClass();
-		try {
-			this.searchEngine = clazz.getConstructor().newInstance().setCheckHitLanguage(true);
-		} catch (NoSuchMethodException | SecurityException | InstantiationException 
-				| IllegalAccessException | IllegalArgumentException 
-				| InvocationTargetException e) {
-			throw new SearchEngineException("Cannot create a search engine of type: "+clazz.getName(), e);
-		}
-		
+		Class<? extends SearchEngine> clazz = engineProto.getClass();		
 		{
 			try {
 				this.query = Cloner.clone(_query);
@@ -74,9 +66,28 @@ public class SearchEngineWorker implements Runnable {
 			this.query.terms.add(_term);
 			this.query.hitsPageNum = 0;
 			this.resultsCollector = collector;
+			
+			try {
+				this.searchEngine = clazz.getConstructor().newInstance().setCheckHitLanguage(true);
+				this.searchEngine.setCheckHitSummary(shouldCheckHitSummary());
+			} catch (NoSuchMethodException | SecurityException | InstantiationException 
+					| IllegalAccessException | IllegalArgumentException 
+					| InvocationTargetException e) {
+				throw new SearchEngineException("Cannot create a search engine of type: "+clazz.getName(), e);
+			}
+			
 		}
 		this.thrName = _threadName;
 	}
+	
+	public boolean shouldCheckHitSummary()  { return searchEngine.shouldCheckHitLanguage();}
+	
+	public SearchEngineWorker setCheckHitSummary(boolean flag)  {
+		System.out.println("SearchEngineWorker.setCheckHitSummary: set to "+flag);
+		this.searchEngine.setCheckHitSummary(flag);
+		return this;
+	}
+	
 	
 	@Override
 	public void run()  {

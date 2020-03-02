@@ -9,11 +9,6 @@ import ca.nrc.data.harvesting.SearchEngine.Query;
 
 public class SearchEngineMultiQueryTest {
 
-	@Test
-	public void test_TODOs() {
-		fail("Test the new Search service in the context of the UI");
-	}
-	
 	///////////////////////
 	// DOCUMENTATION TESTS
 	///////////////////////
@@ -39,8 +34,13 @@ public class SearchEngineMultiQueryTest {
 	public void test__search__HappyPath() throws Exception {
 		String[] terms = new String[] {"hello", "world"};
 		Query query = new Query(terms).setMaxHits(50);
-		SearchResults results = new SearchEngineMultiQuery().search(query);
-		SearchEngineTest.assertResultsFitTheQuery(results, query, 3);
+		SearchResults results = 
+				new SearchEngineMultiQuery()
+					.setCheckHitSummary(true)
+					.search(query);
+		
+		int maxBadHits = 0;
+		SearchEngineTest.assertResultsFitTheQuery(results, query, maxBadHits);
 		
 		Long expMinRetrieved = new Long(50);
 		Long expMaxRetrieved = new Long(50);
@@ -61,9 +61,14 @@ public class SearchEngineMultiQueryTest {
 		//
 		String [] terms = new String[] {
 				"ᓄᓇᕗ", "ᓄᓇᕗᒻᒥ", "ᓄᓇᕘᒥ", "ᓄᓇᕘᑉ", "ᓄᓇᕗᒻᒥᐅᑦ", "ᓄᓇᕗᑦ"};
-		Query query = new Query(terms).setMaxHits(50);
-		SearchResults results = new SearchEngineMultiQuery().search(query);
-		SearchEngineTest.assertResultsFitTheQuery(results, query, 19);
+		Query query = new Query(terms).setMaxHits(50).setLang("iu");
+		SearchResults results = 
+				new SearchEngineMultiQuery()
+					.setCheckHitSummary(true)
+					.search(query);
+		
+		int maxBadHits = 0;
+		SearchEngineTest.assertResultsFitTheQuery(results, query, maxBadHits);
 		
 		Long expMinRetrieved = new Long(50);
 		Long expMaxRetrieved = new Long(50);
@@ -78,9 +83,15 @@ public class SearchEngineMultiQueryTest {
 	@Test
 	public void test__search__TermThatProduceLessThanMaxHits() throws Exception {
 		String [] terms = new String[] {"ᐅᖃᖅᑐᖅ"};
-		Query query = new Query(terms).setMaxHits(50);
-		SearchResults results = new SearchEngineMultiQuery().search(query);
-		SearchEngineTest.assertResultsFitTheQuery(results, query, 13);
+		Query query = new Query(terms).setMaxHits(50).setLang("iu");
+		
+		SearchResults results = 
+					new SearchEngineMultiQuery()
+						.setCheckHitSummary(true)
+						.search(query);
+		
+		int maxBadHits = 3;
+		SearchEngineTest.assertResultsFitTheQuery(results, query, maxBadHits);
 		
 		Long expMinRetrieved = new Long(5);
 		Long expMaxRetrieved = new Long(30);

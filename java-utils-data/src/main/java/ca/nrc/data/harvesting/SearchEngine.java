@@ -15,12 +15,19 @@ public abstract class SearchEngine {
 protected abstract SearchResults searchRaw(Query query) throws SearchEngineException;
 	
 	private boolean checkHitLanguage = false;
-	public boolean shouldCheckHitLanguage()  { return checkHitLanguage; }
-	public SearchEngine setCheckHitLanguage(boolean flag)  {
-		checkHitLanguage = flag;
-		return this;
-	}
-
+		public boolean shouldCheckHitLanguage()  { return checkHitLanguage; }
+		public SearchEngine setCheckHitLanguage(boolean flag)  {
+			checkHitLanguage = flag;
+			return this;
+		}
+	
+	private boolean checkHitSummary = false;
+		public boolean shouldCheckHitSummary()  { return checkHitSummary; }
+		public SearchEngine setCheckHitSummary(boolean flag)  {
+			System.out.println("** SearchEngine.setCheckHitSummary: set to "+flag);
+			checkHitSummary = flag;
+			return this;
+		}
 	
 	public SearchResults search(Query seQuery) throws SearchEngineException {
 		Logger tLogger = Logger.getLogger("ca.nrc.data.harvesting.SearchEngine.search");
@@ -33,25 +40,82 @@ protected abstract SearchResults searchRaw(Query query) throws SearchEngineExcep
 		List<Hit> rawHits = results.retrievedHits;
 		tLogger.trace("Number of retrieved 'raw' hits: "+rawHits.size());
 
-		List<Hit> filteredHits = rawHits;
-		if (shouldCheckHitLanguage()) {
-			filteredHits = new ArrayList<Hit>();
-			for (Hit aHit: rawHits) {
-				try {
-					if (aHit.isInLanguage(seQuery.lang)) {
-						filteredHits.add(aHit);
-					}
-				} catch (IOException e) {
-					throw new SearchEngineException("Problem checking language of hit "+aHit.url, e);
-				}
-			}
-		}
+//		List<Hit> filteredHits = rawHits;
+//		if (shouldCheckHitLanguage() || shouldCheckHitSummary()) {
+//			filteredHits = new ArrayList<Hit>();
+//			for (Hit aHit: rawHits) {
+//				try {
+//					if (aHit.isInLanguage(seQuery.lang)) {
+//						filteredHits.add(aHit);
+//					}
+//				} catch (IOException e) {
+//					throw new SearchEngineException("Problem checking language of hit "+aHit.url, e);
+//				}
+//			}
+//		}
+		List<Hit> filteredHits = filterRawHits(rawHits, seQuery);
 		
 		results.retrievedHits = filteredHits;
 		
 		tLogger.trace("Number of 'filtered' hits: "+filteredHits.size());
 
 		return results;	
+	}
+
+	private List<Hit> filterRawHits(List<Hit> rawHits, Query seQuery) throws SearchEngineException {
+		
+		System.out.println("** filterRawHits: shouldCheckHitLanguage()="+shouldCheckHitLanguage()+", shouldCheckHitSummary()="+shouldCheckHitSummary());
+		
+		List<Hit> filteredHits = rawHits;
+		
+		if (shouldCheckHitLanguage() || shouldCheckHitSummary()) {
+			filteredHits = new ArrayList<Hit>();
+			for (Hit aHit: rawHits) {
+				Boolean pass = true;
+				if (shouldCheckHitLanguage()) {
+					try {
+						if (!aHit.isInLanguage(seQuery.lang)) {
+							pass = false;
+						}
+					} catch (IOException e) {
+						throw new SearchEngineException("Could not check language of hit");
+					}
+				}
+				
+				if (pass && shouldCheckHitSummary()) {
+					pass = hitSummaryFitsQuery(aHit, seQuery);
+				}
+				
+				if (pass) {
+					filteredHits.add(aHit);
+				}
+			}
+		}
+		
+		return filteredHits;
+	}
+
+	private Boolean hitSummaryFitsQuery(Hit aHit, Query seQuery) {
+		System.out.println("** hitSummaryFitsQuery: looking at aHit.summary="+aHit.summary);
+		boolean fitsQuery = true;
+		
+		if (seQuery.terms != null) {
+			fitsQuery = false;
+			String summary = aHit.summary.toLowerCase();
+			for (String term: seQuery.terms) {
+				term = term.toLowerCase();
+				System.out.println("** hitSummaryFitsQuery: Checking term="+term+"\n  in summary="+summary);				
+				if (summary.contains(term)) {
+					fitsQuery = true;
+					System.out.println("** hitSummaryFitsQuery: Summary contains the term");				
+					break;
+				}
+			}
+		}
+		
+		System.out.println("** hitSummaryFitsQuery: returning fitsQuery="+fitsQuery);				
+
+		return fitsQuery;
 	}
 
 	public enum Type {
