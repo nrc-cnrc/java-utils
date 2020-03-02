@@ -9,6 +9,10 @@ import ca.nrc.data.harvesting.SearchEngine.Query;
 
 public class SearchEngineMultiQueryTest {
 
+	@Test
+	public void test_TODOs() {
+		fail("Test the new Search service in the context of the UI");
+	}
 	
 	///////////////////////
 	// DOCUMENTATION TESTS

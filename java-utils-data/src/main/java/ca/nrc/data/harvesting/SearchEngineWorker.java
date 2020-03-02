@@ -89,15 +89,15 @@ public class SearchEngineWorker implements Runnable {
 			while(true) {
 
 				if (getStatus() == Status.STOP) {
-					System.out.println("** SearchEngineWorker.run: Worker '"+thrName+"' is STOPPING");
+//					System.out.println("** SearchEngineWorker.run: Worker '"+thrName+"' is STOPPING");
 					break;
 				}
 				
 				if (getStatus() == Status.START_FETCHING) {
-					System.out.println("** SearchEngineWorker.run: Worker '"+thrName+"' is FETCHING results for query=\n"+PrettyPrinter.print(query));
+//					System.out.println("** SearchEngineWorker.run: Worker '"+thrName+"' is FETCHING results for query=\n"+PrettyPrinter.print(query));
 					setStatus(Status.FETCHING);
 					fetchNextBatchOfResults();
-					System.out.println("** SearchEngineWorker.run: Worker '"+thrName+"' FETCHED a batch with a total of "+currentBatch.retrievedHits.size()+" hits");
+//					System.out.println("** SearchEngineWorker.run: Worker '"+thrName+"' FETCHED a batch with a total of "+currentBatch.retrievedHits.size()+" hits");
 				}
 				
 				
@@ -130,7 +130,7 @@ public class SearchEngineWorker implements Runnable {
 		if (hit == null && getStatus() == Status.READY_TO_PULL) {
 			if (currentBatch.retrievedHits.size() > 0) {
 				hit = currentBatch.retrievedHits.remove(0);
-				System.out.println("** SearchEngineWorker.pullHit: hit="+hit);
+//				System.out.println("** SearchEngineWorker.pullHit: hit="+hit);
 			} else {
 				hit = WAIT_FOR_MORE;
 				setStatus(Status.START_FETCHING);
@@ -141,13 +141,13 @@ public class SearchEngineWorker implements Runnable {
 	}
 	
 	private void fetchNextBatchOfResults() throws SearchEngineException {
-		System.out.println("** SearchEngineWorker.fetchNextBatchOfResults: Fetching batch number "+query.hitsPageNum);
+//		System.out.println("** SearchEngineWorker.fetchNextBatchOfResults: Fetching batch number "+query.hitsPageNum);
 		this.setStatus(Status.FETCHING);
 		query.hitsPageNum++;
 		this.currentBatch = searchEngine.search(query);
 		setEstTotalHits(currentBatch.estTotalHits);
 		
-		System.out.println("** SearchEngineWorker.fetchNextBatchOfResults: DONE Fetching batch number "+query.hitsPageNum);
+//		System.out.println("** SearchEngineWorker.fetchNextBatchOfResults: DONE Fetching batch number "+query.hitsPageNum);
 		
 		stopIfCurrBatchIsSameAsPrevious();
 		if (this.currentBatch.retrievedHits.size() == 0) {
