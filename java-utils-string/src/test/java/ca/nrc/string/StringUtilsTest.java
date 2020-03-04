@@ -1,14 +1,13 @@
 package ca.nrc.string;
 
-import static org.junit.Assert.*;
-
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
 
 import ca.nrc.datastructure.Pair;
-import ca.nrc.testing.AssertHelpers;
+import ca.nrc.testing.AssertObject;
+import ca.nrc.testing.AssertString;
 
 public class StringUtilsTest {
 
@@ -25,7 +24,7 @@ public class StringUtilsTest {
 			expPieces.add(Pair.of(".", true));
 		}
 		
-		AssertHelpers.assertDeepEquals("String was not split properly", expPieces, gotPieces);
+		AssertObject.assertDeepEquals("String was not split properly", expPieces, gotPieces);
 	}
 
 	@Test
@@ -40,7 +39,7 @@ public class StringUtilsTest {
 			expTokens.add(Pair.of(".", true));
 		}
 		
-		AssertHelpers.assertDeepEquals("String was not split properly", expTokens, gotTokens);
+		AssertObject.assertDeepEquals("String was not split properly", expTokens, gotTokens);
 	}
 	
 	@Test
@@ -51,6 +50,6 @@ public class StringUtilsTest {
 		}
 		String gotJoined = StringUtils.join(strs.iterator(), "|");
 		String expJoined = "Hello|world";
-		AssertHelpers.assertStringEquals(expJoined, gotJoined);
+		AssertString.assertStringEquals(expJoined, gotJoined);
 	}
 }
