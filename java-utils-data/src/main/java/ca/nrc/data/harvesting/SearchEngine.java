@@ -24,7 +24,7 @@ protected abstract SearchResults searchRaw(Query query) throws SearchEngineExcep
 	private boolean checkHitSummary = false;
 		public boolean shouldCheckHitSummary()  { return checkHitSummary; }
 		public SearchEngine setCheckHitSummary(boolean flag)  {
-			System.out.println("** SearchEngine.setCheckHitSummary: set to "+flag);
+//			System.out.println("** SearchEngine.setCheckHitSummary: set to "+flag);
 			checkHitSummary = flag;
 			return this;
 		}
@@ -40,19 +40,6 @@ protected abstract SearchResults searchRaw(Query query) throws SearchEngineExcep
 		List<Hit> rawHits = results.retrievedHits;
 		tLogger.trace("Number of retrieved 'raw' hits: "+rawHits.size());
 
-//		List<Hit> filteredHits = rawHits;
-//		if (shouldCheckHitLanguage() || shouldCheckHitSummary()) {
-//			filteredHits = new ArrayList<Hit>();
-//			for (Hit aHit: rawHits) {
-//				try {
-//					if (aHit.isInLanguage(seQuery.lang)) {
-//						filteredHits.add(aHit);
-//					}
-//				} catch (IOException e) {
-//					throw new SearchEngineException("Problem checking language of hit "+aHit.url, e);
-//				}
-//			}
-//		}
 		List<Hit> filteredHits = filterRawHits(rawHits, seQuery);
 		
 		results.retrievedHits = filteredHits;
@@ -64,7 +51,7 @@ protected abstract SearchResults searchRaw(Query query) throws SearchEngineExcep
 
 	private List<Hit> filterRawHits(List<Hit> rawHits, Query seQuery) throws SearchEngineException {
 		
-		System.out.println("** filterRawHits: shouldCheckHitLanguage()="+shouldCheckHitLanguage()+", shouldCheckHitSummary()="+shouldCheckHitSummary());
+//		System.out.println("** filterRawHits: shouldCheckHitLanguage()="+shouldCheckHitLanguage()+", shouldCheckHitSummary()="+shouldCheckHitSummary());
 		
 		List<Hit> filteredHits = rawHits;
 		

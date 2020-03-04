@@ -309,7 +309,6 @@ public abstract class SearchEngineTest {
 
 		// Checking if hits match the query words and have the correct type
 		for (SearchEngine.Hit hit: results) {
-			System.out.println("** assertResultsFitTheQuery: Looking at hit="+hit.url);
 			if (! hitValidity.get(hit).equals("OK")) {continue;}
 			
 			if (hit.url.toString().matches("[\\s\\S]*\\.pdf$")) {

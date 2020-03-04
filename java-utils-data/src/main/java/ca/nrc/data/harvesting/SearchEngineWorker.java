@@ -83,7 +83,6 @@ public class SearchEngineWorker implements Runnable {
 	public boolean shouldCheckHitSummary()  { return searchEngine.shouldCheckHitLanguage();}
 	
 	public SearchEngineWorker setCheckHitSummary(boolean flag)  {
-		System.out.println("SearchEngineWorker.setCheckHitSummary: set to "+flag);
 		this.searchEngine.setCheckHitSummary(flag);
 		return this;
 	}
