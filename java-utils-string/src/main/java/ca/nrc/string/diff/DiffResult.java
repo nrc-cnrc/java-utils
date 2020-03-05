@@ -5,7 +5,7 @@ import java.util.List;
 public class DiffResult {
 	public String[] origTokens = null;
 	public String[] revTokens = null;
-	List<StringTransformation> transformations = null;
+	public List<StringTransformation> transformations = null;
 
 	public DiffResult(String[] _origTokens, String[] _revTokens,
 			List<StringTransformation> _transformations) {
@@ -30,6 +30,15 @@ public class DiffResult {
 		}
 		
 		return _revStr;
+	}
+	
+	public int numAffectedTokens() {	
+		int numAffected = 0;
+		for (StringTransformation aTransf: this.transformations) {
+			numAffected += aTransf.numAffectedTokens();
+		};
+		
+		return numAffected;
 	}
 	
 }
