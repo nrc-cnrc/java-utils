@@ -21,15 +21,32 @@ public class TextualDiff {
 	
 	public static enum DiffersBy {NOTHING, SPACES, SPACES_AND_PUNCT, OTHER};
 	
-	public List<StringTransformation> diff(String text1, String text2) throws StringDiffException {		
+	public DiffResult diffResult(String[] tokensArr1, String[] tokensArr2) throws StringDiffException {
+		List<StringTransformation> transf = diffTransformations(tokensArr1, tokensArr2);
+		DiffResult result =new DiffResult(tokensArr1, tokensArr2, transf);
+				
+		return result;
+	}
+	
+	public DiffResult diffResult(String text1, String text2) throws StringDiffException {
 		String[] tokens1 = SimpleTokenizer.tokenize(text1, true);
 		String[] tokens2 = SimpleTokenizer.tokenize(text2, true);
-		List<StringTransformation> transf = diff(tokens1, tokens2);
+		
+		List<StringTransformation> transf = diffTransformations(tokens1, tokens2);
+		DiffResult result = new DiffResult(tokens1, tokens2, transf);
+				
+		return result;
+	}
+	
+	public List<StringTransformation> diffTransformations(String text1, String text2) throws StringDiffException {		
+		String[] tokens1 = SimpleTokenizer.tokenize(text1, true);
+		String[] tokens2 = SimpleTokenizer.tokenize(text2, true);
+		List<StringTransformation> transf = diffTransformations(tokens1, tokens2);
 		
 		return transf;
 	}
 	
-	public List<StringTransformation> diff(String[] tokensArr1, String[] tokensArr2) throws StringDiffException {
+	public List<StringTransformation> diffTransformations(String[] tokensArr1, String[] tokensArr2) throws StringDiffException {
 		List<StringTransformation> transformations = new ArrayList<StringTransformation>();
 		
 		List<String> tokens1 = Arrays.asList(tokensArr1);
@@ -162,7 +179,7 @@ public class TextualDiff {
 		String revMarkup = "";
 		
 		if (transformations == null) {
-			transformations = new TextualDiff().diff(origTokens, revTokens);
+			transformations = new TextualDiff().diffTransformations(origTokens, revTokens);
 		}
 
 		if (transformations != null) {

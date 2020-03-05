@@ -29,8 +29,8 @@ public class DiffCostingTest {
 		//   "Hello friends"
 		//
 		TextualDiff tDiff = new TextualDiff();
-		List<StringTransformation> diffUniverse = tDiff.diff(helloWorld, helloUniverse);
-		List<StringTransformation> diffFriends = tDiff.diff(helloWorld, helloFriends);
+		DiffResult diffUniverse = tDiff.diffResult(helloWorld, helloUniverse);
+		DiffResult diffFriends = tDiff.diffResult(helloWorld, helloFriends);
 		
 		//
 		// You now want to use this diff to assess to what extent the "hello world" 
@@ -43,8 +43,8 @@ public class DiffCostingTest {
 		//
 		
 		DiffCosting_Default naiveCosting = new DiffCosting_Default();
-		double universeCost = naiveCosting.cost(helloWorld, helloUniverse, diffUniverse);
-		double friendsCost = naiveCosting.cost(helloWorld, helloUniverse, diffUniverse);
+		double universeCost = naiveCosting.cost(diffUniverse);
+		double friendsCost = naiveCosting.cost(diffFriends);
 		
 		// This simple costing method may work well in many cases, but 
 		// it is somewhat brittle. For example in this case it assigns 
@@ -62,8 +62,8 @@ public class DiffCostingTest {
 		//
 		DiffCosting_SynSets synCosting = new DiffCosting_SynSets();
 		synCosting.addSynSet(new String[] {"world", "universe"});
-		universeCost = synCosting.cost(helloWorld, helloUniverse, diffUniverse);
-		friendsCost = synCosting.cost(helloWorld, helloFriends, diffFriends);
+		universeCost = synCosting.cost(diffUniverse);
+		friendsCost = synCosting.cost(diffFriends);
 		Assert.assertNotEquals(universeCost, friendsCost);
 	}
 

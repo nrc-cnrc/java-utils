@@ -10,18 +10,20 @@ import java.util.List;
  *
  */
 public abstract class DiffCosting {
+	
+	public static final double INFINITE = 1000000;
+	
 
-	/**
-	 * Default implementation computes the cost as the total number 
-	 * of tokens affected by the diff.
-	 * 
-	 * @param tokens1
-	 * @param tokens2
-	 * @param diff
-	 * @return
-	 */
-	public abstract double cost(String[] tokens1, String[] tokens2, 
-			List<StringTransformation> diff);
+	public abstract double cost(DiffResult diff);
+
+//	public double cost(String[] tokens1, String[] tokens2, 
+//			List<StringTransformation> diff) {
+//		DiffResult dRes = new DiffResult(tokens1, tokens2, diff);
+//		double _cost = cost(dRes);
+//		
+//		return _cost;
+//	}
+	
 	
 	protected double numAffectedTokens(String[] tokens1, String[] tokens2, 
 			List<StringTransformation> diff) {

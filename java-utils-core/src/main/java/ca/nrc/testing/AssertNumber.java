@@ -24,11 +24,11 @@ public class AssertNumber {
 	
 	public static void isLessOrEqualTo(String mess, Long gotNum, Long maxNum) {
 		Assert.assertTrue(mess+"\nNumber was larger than expected.\n   Got : "+gotNum+"\n   Expected at most: "+maxNum,
-				gotNum.floatValue() <= maxNum.floatValue());
+				gotNum <= maxNum);
 	}
 
 	public static void isLessOrEqualTo(String mess, Double gotNum, Double maxNum) {
 		Assert.assertTrue(mess+"\nNumber was larger than expected.\n   Got : "+gotNum+"\n   Expected at most: "+maxNum,
-				gotNum.floatValue() <= maxNum.floatValue());
+				gotNum  <= maxNum);
 	}
 }

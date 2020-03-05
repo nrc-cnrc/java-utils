@@ -31,12 +31,13 @@ public class DiffCosting_SynSets extends DiffCosting {
 	}
 	
 	@Override
-	public double cost(String[] tokens1, String[] tokens2, 
-			List<StringTransformation> diff) {
-		
+	public double cost(DiffResult diffRes) {
+//		String[] tokens1 = diffRes.origTokens;
+//		String[] tokens2 = diffRes.origTokens;
+		List<StringTransformation> transformations = diffRes.transformations;
 		
 		double _cost = 0.0;
-		for (StringTransformation transf: diff) {
+		for (StringTransformation transf: transformations) {
 			String orig = String.join(" ", transf.origTokens).toLowerCase();
 			String rev = String.join(" ", transf.revisedTokens).toLowerCase();
 			boolean isSynonym = false;
@@ -58,6 +59,5 @@ public class DiffCosting_SynSets extends DiffCosting {
 		
 		return _cost;
 	}
-	
 }
 	

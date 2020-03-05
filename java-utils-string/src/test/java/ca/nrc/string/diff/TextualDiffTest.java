@@ -34,7 +34,7 @@ public class TextualDiffTest {
 		//
 		String text1 = "Hello world.";
 		String text2 = "Hello universe.";
-		List<StringTransformation> diff = new TextualDiff().diff(text1, text2);
+		List<StringTransformation> diff = new TextualDiff().diffTransformations(text1, text2);
 	}
 
 	///////////////////////////
@@ -47,7 +47,7 @@ public class TextualDiffTest {
 		String[] tokens1 = TextualDiff.tokenize("Hello world. Take me to your leader.");
 		String[] tokens2 = TextualDiff.tokenize("Greetings universe. Take me to your leader.");
 				
-		List<StringTransformation> gotTransf = new TextualDiff().diff(tokens1, tokens2);
+		List<StringTransformation> gotTransf = new TextualDiff().diffTransformations(tokens1, tokens2);
 		Object[][] expTransf = {
 				new Object[] {
 							0, new String[] {"Hello", " ", "world"}, 
@@ -64,7 +64,7 @@ public class TextualDiffTest {
 		String[] tokens1 = TextualDiff.tokenize("   Hello world. Take me to your leader.");
 		String[] tokens2 = TextualDiff.tokenize("Greetings    universe. Take me to your leader.");
 				
-		List<StringTransformation> gotTransf = new TextualDiff().diff(tokens1, tokens2);
+		List<StringTransformation> gotTransf = new TextualDiff().diffTransformations(tokens1, tokens2);
 		Object[][] expTransf = {
 				new Object[] {
 							0, new String[] {"   ", "Hello", " ", "world"}, 
@@ -396,7 +396,7 @@ public class TextualDiffTest {
 	protected Pair<String, String> doMarkupStrings(String text1, String text2) throws Exception {
 		String[] tokens1 = TextualDiff.tokenize(text1);
 		String[] tokens2 = TextualDiff.tokenize(text2);
-		List<StringTransformation> transformations = txtDiff.diff(tokens1, tokens2);
+		List<StringTransformation> transformations = txtDiff.diffTransformations(tokens1, tokens2);
 		
 		Pair<String,String> markedup = txtDiff.markupStrings(tokens1, tokens2, transformations);
 		
