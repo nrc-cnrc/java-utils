@@ -1,6 +1,9 @@
 package ca.nrc.string.diff;
 
+import java.util.Arrays;
 import java.util.List;
+
+import ca.nrc.datastructure.Pair;
 
 public class DiffResult {
 	public String[] origTokens = null;
@@ -39,6 +42,18 @@ public class DiffResult {
 		};
 		
 		return numAffected;
+	}
+
+	public Pair<String, String> strBeforeTransfNum(int transNum) {
+		StringTransformation transf = transformations.get(transNum);
+		
+		String[] origToksBefore = Arrays.copyOfRange(origTokens, 0, transf.origTokenPos);
+		String origBefore = String.join("", origToksBefore);
+		
+		String[] revToksBefore = Arrays.copyOfRange(revTokens, 0, transf.revisedTokenPos);
+		String revBefore = String.join("", revToksBefore);
+				
+		return Pair.of(origBefore, revBefore);
 	}
 	
 }
