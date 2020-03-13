@@ -110,4 +110,15 @@ public class StringTransformation {
 		
 		return numAffected;
 	}
+	
+	public String origStr() {
+		String str = String.join("", origTokens);
+		return str;
+	}
+
+	public String revStr() {
+		String str = String.join("", revisedTokens);
+		return str;
+	}
+
 }
