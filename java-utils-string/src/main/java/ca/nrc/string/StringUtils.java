@@ -32,6 +32,19 @@ public class StringUtils {
 		return joined;
 	}
 
+	public static String join(Object[] array, String delimiter) {
+		StringBuilder str = new StringBuilder();
+		boolean isFirst = true;
+		for (Object elt: array) {
+			if (!isFirst) {
+				str.append(elt.toString());
+			}
+			isFirst = false;
+		}
+		
+		return str.toString();
+	}
+
 	public static List<Pair<String, Boolean>> splitWithDelimiters(String regexp, String text) {
 		Pattern patt = Pattern.compile(regexp);
 		return splitWithDelimiters(patt, text);
