@@ -21,6 +21,13 @@ public class TextualDiff {
 	
 	public static enum DiffersBy {NOTHING, SPACES, SPACES_AND_PUNCT, OTHER};
 	
+	private boolean ignoreSpaces = false;
+		public TextualDiff setIgnoreSpaces(boolean toSet) {
+			ignoreSpaces = toSet;
+			return this;
+		}
+		public boolean shouldIgnoreSpace() { return ignoreSpaces; }
+	
 	public DiffResult diffResult(String[] tokensArr1, String[] tokensArr2) throws StringDiffException {
 		List<StringTransformation> transf = diffTransformations(tokensArr1, tokensArr2);
 		DiffResult result =new DiffResult(tokensArr1, tokensArr2, transf);
@@ -58,8 +65,10 @@ public class TextualDiff {
 		// Generate initial list of transformations
 		//
 		for (Delta aDelta: deltas) {
-			StringTransformation transf = new StringTransformation(aDelta);	
-			transf = trimTransformation(transf, SimpleTokenizer.SPACES);
+			StringTransformation transf = new StringTransformation(aDelta);
+			if (shouldIgnoreSpace()) {
+				transf = trimTransformation(transf, SimpleTokenizer.SPACES);
+			}
 			if (transf != null) {
 				transformations.add(transf);
 			}
@@ -268,7 +277,8 @@ public class TextualDiff {
 		return identical;
 	}
 	
-	StringTransformation trimTransformation(StringTransformation transf, String toTrimRegex) throws StringDiffException {
+	StringTransformation trimTransformation(StringTransformation transf, 
+			String toTrimRegex) throws StringDiffException {
 		
 		StringTransformation trimmed = null;
 		if (!transf.onlyAffectsSpaces()) {
@@ -323,7 +333,8 @@ public class TextualDiff {
 		return trimmedTokens;
 	}
 
-	public static Pair<Integer, Integer> numTokensToTrim(String[] tokens, String toTrimRegex) {
+	public static Pair<Integer, Integer> numTokensToTrim(String[] tokens, 
+			String toTrimRegex) {
 		Integer numLeading = 0;
 		Integer numTailing = 0;
 		
