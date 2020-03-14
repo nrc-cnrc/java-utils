@@ -18,18 +18,18 @@ public class StringUtils {
 		if (delimiter == null) {
 			delimiter = ",";
 		}
-		String joined = "";
+		StringBuilder joined = new StringBuilder();
 
 		boolean isFirst = true;
 		while (iter.hasNext()) {
 			if (!isFirst) {
-				joined += delimiter;
+				joined.append(delimiter);
 			}
 			isFirst = false;
-			joined += iter.next().toString();
+			joined.append(iter.next().toString());
 		}
 		
-		return joined;
+		return joined.toString();
 	}
 
 	public static String join(Object[] array, String delimiter) {
