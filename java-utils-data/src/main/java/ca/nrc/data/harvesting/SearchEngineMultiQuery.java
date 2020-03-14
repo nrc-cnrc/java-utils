@@ -105,8 +105,7 @@ public class SearchEngineMultiQuery  {
 		Logger tLogger = Logger.getLogger("ca.nrc.data.harvesting.SearchEngineMultQuery.createAndStartWorkers");
 		tLogger.trace("invoked");
 		
-		
-		System.out.println("** createAndStartWorkers: shouldCheckHitSummary()="+shouldCheckHitSummary());
+//		System.out.println("** createAndStartWorkers: shouldCheckHitSummary()="+shouldCheckHitSummary());
 		
 		resultsCollector = new SearchResultsCollector();
 		
