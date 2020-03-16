@@ -300,14 +300,12 @@ public class AssertHelpers {
 		Set<Object> superset = new HashSet<Object>();
 		for (Object elt: supersetArr) superset.add(elt);
 		assertContainsAll(message, superset, subsetArr);
-		
 	}
 
 	public static <T> void assertContainsAll(String message, List<T> supersetList, T[] subsetArr) {
 		Set<Object> superset = new HashSet<Object>();
 		for (Object elt: supersetList) superset.add(elt);
 		assertContainsAll(message, superset, subsetArr);
-		
 	}
 	
 	public  static <T> void  assertContainsAll(String message, Set<T> superset, T[] subsetArr) {
@@ -332,7 +330,24 @@ public class AssertHelpers {
 		
 		if (!superset.containsAll(subset)) {
 		}
-	}	
+	}
+	
+	public static void intersectionNotEmpty(String mess, 
+			Set<Object> set1,
+			Set<Object> set2) throws IOException {
+		Set<Object> gotIntersection = new HashSet<Object>();
+		for (Object obj: set2) {
+			if (set1.contains(obj)) {
+				gotIntersection.add(obj);
+			}
+		}
+		
+		Set<Object> emptySet = new HashSet<Object>();
+		AssertObject.assertDeepNotEqual(
+				mess+"\nIntersection of sets was empty.", 
+				emptySet, gotIntersection);
+	}
+	
 	
 	/**
 	 * Indicates if elements in two collections are the same, ignoring the order of elements

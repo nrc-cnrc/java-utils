@@ -42,23 +42,23 @@ public class AssertObject {
 	}
 	
 	public static void assertDeepNotEqual(String message, Object expObject, Object gotObject) {
+		Boolean areEqual = false;
 		try {
-			
+			// If the two objects are not equal, then the following 
+			// assertion will raise an AssertionError.
+			//
 			assertDeepEquals("", expObject, gotObject);
-			
-			// NOTE: If the two objects are not equal, then the above assertion should
-			//  fail. Therefore, if we make it to here, it means that the two 
-			//  objects are equal, and that we should raise an exception (since
-			//  we are trying to assert that the two objects are NOT equal).
-			
-			Assert.assertTrue(message+"\nThe two objects should NOT have been equal. But they were both equal to:\n"+PrettyPrinter.print(expObject), 
-					false);
-			
+			areEqual = true;
 		} catch (AssertionError | IOException e) {
-			// Nothing to do. We actually WANT the above deepEquals to fail (i.e. we WANT
-			// the two objects to differ ins SOME respect). 
+			areEqual = false;
 		}
 		
+		if (areEqual) {
+			Assert.fail(
+				message+"\n" +
+				"The two objects should NOT have been equal but they were.\n"+
+			    "Objects were both: \n"+PrettyPrinter.print(gotObject));
+		}
 	}
 
 	public static void assertEqualsJsonCompare(String expJsonString, Object gotObject) throws  IOException {
