@@ -105,7 +105,7 @@ public class StringTransformation {
 		return toS;
 	}
 		
-	public int numAffectedTokens() {		
+	public int numAffectedTokens() {	
 		int numAffected = origTokens.length + revisedTokens.length;
 		
 		return numAffected;

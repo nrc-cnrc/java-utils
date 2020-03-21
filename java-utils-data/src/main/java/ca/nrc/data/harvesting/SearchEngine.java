@@ -60,12 +60,8 @@ protected abstract SearchResults searchRaw(Query query) throws SearchEngineExcep
 			for (Hit aHit: rawHits) {
 				Boolean pass = true;
 				if (shouldCheckHitLanguage()) {
-					try {
-						if (!aHit.isInLanguage(seQuery.lang)) {
-							pass = false;
-						}
-					} catch (IOException e) {
-						throw new SearchEngineException("Could not check language of hit");
+					if (!aHit.isInLanguage(seQuery.lang)) {
+						pass = false;
 					}
 				}
 				
@@ -243,8 +239,13 @@ protected abstract SearchResults searchRaw(Query query) throws SearchEngineExcep
 			return wholeContent;
 		}
 
-		public boolean isInLanguage(String desiredLang) throws IOException {
-			String actualLang = LanguageGuesser.detect(summary);
+		public boolean isInLanguage(String desiredLang) throws SearchEngineException {
+			String actualLang;
+			try {
+				actualLang = new LanguageGuesser().detect(summary);
+			} catch (LanguageGuesserException e) {
+				throw new SearchEngineException(e);
+			}
 			boolean answer = true;
 			if (actualLang != null && desiredLang != null) {
 				answer = (actualLang.equals(desiredLang));

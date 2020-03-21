@@ -18,14 +18,12 @@ public class LanguageGuesserTest {
 		
 		// English example
 		String text = "Joy to the world";
-		String lang = LanguageGuesser.detect(text);
+		String lang = new LanguageGuesser().detect(text);
 		Assert.assertEquals("en", lang);		
 
 		// French example
 		text = "Joie pour tout le monde";
-		lang = LanguageGuesser.detect(text);
+		lang = new LanguageGuesser().detect(text);
 		Assert.assertEquals("fr", lang);		
-	
 	}
-
 }

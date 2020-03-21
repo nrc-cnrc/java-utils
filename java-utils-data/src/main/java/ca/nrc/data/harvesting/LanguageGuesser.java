@@ -42,10 +42,17 @@ public class LanguageGuesser {
 	
 	/**
 	 * Detect language that a text is written in.
+	 * @throws LanguageGuesserException 
 	 */
-	public static String detect(String text) throws IOException {
+	public  String detect(String text) throws LanguageGuesserException {
 		TextObject textObject = getTextFactory().forText(text);
-		Optional<LdLocale> lang = getDetector().detect(textObject);		
+		Optional<LdLocale> lang;
+		try {
+			lang = getDetector().detect(textObject);
+		} catch (IOException e) {
+			throw new LanguageGuesserException(
+					"Unable to generate a language detector.", e);
+		}		
 		
 		String langCode = null;
 		if (lang.isPresent()) {

@@ -90,7 +90,7 @@ public class SearchEngineMultiQueryTest {
 						.setCheckHitSummary(true)
 						.search(query);
 		
-		int maxBadHits = 3;
+		int maxBadHits = 4;
 		SearchEngineTest.assertResultsFitTheQuery(results, query, maxBadHits);
 		
 		Long expMinRetrieved = new Long(5);
