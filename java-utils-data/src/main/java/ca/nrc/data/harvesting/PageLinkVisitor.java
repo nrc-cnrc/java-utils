@@ -31,7 +31,7 @@ public class PageLinkVisitor implements TagNodeVisitor {
 	private static Pattern relatPath = Pattern.compile("^/(\\w+/?)*");
 	private final Set<String> visitedHref = new HashSet<String>();
 
-	private PageHarvester pageHarvester;
+	private PageHarvester_Barebones pageHarvester;
 
 	private URL pageUrl;
 	private String hyperLinkAttr;
@@ -43,7 +43,7 @@ public class PageLinkVisitor implements TagNodeVisitor {
 		this.pageUrl = null;
 	}
 
-	public PageLinkVisitor(PageHarvester pageHarvester, URL pageUrl, String pageAttrName, String pageAttrValue) {
+	public PageLinkVisitor(PageHarvester_Barebones pageHarvester, URL pageUrl, String pageAttrName, String pageAttrValue) {
 		this.pageHarvester = pageHarvester;
 		this.pageUrl = pageUrl;
 		this.hyperLinkAttr = pageAttrName;

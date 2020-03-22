@@ -79,6 +79,12 @@
 		</dependency>
 		
 		<dependency>
+			<groupId>ca.nrc.java-utils</groupId>
+			<artifactId>java-utils-ui</artifactId>
+			<version>1.0.15-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
 		    <groupId>org.apache.commons</groupId>
 		    <artifactId>commons-math3</artifactId>
 		    <version>3.6.1</version>
