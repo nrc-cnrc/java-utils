@@ -18,30 +18,30 @@ import de.l3s.boilerpipe.extractors.KeepEverythingExtractor;
 public abstract class PageHarvester {
 
 	protected IPageVisitor visitor;
+	private String error;
 
+	
 	/** Downloads the page into the harvester */
 	protected abstract void getPage(String url) throws PageHarvesterException;
 
-	/** Get Error of of last page download */
-	public abstract String getError();
+	/** Get Html of last downloaded page 
+	 * @throws PageHarvesterException */
+	public abstract String getHtml() throws PageHarvesterException;
 	
-	/** Set Error of of last page download */
-	public abstract void setError(String _err);
+	/** Get Title of last downloaded page 
+	 * @throws PageHarvesterException */
+	public abstract String getTitle() throws PageHarvesterException;
 	
-	/** Get Html of last downloaded page */
-	public abstract String getHtml();
-	
-	/** Get Title of last downloaded page */
-	public abstract String getTitle();
-	
-	/** Get plain text of last downloaded page */
-	public abstract String getText();
+	/** Get plain text of last downloaded page 
+	 * @throws PageHarvesterException */
+	public abstract String getText() throws PageHarvesterException;
 	
 	/** Get ACTUAL URL of last downloaded page.
 	 *  This may be different from the URL that was provided to 
 	 *  the harvester (for example, if the original page contained an 
-	 *  auto-forward) */
-	public abstract URL getCurrentURL();
+	 *  auto-forward) 
+	 * @throws PageHarvesterException */
+	public abstract URL getCurrentURL() throws PageHarvesterException;
 	
 	/** Follow all hyperlinks contained on a page, and harvest each of those
 	 *  pages. */
@@ -62,6 +62,17 @@ public abstract class PageHarvester {
 	public PageHarvester setConnectionTimeoutSecs(int connectionTimeoutSecs) {
 		this.connectionTimeoutSecs = connectionTimeoutSecs;
 		return this;
+	}
+
+
+	/** Set Error of of last page download */	
+	public void setError(String _err) {
+		this.error = _err;
+	}
+	
+	/** Getet Error of of last page download */	
+	public String getError() {
+		return error;
 	}
 	
 	/**

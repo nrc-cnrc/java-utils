@@ -110,6 +110,33 @@ public abstract class PageHarvesterTest {
 	 * VERIFICATION TESTS
 	 ********************************************************************************/	
 		
+	@Test @Ignore
+	public void test__harvestSinglePage__HappyPath__NEW() throws IOException, BoilerpipeProcessingException, PageHarvesterException {
+		String url = "http://en.wikipedia.org/";
+		harvester.harvestSinglePage(url);
+		
+		String expTitleHead = "Wikipedia, the free encyclopedia";
+		String expTitleText = "Welcome to Wikipedia";
+
+		String html = harvester.getHtml();
+		AssertHelpers.assertStringContains(html, "<title>"+expTitleHead+"</title>");
+		
+		// Plain-text should not contain any HTML code
+		String plainText = harvester.getText();
+		AssertHelpers.assertStringDoesNotContain(plainText, "<title>"); 
+		AssertHelpers.assertStringContains(plainText, expTitleText);
+		
+		// Main text should not contain HTML codes, nor side bars
+		String mainText = harvester.getText();
+		AssertHelpers.assertStringDoesNotContain(mainText, "<title>"); 
+		AssertHelpers.assertStringDoesNotContain(mainText, "About Wikipedia");
+		AssertHelpers.assertStringContains(mainText, expTitleText);
+
+		String gotTitle = harvester.getTitle();
+		AssertHelpers.assertStringEquals(expTitleText, gotTitle);
+	}
+	
+	
 	@Test
 	public void test__harvestSinglePage__HappyPath() throws IOException, BoilerpipeProcessingException, PageHarvesterException {
 		String url = ResourceGetter.getResourceFileUrl("local_html_files/cbcNewsExample.html").toString();

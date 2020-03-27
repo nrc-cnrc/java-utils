@@ -7,7 +7,7 @@ package ca.nrc.data.harvesting;
  * @author desilets
  *
  */
-public abstract class PageHarvester_JSAware extends PageHarvester_Barebones {
+public abstract class PageHarvester_JSEnabled extends PageHarvester {
 	
 	/**
 	 * Click on DOM element that matches a regexp, and return the content 
@@ -16,6 +16,6 @@ public abstract class PageHarvester_JSAware extends PageHarvester_Barebones {
 	 * @param eltRegexp
 	 * @return
 	 */
-	public abstract String clickOn(String eltRegexp);
+	public abstract void clickOn(String eltRegexp);
 
 }

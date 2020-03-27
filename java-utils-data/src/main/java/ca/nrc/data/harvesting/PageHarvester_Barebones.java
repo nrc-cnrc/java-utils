@@ -21,6 +21,7 @@ import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import de.l3s.boilerpipe.BoilerpipeProcessingException;
 import de.l3s.boilerpipe.extractors.ArticleExtractor;
@@ -50,7 +51,6 @@ public class PageHarvester_Barebones extends PageHarvester {
 
 	private HtmlCleaner cleaner;
 
-	private String error;
 	private String html;
 	private String text;
 	private String title;
@@ -88,14 +88,14 @@ public class PageHarvester_Barebones extends PageHarvester {
 	 */
 	
 	@Override
-	public String getError() {
-		return error;
-	}
-
-	@Override
 	public URL getCurrentURL() {
 		return currentURL;
 	}
+	
+	@Override
+	public String getTitle() {
+		return this.title;
+	}	
 	
 	@Override
 	public String getHtml() {
@@ -192,12 +192,13 @@ public class PageHarvester_Barebones extends PageHarvester {
 	protected void parseHTML(String html) throws PageHarvesterException {
 		if (null == html) return;
 		
-		currentRoot = cleaner.clean(html.toString());
+		currentRoot = cleanHtml(html);
 		title = null;
 		
 		inlineAllIFramesContent(currentRoot);
 
 		this.html = cleaner.getInnerHtml(currentRoot);
+		
 		if (harvestFullText) {
 			this.text = currentRoot.getText().toString();
 		} else {
@@ -220,6 +221,18 @@ public class PageHarvester_Barebones extends PageHarvester {
 				}
 			}
 		}	
+	}
+
+	private TagNode cleanHtml(String html) {
+		// Insert a <br/> after each DIV.
+		// This ensures that the content of different DIVs
+		// will appear on different lines, which will facilitate
+		// eventual segmentation of the text into sentences.
+		//
+		html = html.replaceAll("</div>", "</div><br/>");
+		TagNode root = cleaner.clean(html);
+		
+		return root;
 	}
 
 	@Override
@@ -280,7 +293,7 @@ public class PageHarvester_Barebones extends PageHarvester {
 				failureStatus = status;
 			}
 		} catch (java.net.SocketTimeoutException exc) {
-			error = "Connection timed out for url: "+url;
+			setError("Connection timed out for url: "+url);
 		} finally {
 			if (conn != null) {
 				conn.disconnect();
@@ -409,15 +422,5 @@ public class PageHarvester_Barebones extends PageHarvester {
 		if (!text.contains("<head"))
 			return false;
 		return true;
-	}
-	
-	@Override
-	public String getTitle() {
-		return this.title;
-	}
-
-	@Override
-	public void setError(String _err) {
-		this.error = _err;
-	}
+	}	
 }
