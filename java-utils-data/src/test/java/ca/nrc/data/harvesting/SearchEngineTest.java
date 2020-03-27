@@ -393,7 +393,7 @@ public abstract class SearchEngineTest {
 	}
 	
 	private static String getHitActualContent(SearchEngine.Hit hit) throws PageHarvesterException {
-		String content = new PageHarvester_Barebones().harvestSinglePage(hit.url);
+		String content = new PageHarvester_HtmlCleaner().harvestSinglePage(hit.url);
 		
 		return content;
 	}

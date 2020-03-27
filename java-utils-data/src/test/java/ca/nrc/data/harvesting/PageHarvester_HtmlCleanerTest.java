@@ -5,11 +5,11 @@ import org.junit.Test;
 import ca.nrc.testing.AssertHelpers;
 import ca.nrc.testing.AssertString;
 
-public class PageHarvester_BarebonesTest extends PageHarvesterTest {
+public class PageHarvester_HtmlCleanerTest extends PageHarvesterTest {
 
 	@Override
 	protected PageHarvester makeHarvesterToTest() {
-		return new PageHarvester_Barebones();
+		return new PageHarvester_HtmlCleaner();
 	}
 	
 	///////////////////////////////////
@@ -21,7 +21,7 @@ public class PageHarvester_BarebonesTest extends PageHarvesterTest {
 		String html = 
 				"<html><head><title>Hello world</title></head>\n"+
 				"<body><h1>This should NOT be the title</h1></body></html>";		
-		PageHarvester_Barebones harvester = new PageHarvester_Barebones();
+		PageHarvester_HtmlCleaner harvester = new PageHarvester_HtmlCleaner();
 		
 		harvester.parseHTML(html);
 		String gotTitle = harvester.getTitle();
@@ -33,7 +33,7 @@ public class PageHarvester_BarebonesTest extends PageHarvesterTest {
 	public void test__parseHtml__PageWithNoTitleEltAndAnH1Elt__UsesTheH1EltForTitle() throws PageHarvesterException {
 		String html = 
 				"<html><body><h1>Hello world</h1></body></html>";
-		PageHarvester_Barebones harvester = new PageHarvester_Barebones();
+		PageHarvester_HtmlCleaner harvester = new PageHarvester_HtmlCleaner();
 		
 		harvester.parseHTML(html);
 		String gotTitle = harvester.getTitle();
@@ -45,7 +45,7 @@ public class PageHarvester_BarebonesTest extends PageHarvesterTest {
 	public void test__parseHtml__PageWithNoTitleNorH1EltButAH2Elt__UsesTheH2EltForTitle() throws PageHarvesterException {
 		String html = 
 				"<html><body><h2>Hello world</h2></body></html>";
-		PageHarvester_Barebones harvester = new PageHarvester_Barebones();
+		PageHarvester_HtmlCleaner harvester = new PageHarvester_HtmlCleaner();
 		
 		harvester.parseHTML(html);
 		String gotTitle = harvester.getTitle();
@@ -57,7 +57,7 @@ public class PageHarvester_BarebonesTest extends PageHarvesterTest {
 	public void test__parseHtml__PageWhoseTitleIsInH1ButH2EltPrecedesIt__UsesTheH1EltForTitle() throws PageHarvesterException {
 		String html = 
 				"<html><body><h2>not the title</h2><h1>Hello world</h1></body></html>";
-		PageHarvester_Barebones harvester = new PageHarvester_Barebones();
+		PageHarvester_HtmlCleaner harvester = new PageHarvester_HtmlCleaner();
 		
 		harvester.parseHTML(html);
 		String gotTitle = harvester.getTitle();
@@ -69,7 +69,7 @@ public class PageHarvester_BarebonesTest extends PageHarvesterTest {
 	public void test__parseHtml__PageWithNothingThatLooksLikeATitle__ReturnsNull() throws PageHarvesterException {
 		String html = 
 				"<html>Hello world</html>";
-		PageHarvester_Barebones harvester = new PageHarvester_Barebones();
+		PageHarvester_HtmlCleaner harvester = new PageHarvester_HtmlCleaner();
 		
 		harvester.parseHTML(html);
 		String gotTitle = harvester.getTitle();

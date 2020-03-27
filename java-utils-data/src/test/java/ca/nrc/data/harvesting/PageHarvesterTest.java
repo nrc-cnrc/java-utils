@@ -31,7 +31,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import ca.nrc.data.harvesting.IPageVisitor;
-import ca.nrc.data.harvesting.PageHarvester_Barebones;
+import ca.nrc.data.harvesting.PageHarvester_HtmlCleaner;
 import ca.nrc.data.harvesting.PageHarvesterException;
 import ca.nrc.data.harvesting.SearchEngine;
 import ca.nrc.data.harvesting.SearchEngine.Hit;

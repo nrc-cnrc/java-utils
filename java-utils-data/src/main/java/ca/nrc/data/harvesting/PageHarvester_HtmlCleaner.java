@@ -45,9 +45,9 @@ import ca.nrc.data.harvesting.SearchEngine.SearchEngineException;
  * page content.
  */
 
-public class PageHarvester_Barebones extends PageHarvester {
+public class PageHarvester_HtmlCleaner extends PageHarvester {
 	
-	private static final Logger logger = LogManager.getLogger(PageHarvester_Barebones.class);
+	private static final Logger logger = LogManager.getLogger(PageHarvester_HtmlCleaner.class);
 
 	private HtmlCleaner cleaner;
 
@@ -65,7 +65,7 @@ public class PageHarvester_Barebones extends PageHarvester {
 	//       otherwise, equals the error status returned by the server
 	public int failureStatus = 0;
 
-	public PageHarvester_Barebones() {
+	public PageHarvester_HtmlCleaner() {
 		cleaner = makeCleaner();
 	}
 
