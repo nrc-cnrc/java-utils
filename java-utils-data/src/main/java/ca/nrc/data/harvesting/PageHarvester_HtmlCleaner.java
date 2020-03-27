@@ -33,6 +33,9 @@ import org.apache.log4j.Logger;
 import org.htmlcleaner.CleanerProperties;
 import org.htmlcleaner.HtmlCleaner;
 import org.htmlcleaner.TagNode;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.parser.Parser;
 
 import ca.nrc.config.ConfigException;
 import ca.nrc.data.harvesting.SearchEngine.SearchEngineException;
@@ -192,7 +195,7 @@ public class PageHarvester_HtmlCleaner extends PageHarvester {
 	protected void parseHTML(String html) throws PageHarvesterException {
 		if (null == html) return;
 		
-		currentRoot = cleanHtml(html);
+		currentRoot = cleaner.clean(html);
 		title = null;
 		
 		inlineAllIFramesContent(currentRoot);
@@ -200,7 +203,8 @@ public class PageHarvester_HtmlCleaner extends PageHarvester {
 		this.html = cleaner.getInnerHtml(currentRoot);
 		
 		if (harvestFullText) {
-			this.text = currentRoot.getText().toString();
+//			this.text = currentRoot.getText().toString();
+			this.text = new Html2Plaintext().toPlaintext(this.html);
 		} else {
 			this.text = extractMainText(this.html);
 		}
@@ -223,17 +227,30 @@ public class PageHarvester_HtmlCleaner extends PageHarvester {
 		}	
 	}
 
-	private TagNode cleanHtml(String html) {
-		// Insert a <br/> after each DIV.
-		// This ensures that the content of different DIVs
-		// will appear on different lines, which will facilitate
-		// eventual segmentation of the text into sentences.
-		//
-		html = html.replaceAll("</div>", "</div><br/>");
-		TagNode root = cleaner.clean(html);
-		
-		return root;
-	}
+//	protected TagNode cleanHtml(String html) {
+//		// 
+//		// Carry out various transformations on the HTML code which will make
+//		// it easier to acquire plain-text content from it.
+//		//
+//
+//		Document doc = Jsoup.parse(html, "", Parser.xmlParser());
+//
+//		// Remove <Script> tags
+//	    doc.select("script").remove();
+//	    
+//	    // 
+//
+//		
+//		// Insert a <br/> after each DIV.
+//		// This ensures that the content of different DIVs
+//		// will appear on different lines, which will facilitate
+//		// eventual segmentation of the text into sentences.
+//		//
+//		html = html.replaceAll("</div>", "</div><br/>");
+//		TagNode root = cleaner.clean(html);
+//		
+//		return root;
+//	}
 
 	@Override
 	protected void getPage(String url) throws PageHarvesterException {

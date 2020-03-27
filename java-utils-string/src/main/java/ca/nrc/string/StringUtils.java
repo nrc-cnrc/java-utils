@@ -87,5 +87,14 @@ public class StringUtils {
 		int count = org.apache.commons.lang3.StringUtils.countMatches(text, expr);
 		return count;
 	}
+	
+    public static boolean in(final String needle, final String... haystack) {
+        final int len = haystack.length;
+        for (int i = 0; i < len; i++) {
+            if (haystack[i].equals(needle))
+            return true;
+        }
+        return false;
+    }	
 
 }

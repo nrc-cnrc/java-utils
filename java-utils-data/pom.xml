@@ -80,6 +80,12 @@
 		
 		<dependency>
 			<groupId>ca.nrc.java-utils</groupId>
+			<artifactId>java-utils-string</artifactId>
+			<version>1.0.17-SNAPSHOT</version>
+		</dependency>
+
+		<dependency>
+			<groupId>ca.nrc.java-utils</groupId>
 			<artifactId>java-utils-ui</artifactId>
 			<version>1.0.17-SNAPSHOT</version>
 		</dependency>
@@ -106,7 +112,14 @@
     		<groupId>de.l3s.boilerpipe</groupId>
     		<artifactId>boilerpipe</artifactId>
     		<version>1.1.0</version>
-		</dependency>		
+		</dependency>	
+		
+		<dependency>
+		    <groupId>org.jsoup</groupId>
+		    <artifactId>jsoup</artifactId>
+		    <version>1.11.3</version>
+		</dependency>
+			
 		
 		<dependency>
 			<groupId>net.sourceforge.htmlcleaner</groupId>

@@ -1,5 +1,8 @@
 package ca.nrc.data.harvesting;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.parser.Parser;
 import org.junit.Test;
 
 import ca.nrc.testing.AssertHelpers;
@@ -75,5 +78,5 @@ public class PageHarvester_HtmlCleanerTest extends PageHarvesterTest {
 		String gotTitle = harvester.getTitle();
 		String expTitle = null;
 		AssertString.assertStringEquals(gotTitle, expTitle);		
-	}
+	}	
 }
