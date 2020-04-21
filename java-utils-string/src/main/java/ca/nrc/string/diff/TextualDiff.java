@@ -28,6 +28,12 @@ public class TextualDiff {
 		}
 		public boolean shouldIgnoreSpace() { return ignoreSpaces; }
 	
+	public List<StringTransformation> diff(String[] tokensArr1, String[] tokensArr2) throws StringDiffException {
+		DiffResult results = diffResult(tokensArr1, tokensArr2);
+		List<StringTransformation> transformations = results.transformations;
+		return transformations;
+	}
+		
 	public DiffResult diffResult(String[] tokensArr1, String[] tokensArr2) throws StringDiffException {
 		List<StringTransformation> transf = diffTransformations(tokensArr1, tokensArr2);
 		DiffResult result =new DiffResult(tokensArr1, tokensArr2, transf);
