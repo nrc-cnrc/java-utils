@@ -18,7 +18,22 @@ public class Introspection {
 		return cls.cast(obj); // no warning
 	}
 	
-	public static Map<String,Object> publicFields(Object obj) throws IllegalAccessException, IllegalArgumentException, InvocationTargetException, IntrospectionException {
+	public static Map<String,Object> publicFields(Class clazz) 
+			throws 
+			IntrospectionException { 
+		Object obj = null;
+		try {
+			obj = clazz.newInstance();
+		} catch (InstantiationException | IllegalAccessException e) {
+			new IntrospectionException("No empty constructor for class "+clazz);
+		}
+		return publicFields(obj);
+	}
+	
+	public static Map<String,Object> publicFields(Object obj) 
+			throws 
+//			IllegalAccessException, IllegalArgumentException, InvocationTargetException, 
+			IntrospectionException {
 		Map<String,Object> fields = new HashMap<String,Object>();
 		
 		// Get public member variables
@@ -28,7 +43,13 @@ public class Introspection {
 		for (int ii=0; ii < memberVariables.length; ii++) {
 			Field aField = memberVariables[ii];
 			String fieldName = aField.getName();
-			Object fieldValue = aField.get(obj);
+			Object fieldValue;
+			try {
+				fieldValue = aField.get(obj);
+			} catch (IllegalArgumentException | IllegalAccessException e) {
+				throw new IntrospectionException(
+					"Could not access field "+fieldName+" of object "+obj);
+			}
 			fields.put(fieldName, fieldValue);
 		}
 		
@@ -41,7 +62,13 @@ public class Introspection {
 			String methName = meth.getName();
 			if (methName.equals("getClass")) continue;
 			JsonIgnore ann = meth.getAnnotation(JsonIgnore.class);
-			Object methValue = meth.invoke(obj);
+			Object methValue;
+			try {
+				methValue = meth.invoke(obj);
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				throw new IntrospectionException(
+					"Could not invoke method "+methName+" of object "+obj);
+			}
 			if (ann == null) {
 				String fieldName = methName.substring(4, methName.length());
 				String firstChar = methName.substring(3,4).toLowerCase();

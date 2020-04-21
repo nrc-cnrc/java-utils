@@ -9,7 +9,7 @@ import org.junit.Test;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import ca.nrc.introspection.Introspection;
-import ca.nrc.testing.AssertHelpers;
+import ca.nrc.testing.AssertObject;
 
 public class IntrospectionTest {
 	
@@ -26,13 +26,13 @@ public class IntrospectionTest {
 	@Test
 	public void test__publicFields__HappyPath() throws Exception {
 		Dummy obj = new Dummy();
-		Map<String,Object> gotFields = Introspection.publicFields(obj);
 		Map<String,Object> expFields = new HashMap<String,Object>();
 		{
 			expFields.put("pubFieldNoAccessors", "Value of pubFieldNoAccessors");
 			expFields.put("privFieldWithBothAccessors", "Value of privFieldWithBothAccessors");
 		}
-		AssertHelpers.assertDeepEquals("", expFields, gotFields);
+		AssertObject.assertDeepEquals("", expFields, Introspection.publicFields(obj));
+		AssertObject.assertDeepEquals("", expFields, Introspection.publicFields(Dummy.class));
 	}
 	
 	@Test
@@ -46,7 +46,7 @@ public class IntrospectionTest {
 			expFields.put("subclassAttr1", 1);
 			expFields.put("subclassAttr2", "hello");
 		}
-		AssertHelpers.assertDeepEquals("", expFields, gotFields);
+		AssertObject.assertDeepEquals("", expFields, gotFields);
 	}
 	
 	@Test

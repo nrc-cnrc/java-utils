@@ -982,8 +982,7 @@ public class StreamlinedClient {
 		Map<String,Object> unfilteredMemberAttibutes = null;
 		try {
 			unfilteredMemberAttibutes = Introspection.publicFields(queryDoc);
-		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException
-				| IntrospectionException e) {
+		} catch (IllegalArgumentException | IntrospectionException e) {
 			throw new ElasticSearchException(e);
 		}
 		
