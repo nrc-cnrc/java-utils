@@ -36,6 +36,7 @@ public class MainCommand {
 	
 	private String usageOneLiner = null;
 	private Option optVerbosity = null;
+	private Option optInteractive = null;
 	Options allCommandsOptions = new Options();
 	Map<String,SubCommand> subCommands = new HashMap<String,SubCommand>();
 	String subCommandName = null;
@@ -50,9 +51,16 @@ public class MainCommand {
 		this.usageOneLiner = _usageOneLiner;
 		
 		optVerbosity = Option.builder(null).longOpt(SubCommand.OPT_VERBOSITY)
-				.desc("Verbosity level.").hasArg().argName("VERBOSITY_LEVEL")
-				.build();
+			.desc("Verbosity level.").hasArg().argName("VERBOSITY_LEVEL")
+			.build();
 		allCommandsOptions.addOption(optVerbosity);
+		
+		optInteractive = Option.builder(null).longOpt(SubCommand.OPT_INTERACTIVE)
+			.desc("If set, command will keep prompting the user for inputs.")
+			.argName("INTERACTIVE")
+			.build();
+		allCommandsOptions.addOption(optInteractive);
+		
 	}
 
 	public void addSubCommand(SubCommand subCommand) throws CommandLineException {

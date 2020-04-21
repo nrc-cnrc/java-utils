@@ -17,10 +17,9 @@ import org.apache.commons.cli.Options;
 
 public abstract class SubCommand {
 		
-//	public static enum Verbosity {Levelnull, Level0, Level1, Level2, Level3, Level4, Level5};
-//	protected static UserIO.Verbosity verbosity = UserIO.Verbosity.Level1;
-	
 	public static final String OPT_VERBOSITY = "verbosity";	
+	public static final String OPT_INTERACTIVE = "interactive";
+	
 	
 	private String name = null;
 		public String getName() {return name;}
@@ -28,7 +27,6 @@ public abstract class SubCommand {
 	@SuppressWarnings("unused")
 	private String usageOneLiner = null;
 	
-//	private UserIO user_io = new UserIO();
 	protected UserIO user_io = null;
 		protected UserIO getUserIO() {
 			if (user_io == null) {
@@ -40,6 +38,7 @@ public abstract class SubCommand {
 	
 	private static int currentIndentation = 0;
 	public static final Map<Integer,String> indentation = new HashMap<Integer,String>();
+
 	{
 		indentation.put(0, "");
 		indentation.put(1, "  ");
@@ -254,25 +253,13 @@ public abstract class SubCommand {
 		return verbLevel;
 	}
 	
-//	protected Boolean prompt_yes_or_no(String mess) {
-//		Pattern patt = Pattern.compile("^\\s*([yn])");
-//		boolean answer = false;
-//		while (true) {
-//			echo("\n"+mess+" (y/n)\n> ", false);	
-//			Scanner input = new Scanner(System.in);
-//			String yn = input.nextLine();
-//			Matcher matcher = patt.matcher(yn);
-//			if (matcher.matches()) {
-//				answer = false;
-//				String ynGroup = matcher.group(1);
-//				if (ynGroup.equals("y")) {
-//					answer = true;
-//				}
-//				break;
-//			}
-//		}
-//		return answer;
-//	}
+	protected  boolean getInteractive() {
+		boolean interactive = false;
+		String optInteractive = getOptionValue(OPT_INTERACTIVE, false);
+		if (optInteractive != null) {
+			interactive = true;
+		}
+		return interactive;
+	}
 	
-
 }

@@ -386,5 +386,4 @@ public class MockHttpServletRequest implements HttpServletRequest {
 		// TODO Auto-generated method stub
 		return false;
 	}
-	
 }
