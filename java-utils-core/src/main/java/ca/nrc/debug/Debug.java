@@ -8,24 +8,25 @@ import ca.nrc.testing.outputcapture.CapturedPrintWriter;
 
 public class Debug {
 	
-	public static boolean on = false;
+	public static boolean on = true;
 
-	public static void printCallStack() {
-		printCallStack(null);
+	public static String printCallStack() {
+		return printCallStack(null);
 	}
 	
-	public static void printCallStack(long sleepMsecs) {
-		printCallStack(new Long(sleepMsecs));
+	public static String printCallStack(long sleepMsecs) {
+		return printCallStack(new Long(sleepMsecs));
 	}
 
-	public static void printCallStack(Long sleepMsecs) {
-		if (!on) return;
+	public static String printCallStack(Long sleepMsecs) {
+		if (!on) return "Callstack printing is DISABLED!";
 		StringBuilder output = new StringBuilder();
 		CapturedPrintWriter capture = null;
+		String outString = "Could not print callstack.";
 		try {
 			capture = new CapturedPrintWriter(output);
 			new Exception().printStackTrace(capture);
-			String outString = output.toString();
+			outString = output.toString();
 			
 			// Reformat the captured output
 			
@@ -56,6 +57,8 @@ public class Debug {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}		
+		
+		return outString;
 	}
 
 }
