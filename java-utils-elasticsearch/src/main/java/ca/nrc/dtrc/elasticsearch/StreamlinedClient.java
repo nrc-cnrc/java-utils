@@ -800,7 +800,7 @@ public class StreamlinedClient {
 	}
 
 	public <T extends Document> SearchResults<T> moreLikeThis(T queryDoc, FieldFilter fldFilter, String esDocTypeName) throws ElasticSearchException, IOException, InterruptedException {
-		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.moreLikeThis_NEW");
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.moreLikeThis");
 		
 		Map<String,Object> queryDocMap = null;
 		queryDocMap = filterFields(queryDoc, esDocTypeName, fldFilter);
@@ -1113,8 +1113,8 @@ public class StreamlinedClient {
 			Object obj = reader.readObject();
 			String jsonBatch = "";
 			long docNum = 0;
+			int currBatchSize = 0;
 			while (obj != null) {
-				int currBatchSize = 0;
 				String jsonLine = null;
 				
 				if (obj instanceof IndexDef) {
