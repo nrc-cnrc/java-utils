@@ -27,13 +27,13 @@ public class SimpleTokenizer  {
 		return tokenize(text, null);
 	}
 
-	public static String[] tokenize(String text, Boolean includeBlanks)  {
-		if (includeBlanks == null) {
-			includeBlanks = false;
+	public static String[] tokenize(String text, Boolean includeSeps)  {
+		if (includeSeps == null) {
+			includeSeps = false;
 		}
 		String[] tokens = null;
 		if (text != null && text.length() > 0) {
-			tokens = tokenStrings(text, includeBlanks);
+			tokens = tokenStrings(text, includeSeps);
 		}
 		
 		return tokens;
