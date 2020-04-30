@@ -1,6 +1,6 @@
 package ca.nrc.testing;
 
-import org.junit.Assert;
+import org.junit.*;
 
 public class AssertNumber {
 	
@@ -64,6 +64,18 @@ public class AssertNumber {
 			
 					;
 			Assert.fail(mess);			
+		}
+	}
+	
+	public static void assertEquals(String mess, Number exp, Number got, 
+			double tolerance) {
+		if (exp == null && got != null ||
+				got == null && exp != null) {
+			Assert.fail(
+				mess+"\n"+
+				"One number was null but not the other\n"+
+				"  Exp : "+exp+"\n"+
+				"  Got : "+got);
 		}
 	}
 }

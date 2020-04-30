@@ -1,6 +1,5 @@
 package ca.nrc.introspection;
 
-import java.beans.IntrospectionException;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
 import java.lang.reflect.Field;
@@ -8,6 +7,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.apache.log4j.Logger;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -31,9 +32,11 @@ public class Introspection {
 	}
 	
 	public static Map<String,Object> publicFields(Object obj) 
-			throws 
-//			IllegalAccessException, IllegalArgumentException, InvocationTargetException, 
-			IntrospectionException {
+			throws IntrospectionException {
+		
+		Logger tLogger = Logger.getLogger("ca.nrc.introspection.Introspection.publicFields");
+		tLogger.trace("invoked on object of class: "+obj.getClass());
+		
 		Map<String,Object> fields = new HashMap<String,Object>();
 		
 		// Get public member variables
@@ -54,20 +57,26 @@ public class Introspection {
 		}
 		
 		// Get fields that are private but have a public 'get' method
-		for(PropertyDescriptor pd : 
-		    Introspector.getBeanInfo(obj.getClass()).getPropertyDescriptors()){
-			
+		PropertyDescriptor[] propDescriptors;
+		try {
+			propDescriptors = Introspector.getBeanInfo(obj.getClass()).getPropertyDescriptors();
+		} catch (java.beans.IntrospectionException e1) {
+			throw new IntrospectionException(
+				"Could not obtain property descriptors for class "+obj.getClass(), e1);
+		}	
+		for(PropertyDescriptor pd : propDescriptors) {
 			Method meth = pd.getReadMethod();
 			if (meth == null) continue;
 			String methName = meth.getName();
 			if (methName.equals("getClass")) continue;
 			JsonIgnore ann = meth.getAnnotation(JsonIgnore.class);
 			Object methValue;
+			tLogger.trace("Getting value of public method named "+methName);
 			try {
 				methValue = meth.invoke(obj);
 			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
 				throw new IntrospectionException(
-					"Could not invoke method "+methName+" of object "+obj);
+					"Could not invoke method "+methName+" of object "+obj, e);
 			}
 			if (ann == null) {
 				String fieldName = methName.substring(4, methName.length());
