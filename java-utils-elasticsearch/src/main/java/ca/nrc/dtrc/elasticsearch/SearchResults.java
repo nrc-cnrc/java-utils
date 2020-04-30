@@ -83,6 +83,10 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 	}
 	
 	private Pair<Pair<Long,String>,List<Hit<T>>> parseJsonSearchResponse(String jsonSearchResponse, T docPrototype) throws ElasticSearchException {
+		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults.parseJsonSearchResponse");
+		if (tLogger.isTraceEnabled()) {
+			tLogger.trace("invoked with docPrototype="+docPrototype+", jsonSearchResponse="+jsonSearchResponse);
+		}
 		List<Hit<T>> scoredDocuments = new ArrayList<>();
 		String scrollID = null;
 		ObjectMapper mapper = new ObjectMapper();

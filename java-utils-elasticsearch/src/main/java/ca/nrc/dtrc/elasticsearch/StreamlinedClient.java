@@ -2,7 +2,6 @@ package ca.nrc.dtrc.elasticsearch;
 
 import ca.nrc.dtrc.elasticsearch.ESConfig;
 
-import java.beans.IntrospectionException;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -42,6 +41,7 @@ import ca.nrc.data.file.ObjectStreamReaderException;
 import ca.nrc.datastructure.Pair;
 import ca.nrc.dtrc.elasticsearch.ESUrlBuilder;
 import ca.nrc.introspection.Introspection;
+import ca.nrc.introspection.IntrospectionException;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -231,7 +231,14 @@ public class StreamlinedClient {
 	
 	public String putDocument(Document doc) throws ElasticSearchException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.putDocument");
-		tLogger.trace("putting document: "+doc.getId());
+		if (tLogger.isTraceEnabled()) {
+			try {
+				tLogger.trace("(Document): putting document with id="+doc.getId()+", doc="+
+					new ObjectMapper().writeValueAsString(doc));
+			} catch (JsonProcessingException e) {
+				throw new ElasticSearchException(e);
+			}
+		}
 		String jsonDoc;
 		try {
 			jsonDoc = new ObjectMapper().writeValueAsString(doc);
@@ -247,7 +254,16 @@ public class StreamlinedClient {
 
 	public String putDocument(String type, Document dynDoc) throws ElasticSearchException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.putDocument");
-		tLogger.trace("type="+type);
+		if (tLogger.isTraceEnabled()) {
+			try {
+				tLogger.trace("(String, Document): putting document of type="+
+					type+", id="+dynDoc.getId()+", dynDoc="+
+					new ObjectMapper().writeValueAsString(dynDoc));
+			} catch (JsonProcessingException e) {
+				throw new ElasticSearchException(e);
+			}
+		}
+		
 		String docID = dynDoc.getId();
 		String jsonDoc;
 		try {
@@ -263,7 +279,7 @@ public class StreamlinedClient {
 	public String putDocument(String type, String docID, String jsonDoc) throws ElasticSearchException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.putDocument");
 		URL url = esUrlBuilder().forDocType(type).forDocID(docID).build();
-		tLogger.trace("posting url="+url+",jsonDoc=\n"+jsonDoc);
+		tLogger.trace("(String, String, String) posting url="+url+", type="+type+", docID="+docID+", jsonDoc="+jsonDoc);
 		
 		String jsonResponse = post(url, jsonDoc);
 		
@@ -366,7 +382,7 @@ public class StreamlinedClient {
 	
 	public String post(URL url, String json) throws ElasticSearchException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.post");
-		tLogger.trace("posting url="+url+", with json=\n"+json);
+		tLogger.trace("posting url="+url+", with json="+json);
 		
 		if (json == null) json = "";
 	    RequestBody body = RequestBody.create(JSON, json);
@@ -515,6 +531,7 @@ public class StreamlinedClient {
 					.scroll().build();
 		tLogger.trace("url="+url+", jsonQuery="+jsonQuery);
 		String jsonResponse = post(url, jsonQuery);
+		tLogger.trace("jsonResponse="+jsonResponse);
 
 		SearchResults<T> results = new SearchResults<T>(jsonResponse, docPrototype, this);
 				
@@ -975,14 +992,16 @@ public class StreamlinedClient {
 		return filterFields(queryDoc, null, filter);
 	}
 
-	protected <T extends Document> Map<String, Object> filterFields(T queryDoc, String esDocType, FieldFilter filter) throws ElasticSearchException {
+	protected <T extends Document> Map<String, Object> filterFields(
+			T queryDoc, String esDocType, FieldFilter filter) 
+			throws ElasticSearchException {
 		Map<String,Object> objMap = new HashMap<String,Object>();
 		if (esDocType == null) esDocType = queryDoc.defaultESDocType();
 		
 		Map<String,Object> unfilteredMemberAttibutes = null;
 		try {
 			unfilteredMemberAttibutes = Introspection.publicFields(queryDoc);
-		} catch (IllegalArgumentException | IntrospectionException e) {
+		} catch (IntrospectionException e) {
 			throw new ElasticSearchException(e);
 		}
 		
