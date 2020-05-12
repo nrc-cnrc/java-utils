@@ -70,7 +70,6 @@ public abstract class MainApp {
 		app.options = options;
 		app.usageMessage = usageMessage;
 		app.run();
-		echo("Done");
 	}
 			
 	protected static void usage(String errMessage) {

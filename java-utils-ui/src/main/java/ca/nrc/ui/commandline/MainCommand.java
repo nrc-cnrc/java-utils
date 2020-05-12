@@ -81,7 +81,6 @@ public class MainCommand {
 		CommandLine cmdLine = cmdAndConfig.getSecond();
 				
 		command.run(cmdLine, subCommandName);
-		command.echo("Done");
 	}
 	
 	public Pair<SubCommand, CommandLine> makeSubCommandAndConfig(String[] args) {
