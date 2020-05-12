@@ -4,7 +4,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import ca.nrc.json.PrettyPrinter;
 
 public class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> {
 	
@@ -76,8 +80,6 @@ public class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> 
 				
 				// No more hits to be retrieved from ElasticSearch
 				if (documentsBatch == null) break;
-				
-				
 			}
 		}
 		batchCursor = 0;
@@ -85,11 +87,16 @@ public class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> 
 		
 
 	private void filterDocumentsBatch() throws SearchResultsException {
+		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.filterDocumentsBatch");
 		List<Hit<T>> filteredHits = new ArrayList<Hit<T>>();
 		for (Hit<T> aHit: documentsBatch) {
 			try {
 				if (filter == null || filter.keep(aHit)) { 
 					filteredHits.add(aHit);							
+				} else {
+					if (tLogger.isTraceEnabled()) {
+						tLogger.trace("** Rejected aHit="+PrettyPrinter.print(aHit));
+					}
 				}
 			} catch (HitFilterException e) { 
 				throw new SearchResultsException(e);

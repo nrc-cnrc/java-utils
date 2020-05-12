@@ -827,6 +827,8 @@ public class StreamlinedClient {
 		String mltBody = moreLikeThisJsonBody(esType, queryDocMap);
 		
 		SearchResults<T> results = search(mltBody, esType, queryDoc);
+		
+		tLogger.trace("Returned results.iterator().hasNext()="+results.iterator().hasNext());
 	
 		return results;
 	}				

@@ -217,7 +217,7 @@ public class HitFilterTest {
 		HitFilter filter = new HitFilter("genre:\"Science Fiction\"");		
 		Set<Pair<String,String>> expFields = new HashSet<Pair<String,String>>();
 		{
-			expFields.add(Pair.of("genre", "Science Fiction"));
+			expFields.add(Pair.of("genre", "science fiction"));
 		}
 		
 		this.assertFilterCharacteristics(filter, true, true, expFields);

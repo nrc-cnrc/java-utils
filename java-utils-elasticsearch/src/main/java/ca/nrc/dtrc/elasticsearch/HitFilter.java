@@ -5,6 +5,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.log4j.Logger;
+
 import ca.nrc.datastructure.Pair;
 import ca.nrc.dtrc.elasticsearch.HitFilter;
 
@@ -31,7 +33,8 @@ public class HitFilter<T extends Document> {
 	private void initialize(String filterSpecs) {
 		if (filterSpecs != null) {
 			Matcher matcher = 
-					Pattern.compile("^\\s*([+-])?\\s*((AND|OR)\\s+)?([\\s\\S]+)$", Pattern.CASE_INSENSITIVE)
+					Pattern.compile(
+						"^\\s*([+-])?\\s*((AND|OR)\\s+)?([\\s\\S]+)$", Pattern.CASE_INSENSITIVE)
 					.matcher(filterSpecs);
 			if (matcher.matches()) {
 				String plusMinus = matcher.group(1);
@@ -45,15 +48,15 @@ public class HitFilter<T extends Document> {
 					String fieldName = matcher.group(1);
 					String fieldValue = matcher.group(2);
 					fieldValue =fieldValue.replaceAll("\"", "");
-					this.terms.add(Pair.of(fieldName,fieldValue));
+					this.terms.add(Pair.of(fieldName,fieldValue.toLowerCase()));
 				}
-				
 			}
 		}
 		
 	}
 
 	public boolean keep(Hit<T> aHit) throws HitFilterException {
+		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.HitFilter.keep");
 		
 		Document doc = aHit.getDocument();
 		int totalTermsMatched = 0;
@@ -64,11 +67,19 @@ public class HitFilter<T extends Document> {
 			
 			try {
 				Object docFldValueObj = doc.getField(fldName, false);
-				if (docFldValueObj != null) { docFldValue = docFldValueObj.toString(); }
+				if (docFldValueObj != null) { 
+					docFldValue = docFldValueObj.toString().toLowerCase(); 
+				}
 			} catch (DocumentException e) {
 				throw new HitFilterException("Could not obtain value of field '"+fldName+"'", e);
 			}
-			if (termFldValue.equals(docFldValue)) {totalTermsMatched++;}
+			
+			if (termFldValue.equals(docFldValue)) {
+				totalTermsMatched++;
+			} else {
+				tLogger.trace("** Field '"+fldName+"' did not match filter.\nValue was: '"+
+					docFldValue+"'\nShould have been: '"+termFldValue+"'");
+			}
 		}
 		
 		boolean conditionIsMet;
