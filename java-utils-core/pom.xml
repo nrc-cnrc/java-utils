@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>ca.nrc.java-utils</groupId>
 		<artifactId>java-utils</artifactId>
-  		<version>1.0.23-SNAPSHOT</version>
+  		<version>1.0.24-SNAPSHOT</version>
 	</parent>
 		
 	<artifactId>java-utils-core</artifactId>
@@ -18,7 +18,7 @@
 	</properties>
 	
 	<build>
-		<plugins>		
+		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-source-plugin</artifactId>
@@ -70,7 +70,7 @@
 		</repository>
 	</repositories>
 
-	<dependencies>
+	<dependencies>	
 	
 		<dependency>
 			<groupId>log4j</groupId>
