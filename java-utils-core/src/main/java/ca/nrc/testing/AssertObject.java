@@ -11,6 +11,46 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ca.nrc.json.PrettyPrinter;
 
+/**
+ * Allows a "deep equal" between two objects, no matter 
+ * their structure.
+ * 
+ * Similar to:
+ * - Hamcrest's isEqual
+ * - Unittils' ReflectionAssert
+ * - Mokito's ReflectionEquals
+ * 
+ * but with the following advantages.
+ * 
+ * Contrarily to Mockito and Hamcrest, it tells you exactly which parts of 
+ * the two objects differ (the former only tells you wehther or 
+ * not they differ).
+ * 
+ * Contrarily to Unittils, set equality is not sensitive to 
+ * order in which the set internally stores the elements. 
+ * All set elements are sorted before comparison. 
+ * 
+ * Contrarily to all the above, it allows you to compare 
+ * objects which are "functionally" equivalent, without being of the same 
+ * type. This is very convenient for specifying the expectations for 
+ * a list. For example:
+ * 
+ *    List<String> gotResult = sayHello();
+ *    String[] expResult = new String[] {"hello", "beautiful", "world"};
+ *    assertDeepEquals(expResult, gotResult)
+ *    
+ * which is clearer and more concise than having to write the expecations as:
+ * 
+ *    List<String> expResult = new ArrayList<String>();
+ *    expResult.add("hello); expResult.add("beautiful); 
+ *    expResult.add("world")
+ * 
+ * There may be other advantages, but those are sufficient 
+ * to warrant a "homegrown" solution.
+ *  
+ * @author desilets
+ *
+ */
 public class AssertObject {
 	
 	public static void assertDeepEquals(

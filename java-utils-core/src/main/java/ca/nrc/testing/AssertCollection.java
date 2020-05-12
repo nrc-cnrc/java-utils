@@ -1,6 +1,8 @@
 package ca.nrc.testing;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import org.junit.Assert;
 
@@ -12,7 +14,7 @@ public class AssertCollection {
 			compareAsStrings = false;
 		}
 		boolean found = false;
-		mess += "\nItem "+expItem+" not found in collection.\n"+
+		mess += "\nItem not found in collection:\n\n  "+expItem+"\n\n"+
 				"Collection contained following items:\n";
 		for (T gotItem: gotCollection) {
 			boolean same = false;
@@ -25,9 +27,23 @@ public class AssertCollection {
 				found = true;
 				break;
 			}
-			mess += "   "+gotItem+"\n";
+			mess += "   "+gotItem.toString()+"\n";
 		}
 		
 		Assert.assertTrue(mess, found);
+	}
+
+	public static <T> void assertContains(String mess, 
+			T expItem, T[] gotArray) {
+		assertContains(mess, expItem, gotArray, false);
+	}
+	
+	public static <T> void assertContains(String mess, 
+			T expItem, T[] gotArray, Boolean compareAsStrings) {
+		List<T> gotList = new ArrayList<T>();
+		for (T elt: gotArray) {
+			gotList.add(elt);
+		}
+		assertContains(mess, expItem, gotList, compareAsStrings);
 	}
 }
