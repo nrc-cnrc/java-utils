@@ -49,12 +49,10 @@ public class Debug {
 			
 			outString = String.join("\n", lines);
 			
-			System.out.println(outString);
-			
 			// Sleep a bit to make sure call stack will be printed before anyting else (because
 			// new Exception().printStackTrace() runs in a separate thread.
-			if (sleepMsecs != null) Thread.sleep(sleepMsecs);
-		} catch (InterruptedException e) {
+//			if (sleepMsecs != null) Thread.sleep(sleepMsecs);
+		} catch (Exception e) {
 			e.printStackTrace();
 		}		
 		
