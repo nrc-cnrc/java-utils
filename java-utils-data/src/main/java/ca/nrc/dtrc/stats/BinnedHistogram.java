@@ -4,36 +4,41 @@ import org.apache.commons.math3.stat.StatUtils;
 
 import ca.nrc.dtrc.stats.HistogramException;
 
-public class Histogram {
+public class BinnedHistogram<T extends Number> {
 
 	public int numBins = 0;
 	public Bin[] bins = new Bin[0];
 
 	Double startBinsAt = null;
 	Double endBinsAt = null;
-	double binLength = 0.0;
+	Double binLength = 0.0;
 	
 	
-	public Histogram() {
+	public BinnedHistogram() {
 		initialize(null, null, null);
 	}
 	
-	public Histogram(int _numBins) {
+	public BinnedHistogram(int _numBins) {
 		initialize(_numBins, null, null);
 	}
 
-	public Histogram(int _numBins, Double _startBinsAt, Double _endBinsAt) {
+	public BinnedHistogram(int _numBins, T _startBinsAt, T _endBinsAt) {
 		initialize(_numBins, _startBinsAt, _endBinsAt);
 	}
 
-	private void initialize(Integer _numBins, Double _startBinsAt, Double _endBinsAt) {
+	private void initialize(Integer _numBins, T _startBinsAt, T _endBinsAt) {
 		if (_numBins == null) {
 			_numBins = 10;
 		}
-		this.startBinsAt = _startBinsAt;
-		this.endBinsAt = _endBinsAt;
 		this.numBins = _numBins;
 		this.bins = new Bin[_numBins];
+		
+		if (_startBinsAt != null) {
+			this.startBinsAt = _startBinsAt.doubleValue();
+		}
+		if (_endBinsAt != null) {
+			this.endBinsAt = _endBinsAt.doubleValue();
+		}
 	}
 
 	public void load(double[] data) throws HistogramException {
