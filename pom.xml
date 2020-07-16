@@ -16,7 +16,7 @@
 		<nexus.releases.url>https://nexus.dt.nrc.ca/repository/maven-releases/</nexus.releases.url>
 	</properties>
     
-	 <modules>
+	<modules>
 	   <!-- Note: Order of modules is important.
 		Make sure any modulte A that is required by module B
 		apperas before B in the list -->
@@ -25,7 +25,19 @@
 	 	<module>java-utils-ui</module>
 	 	<module>java-utils-elasticsearch</module>
 	 	<module>java-utils-string</module>
-	 </modules>
+	</modules>
+	 
+	<!-- 
+	   Needed for the licensescan-maven-plugin, which we use to prevent 
+	   blacklisted license (ex: GPL) from making their way into the 
+	   project 
+	-->
+    <pluginRepositories>
+        <pluginRepository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </pluginRepository>
+    </pluginRepositories>	 
 	 
 	<!-- Pointers to DT Nexus Repositories for Distribution -->
 	<distributionManagement>
@@ -47,10 +59,42 @@
 					<artifactId>license-maven-plugin</artifactId>
 					<version>1.16</version>
 				</plugin>
+				
+				<!-- 
+		  		  This plugin is used to prevent blacklisted license (ex: GPL) from 
+		  		  making their way into the project 
+				-->
+		 	
+	 	
 			</plugins>
 		</pluginManagement>			
 	
 	 	<plugins>
+	 	
+		 		<plugin>
+	                <groupId>com.github.carlomorelli</groupId>
+	                <artifactId>licensescan-maven-plugin</artifactId>
+	                <version>2.1</version>
+	                <configuration>
+	                    <printLicenses>true</printLicenses>
+	                    <blacklistedLicenses>
+	                        <license>regex:.*GNU General Public License.*</license>
+	                        <license>regex:.*(^|[^L])GPL.*</license>
+	                        <license>regex:.*Affero.*</license>
+	                    </blacklistedLicenses>
+	                    <failBuildOnBlacklisted>true</failBuildOnBlacklisted>
+	                </configuration>
+	                <executions>
+	                    <execution>
+	                        <phase>compile</phase> <!-- use your preferred goal, for me it makes sense to do the check at compile time -->
+	                        <goals>
+	                            <goal>audit</goal>
+	                        </goals>
+	                    </execution>
+	                </executions>
+	            </plugin>	 	
+	 	
+	 	
 	 		<plugin>
 			   <groupId>org.apache.maven.plugins</groupId>
 			   <artifactId>maven-deploy-plugin</artifactId>
@@ -95,7 +139,7 @@
 	 
 	<!--  Dependancies that are needed by all modules  -->
 	<dependencies>
-	
+
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
