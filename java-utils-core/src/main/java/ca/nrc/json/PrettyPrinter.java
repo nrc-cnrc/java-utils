@@ -18,6 +18,28 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+/**
+ * Generates a DETERMISTIC Json PrettyPrint of any object.
+ *
+ * Note: This may seem redundant with Jackson or Gson but it's not.
+ * 
+ * - While it's possible configure Jackson so that it will print the 
+ *   keys of Maps in sorted order, there does not seem to be a way to make 
+ *   it print entryes of a Set in order
+ * - As far as Gson is concerned, it does not seem to support sorting keys of
+ *   Maps and elements of Sets.
+ *   
+ * This PrettyPrinter is far from being bullet proof (in particular, it does 
+ * not handle circular references very well). As such it should NOT be used 
+ * for the purposes of writing objects to a persistence store.
+ * 
+ * The PrettyPrinter is mostly used to compare objects during testing, by 
+ * their PrettyPrints (see AssertObject class for examples of this use).
+ *   
+ * @author desilets
+ *
+ */
+
 public class PrettyPrinter {
 	
 	private Integer decimals = null;
@@ -50,7 +72,6 @@ public class PrettyPrinter {
 		String json = printer.prettyPrint(obj, ignoreFields);
 		return json;		
 	}
-	
 	
 	public static String print(Object obj, String[] fieldsToIgnore) {
 		PrettyPrinter printer = new PrettyPrinter();

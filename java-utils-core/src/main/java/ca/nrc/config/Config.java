@@ -38,7 +38,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 **********************************************************************/
 
 public class Config {
-
 	private  static Map<Class<? extends Config>,Map<String,String>> propOverrides = new HashMap<Class<? extends Config>,Map<String,String>>();
 
 	@JsonIgnore
