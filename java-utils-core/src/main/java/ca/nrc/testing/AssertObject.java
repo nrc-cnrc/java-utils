@@ -60,7 +60,7 @@ public class AssertObject {
 	}
 	
 	public static void assertDeepEquals(
-			String message, Object expObject, Object gotObject, String[] ignoreFields) throws IOException {
+			String message, Object expObject, Object gotObject, String... ignoreFields) throws IOException {
 		Set<String> ignoreFieldsSet = new HashSet<String>();
 		for (String aFieldName: ignoreFields) ignoreFieldsSet.add(aFieldName);
 		assertDeepEquals(message, expObject, gotObject, ignoreFieldsSet, null);
