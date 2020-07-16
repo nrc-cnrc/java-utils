@@ -893,7 +893,7 @@ public class StreamlinedClientTest {
 		DocClusterSet clusters = hamletClient.clusterDocuments(query, esDocTypeName, useFields, algName, maxDocs);
 		
 		String[] expClusterNamesSuperset = new String[] {
-				"Ay", "Other Topics", "Shall", "King", "Thou", "Sir", "Thee", "Know", 
+				"Nay", "Ay", "Other Topics", "Shall", "King", "Thou", "Sir", "Thee", "Know", 
 				"Mother", "Speak", "Play", "Love", "Heaven", "Tis", "Horatio", "Father", "Soul",
 				"Heaven", "Hold", "Thy", "Eyes", "Matter", "Enter", "Dost Thou", "Lord"
 		};
