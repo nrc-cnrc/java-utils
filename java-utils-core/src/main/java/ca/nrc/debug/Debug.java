@@ -10,17 +10,24 @@ public class Debug {
 	
 	public static boolean on = true;
 
-	public static String printCallStack() {
-		return printCallStack(null);
+	public static String printCallStack(Exception e) {
+		return printCallStack(e, null);
 	}
 	
-	public static String printCallStack(long sleepMsecs) {
-		return printCallStack(new Long(sleepMsecs));
+	public static String printCallStack() {
+		return printCallStack(null, null);
+	}
+	
+	public static String printCallStack(Exception e, long sleepMsecs) {
+		return printCallStack(e, new Long(sleepMsecs));
 	}
 
-	public static String printCallStack(Long sleepMsecs) {
+	public static String printCallStack(Exception e, Long sleepMsecs) {
 		if (!on) return "Callstack printing is DISABLED!";
 		StringBuilder output = new StringBuilder();
+		if (e != null) {
+			output.append(e.getMessage());
+		}
 		CapturedPrintWriter capture = null;
 		String outString = "Could not print callstack.";
 		try {
@@ -52,8 +59,8 @@ public class Debug {
 			// Sleep a bit to make sure call stack will be printed before anyting else (because
 			// new Exception().printStackTrace() runs in a separate thread.
 //			if (sleepMsecs != null) Thread.sleep(sleepMsecs);
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (Exception e2) {
+			e2.printStackTrace();
 		}		
 		
 		return outString;
