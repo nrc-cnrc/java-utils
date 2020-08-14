@@ -452,14 +452,12 @@ public class StreamlinedClientTest {
 	
 
 	@Test
-	public void test__escapeQuotes__HappyPath() {
+	public void test__escapeQuotes__HappyPath() throws Exception {
 		String query = "\"software development\" agile \"ui design\"";
 		StreamlinedClient esClient = new StreamlinedClient("some_index");
 		String gotQuery = esClient.escapeQuotes(query);
 		String expQuery = "\\\"software development\\\" agile \\\"ui design\\\"";
 		AssertHelpers.assertStringEquals(expQuery, gotQuery);
-		
-		
 	}
 
 	@Test
