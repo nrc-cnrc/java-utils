@@ -18,11 +18,11 @@ public class Index extends StreamlinedClient {
 	// Stores the types of the various fields for a given document type
 	private static Map<String,Map<String,String>> fieldTypesCache = null;	
 		
-	public Index() {
+	public Index() throws ElasticSearchException {
 		super();
 	}
 
-	public Index(String _indexName) {
+	public Index(String _indexName) throws ElasticSearchException {
 		super(_indexName);
 	}
 	

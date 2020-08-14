@@ -80,4 +80,8 @@ public class ElasticSearchException extends Exception {
 		return mess;
 	}
 
+	public boolean isNoSuchIndex() {
+		boolean answer = (getMessage().toLowerCase().contains("no such index"));
+		return answer;
+	}
 }

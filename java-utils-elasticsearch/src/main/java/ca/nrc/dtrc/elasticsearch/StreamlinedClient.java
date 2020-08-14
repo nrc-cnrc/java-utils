@@ -87,25 +87,41 @@ public class StreamlinedClient {
 
 	private List<StreamlinedClientObserver> observers = new ArrayList<StreamlinedClientObserver>();
 
-	public StreamlinedClient() {
-		initialize(null);
+	public StreamlinedClient() throws ElasticSearchException {
+		initialize(null, null, null);
 	}
 	
-	public StreamlinedClient(String _indexName) {
-		initialize(_indexName);
+	public StreamlinedClient(String _indexName) throws ElasticSearchException {
+		initialize(_indexName, null, null);
 	}
 
-	public StreamlinedClient(String _indexName, double _sleepSecs) {
-		initialize(_indexName, _sleepSecs);
-	}
-	
-	public void initialize(String _indexName) {
-		initialize(_indexName, 0.0);
+	public StreamlinedClient(String _indexName, Boolean createIfNoExist) throws ElasticSearchException {
+		this.initialize(_indexName, (Double)null, createIfNoExist);
 	}
 
-	public void initialize(String _indexName, double _sleepSecs) {
+
+	public StreamlinedClient(String _indexName, double _sleepSecs)
+		throws ElasticSearchException {
+		initialize(_indexName, new Double(_sleepSecs), null);
+	}
+
+	public void initialize(
+		String _indexName, Double _sleepSecs, Boolean createIfNoExist)
+		throws ElasticSearchException {
+		if (_sleepSecs == null) {
+			_sleepSecs = new Double(0.0);
+		}
+		if (createIfNoExist == null) {
+			createIfNoExist = false;
+		}
 		this.indexName = canonicalIndexName(_indexName);
 		this.sleepSecs = _sleepSecs;
+
+		if (createIfNoExist) {
+			if (!indexExists()) {
+				createIndex(indexName);
+			}
+		}
 	}
 	
 	public StreamlinedClient setSleepSecs(double _sleepSecs) {
@@ -121,7 +137,7 @@ public class StreamlinedClient {
 	
 	Index index = null;
 		@JsonIgnore
-		public Index getIndex() {
+		public Index getIndex() throws ElasticSearchException {
 			if (index == null) {
 				index = new Index(indexName);;
 			}
