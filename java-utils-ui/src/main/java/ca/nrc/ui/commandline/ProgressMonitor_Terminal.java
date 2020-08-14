@@ -17,13 +17,13 @@ public class ProgressMonitor_Terminal extends ProgressMonitor {
 		initialize_ProgressMonitor_Terminal(_userIO);
 	}
 
-	public ProgressMonitor_Terminal(long numSteps, String message, double _refreshEvery) {
-		super(numSteps, message, _refreshEvery);
+	public ProgressMonitor_Terminal(long numSteps, String message, Integer _refreshEveryNSecs) {
+		super(numSteps, message, _refreshEveryNSecs);
 		initialize_ProgressMonitor_Terminal(null);
 	}
 
-	public ProgressMonitor_Terminal(long numSteps, String message, double _refreshEvery, UserIO _useIO) {
-		super(numSteps, message, _refreshEvery);
+	public ProgressMonitor_Terminal(long numSteps, String message, Integer _refreshEveryNSecs, UserIO _useIO) {
+		super(numSteps, message, _refreshEveryNSecs);
 		initialize_ProgressMonitor_Terminal(null);
 	}
 	
@@ -40,8 +40,11 @@ public class ProgressMonitor_Terminal extends ProgressMonitor {
 		int percentage = percentProgress(_progress);
 		String etaStr = formatTimelapse(_eta);
 		String msecsStepsStr = formatTimelapse(_msecsPerStep, true);
-		
-		userIO.echo(message+"\n ("+percentage+"%; ETA in "+etaStr+"; Avg step: "+msecsStepsStr+")");
+		String currMess = message + "\n" +
+			percentage+"% ; ETA in "+etaStr+"; Avg step: "+msecsStepsStr+
+			"\n  Elapsed (secs): "+(elapsedMSecs / 1000)+
+			"\n  Completed "+stepsSoFar+" steps of "+numSteps+" ("+stepsSinceLastRefresh+" since last Refresh)";
+		userIO.echo(currMess);
 	}
 
 }

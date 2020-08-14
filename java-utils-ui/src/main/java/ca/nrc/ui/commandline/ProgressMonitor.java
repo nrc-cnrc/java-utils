@@ -1,64 +1,72 @@
 package ca.nrc.ui.commandline;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 public abstract class ProgressMonitor {
 
 	protected String message = null;
-	private Long numSteps = null;
-	private double refreshEvery = 0.1;	
-	
-	private long stepsSoFar = 0;
+	public Long numSteps = null;
+	private int refreshEveryNSecs = 60;
+
+	protected long stepsSoFar = 0;
+	protected long startMSecs = 0;
+	protected long elapsedMSecs = 0;
+	private Long lastRefreshTimeMsecs = null;
+	private long msecsSinceLastRefresh = 0;
+	private long msecsSinceBeginning = 0;
+	protected long stepsSinceLastRefresh = 0;
+	private long msecsPerStep = 0;
 	private double progress = 0.0;
-	private double nextRefresh = refreshEvery;
 	private Long eta = null;
-	private Long startMsecs = null;
-	private Long msecsPerStep = null;
-	
+	private Long lastIterationStartMSecs = null;
+
 	protected abstract void displayProgress(double _progress, long _eta, long _msecsPerStep);
 	
 	public ProgressMonitor(long _numSteps, String _message) {
 		initialize_ProgressMonitor(_numSteps, _message, null);
 	}
 
-	public ProgressMonitor(long _numSteps, String _message, Double _refreshEvery) {
-		initialize_ProgressMonitor(_numSteps, _message, _refreshEvery);
+	public ProgressMonitor(long _numSteps, String _message, Integer _refreshEveryNSecs) {
+		initialize_ProgressMonitor(_numSteps, _message, _refreshEveryNSecs);
 	}
 
-	private void initialize_ProgressMonitor(long _numSteps, String _message, Double _refreshEvery) {
+	private void initialize_ProgressMonitor(long _numSteps, String _message, Integer _refreshEveryNSecs) {
 		this.numSteps = _numSteps;
 		this.message = _message;
-		startMsecs = System.currentTimeMillis();
-		
-		if (_refreshEvery != null) this.refreshEvery = _refreshEvery;
-		
-		nextRefresh = refreshEvery;
+		startMSecs = System.currentTimeMillis();
+		lastRefreshTimeMsecs = startMSecs;
+
+		if (_refreshEveryNSecs != null) {
+			this.refreshEveryNSecs = _refreshEveryNSecs;
+		}
 	}
-	
 
 	public void stepCompleted() {
-		stepsSoFar++;
+		stepCompleted(1);
+	}
+
+	public void stepCompleted(long steps) {
+		stepsSoFar += steps;
+		stepsSinceLastRefresh += steps;
 		updateStats();
 		refreshProgress();
 	}
 
 	private void refreshProgress() {
-		if (progress >= nextRefresh) {
-			nextRefresh += refreshEvery;
+		if (msecsSinceLastRefresh > 1000 * refreshEveryNSecs) {
 			displayProgress(progress, eta, msecsPerStep);
+			lastRefreshTimeMsecs = System.currentTimeMillis();
+			stepsSinceLastRefresh = 0;
 		}
 	}
 
 	private void updateStats() {
-		Long elapsed = System.currentTimeMillis() - startMsecs;
+		long nowMSecs = System.currentTimeMillis();
+		elapsedMSecs = nowMSecs - startMSecs;
+		msecsSinceLastRefresh = nowMSecs - lastRefreshTimeMsecs;
+		msecsPerStep = msecsSinceLastRefresh / stepsSinceLastRefresh;
+		long remainingSteps = numSteps - stepsSoFar;
+		eta = remainingSteps * msecsPerStep;
 		progress = 1.0 * stepsSoFar / numSteps;
-		eta = elapsed * (numSteps - stepsSoFar) / stepsSoFar;
-		msecsPerStep = elapsed / stepsSoFar;
-//		System.out.println(
-//				"-- ProgressMonitor.updateStats: stepsSoFar="+stepsSoFar+
-//				", progress="+progress+", eta="+eta+
-//				", formatted eta="+formatTimelapse(eta));
+//		System.out.println("--** updateStats: numSteps="+numSteps+", stepsSoFar="+stepsSoFar+", remaningSteps="+remainingSteps+", msecsPerStep="+msecsPerStep+", eta="+eta+", progress="+progress);
 	}
 	
 	protected int percentProgress(double _progress) {
