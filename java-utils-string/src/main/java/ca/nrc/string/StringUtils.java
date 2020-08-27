@@ -37,9 +37,10 @@ public class StringUtils {
 		boolean isFirst = true;
 		for (Object elt: array) {
 			if (!isFirst) {
-				str.append(elt.toString());
+				str.append(delimiter);
 			}
 			isFirst = false;
+			str.append(elt.toString());
 		}
 		
 		return str.toString();

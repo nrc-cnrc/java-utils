@@ -111,9 +111,11 @@ public class Config {
 			if (aPossibleFNamePath == null) continue;
 			Properties props = new Properties();
 			try {
-				props.load(new FileReader(aPossibleFNamePath));
+				FileReader fr = new FileReader(aPossibleFNamePath);
+				props.load(fr);
+				fr.close();
 			} catch (IOException e) {
-				throw new ConfigException("Could not open props file "+aPossibleFName+"="+aPossibleFNamePath, e);
+				throw new ConfigException("Problem reading props file "+aPossibleFName+"="+aPossibleFNamePath, e);
 			}
 			prop = props.getProperty(propName);
 			if (prop == null) {

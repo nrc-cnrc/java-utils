@@ -52,4 +52,12 @@ public class StringUtilsTest {
 		String expJoined = "Hello|world";
 		AssertString.assertStringEquals(expJoined, gotJoined);
 	}
+	@Test
+	public void test__join__Array() {
+		String[] chars = new String[] {"hello", "world"};
+		String gotJoined = StringUtils.join(chars, "|");
+		String expJoined = "hello|world";
+		AssertString.assertStringEquals(expJoined, gotJoined);
+
+	}
 }
