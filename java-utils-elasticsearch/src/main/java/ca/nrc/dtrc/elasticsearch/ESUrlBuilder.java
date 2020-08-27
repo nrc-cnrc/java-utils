@@ -2,6 +2,8 @@ package ca.nrc.dtrc.elasticsearch;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ESUrlBuilder {
 	private String indexName = null;
@@ -17,6 +19,8 @@ public class ESUrlBuilder {
 	private String docID = null;
 	
 	private boolean scrolling = false;
+
+	private boolean waitForRefresh = false;
 	
 	public ESUrlBuilder(String _serverName, int _port) {
 		this.serverName = _serverName;
@@ -61,6 +65,11 @@ public class ESUrlBuilder {
 	
 	public ESUrlBuilder forEndPoint(String _endPoint) {
 		this.endPoint = _endPoint;
+		return this;
+	}
+
+	public ESUrlBuilder refresh(boolean _wait) {
+		this.waitForRefresh = _wait;
 		return this;
 	}
 
@@ -110,11 +119,9 @@ public class ESUrlBuilder {
 		} else {
 			_urlStr += type + id + endPointStr;
 		}
-	
-		if (scrolling) {
-			_urlStr += "?scroll=1m";
-		}
-		
+
+		_urlStr = addURLArguments(_urlStr);
+
 		_urlStr = _urlStr.replaceAll("(?<!http:)//", "/");
 				
 		URL url = null;
@@ -127,5 +134,34 @@ public class ESUrlBuilder {
 		return url;			
 	}
 
-	
+	private String addURLArguments(String urlStr) {
+		Map<String,String> args = new HashMap<String,String>();
+		if (scrolling) {
+			args.put("scroll", "1m");
+		}
+		if (waitForRefresh) {
+			args.put("refresh", "wait_for");
+		}
+
+		boolean addQuestionMark = true;
+		int argCount = 0;
+		for (Map.Entry<String, String> entry : args.entrySet()) {
+			argCount++;
+			String name = entry.getKey();
+			String val = entry.getValue();
+			if (addQuestionMark) {
+				urlStr += "?";
+				addQuestionMark = false;
+			}
+			if (argCount > 1) {
+				urlStr += "&";
+			}
+			urlStr += name;
+			if (val != null) {
+				urlStr += "="+val;
+			}
+		}
+
+		return urlStr;
+	}
 }

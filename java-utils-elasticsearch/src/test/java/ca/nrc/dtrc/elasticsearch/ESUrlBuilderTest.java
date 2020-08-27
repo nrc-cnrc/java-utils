@@ -1,12 +1,9 @@
 package ca.nrc.dtrc.elasticsearch;
 
-import static org.junit.Assert.*;
-
 import java.net.URL;
 
+import ca.nrc.testing.AssertString;
 import org.junit.Test;
-
-import ca.nrc.testing.AssertHelpers;
 
 public class ESUrlBuilderTest  {
 
@@ -19,7 +16,7 @@ public class ESUrlBuilderTest  {
 					.build();
 		;
 		String expURL = "http://localhost:9090/test-index/search?scroll=1m";
-		AssertHelpers.assertStringEquals(expURL, gotURL.toString());
+		AssertString.assertStringEquals(expURL, gotURL.toString());
 	}
 
 	@Test
@@ -30,9 +27,9 @@ public class ESUrlBuilderTest  {
 					.build();
 		;
 		String expURL = "http://localhost:9090/_search/scroll";
-		AssertHelpers.assertStringEquals(expURL, gotURL.toString());
+		AssertString.assertStringEquals(expURL, gotURL.toString());
 	}
-	
+
 	@Test
 	public void test__delete_by_query__HappyPath() throws Exception {
 		URL gotURL = 
@@ -41,7 +38,7 @@ public class ESUrlBuilderTest  {
 					.build();
 		;
 		String expURL = "http://localhost:9090/test-index/_delete_by_query";
-		AssertHelpers.assertStringEquals(expURL, gotURL.toString());
+		AssertString.assertStringEquals(expURL, gotURL.toString());
 	}
 
 	@Test
@@ -52,7 +49,33 @@ public class ESUrlBuilderTest  {
 					.build();
 		;
 		String expURL = "http://localhost:9090/test-index/_settings";
-		AssertHelpers.assertStringEquals(expURL, gotURL.toString());
+		AssertString.assertStringEquals(expURL, gotURL.toString());
 	}
 
+	@Test
+	public void test__update__WithRefresh() throws Exception {
+		URL gotURL =
+				new ESUrlBuilder("test-index", "localhost", 9090)
+					.refresh(true)
+					.forDocType("sometype")
+					.forDocID("somedoc")
+					.forEndPoint("_update")
+					.build();
+		;
+		String expURL = "http://localhost:9090/test-index/sometype/somedoc/_update?refresh=wait_for";
+		AssertString.assertStringEquals(expURL, gotURL.toString());
+	}
+
+	@Test
+	public void test__update__NoRefresh() throws Exception {
+		URL gotURL =
+				new ESUrlBuilder("test-index", "localhost", 9090)
+						.forDocType("sometype")
+						.forDocID("somedoc")
+						.forEndPoint("_update")
+						.build();
+		;
+		String expURL = "http://localhost:9090/test-index/sometype/somedoc/_update";
+		AssertString.assertStringEquals(expURL, gotURL.toString());
+	}
 }

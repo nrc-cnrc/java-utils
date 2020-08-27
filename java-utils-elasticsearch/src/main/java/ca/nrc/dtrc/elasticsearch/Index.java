@@ -145,7 +145,9 @@ public class Index extends StreamlinedClient {
 	}
 	
 	public void deleteIndex() throws ElasticSearchException {
-		URL url = esUrlBuilder().build();
+		URL url =
+			esUrlBuilder()
+			.build();
 		
 		try {
 			delete(url);	

@@ -1,7 +1,5 @@
 package ca.nrc.dtrc.elasticsearch;
 
-import ca.nrc.dtrc.elasticsearch.ESConfig;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -39,7 +37,6 @@ import ca.nrc.config.ConfigException;
 import ca.nrc.data.file.ObjectStreamReader;
 import ca.nrc.data.file.ObjectStreamReaderException;
 import ca.nrc.datastructure.Pair;
-import ca.nrc.dtrc.elasticsearch.ESUrlBuilder;
 import ca.nrc.introspection.Introspection;
 import ca.nrc.introspection.IntrospectionException;
 import okhttp3.MediaType;
@@ -52,7 +49,10 @@ import okhttp3.Response;
 public class StreamlinedClient {
 		
 	public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
-	
+
+	public static enum ESOptions {CREATE_IF_NOT_EXISTS, UPDATES_WAIT_FOR_REFRESH};
+
+	public boolean updatesWaitForRefresh = false;
 	
 	// Whenever the client issues a transaction that modifies the DB,
 	// it will sleep by that much to give ES time to update all the 
@@ -95,29 +95,37 @@ public class StreamlinedClient {
 		initialize(_indexName, null, null);
 	}
 
-	public StreamlinedClient(String _indexName, Boolean createIfNoExist) throws ElasticSearchException {
-		this.initialize(_indexName, (Double)null, createIfNoExist);
+	public StreamlinedClient(String _indexName, ESOptions... options) throws ElasticSearchException {
+		this.initialize(_indexName, (Double)null, options);
 	}
 
 
 	public StreamlinedClient(String _indexName, double _sleepSecs)
 		throws ElasticSearchException {
-		initialize(_indexName, new Double(_sleepSecs), null);
+		initialize(_indexName, new Double(_sleepSecs));
 	}
 
 	public void initialize(
-		String _indexName, Double _sleepSecs, Boolean createIfNoExist)
+		String _indexName, Double _sleepSecs, ESOptions... options)
 		throws ElasticSearchException {
 		if (_sleepSecs == null) {
 			_sleepSecs = new Double(0.0);
 		}
-		if (createIfNoExist == null) {
-			createIfNoExist = false;
+		if (options == null) {
+			options = new ESOptions[0];
+		}
+		boolean createIfNotExist = false;
+		for (ESOptions anOption: options) {
+			if (anOption == ESOptions.CREATE_IF_NOT_EXISTS) {
+				createIfNotExist = true;
+			} else if (anOption == ESOptions.UPDATES_WAIT_FOR_REFRESH) {
+				updatesWaitForRefresh = true;
+			}
 		}
 		this.indexName = canonicalIndexName(_indexName);
 		this.sleepSecs = _sleepSecs;
 
-		if (createIfNoExist) {
+		if (createIfNotExist) {
 			if (!indexExists()) {
 				createIndex(indexName);
 			}
@@ -294,10 +302,15 @@ public class StreamlinedClient {
 		
 	public String putDocument(String type, String docID, String jsonDoc) throws ElasticSearchException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.putDocument");
-		URL url = esUrlBuilder().forDocType(type).forDocID(docID).build();
-		tLogger.trace("(String, String, String) posting url="+url+", type="+type+", docID="+docID+", jsonDoc="+jsonDoc);
+		URL url =
+			esUrlBuilder()
+			.forDocType(type)
+			.forDocID(docID)
+			.refresh(updatesWaitForRefresh)
+			.build();
+		tLogger.trace("(String, String, String) putting url="+url+", type="+type+", docID="+docID+", updatesWaitForRefresh="+updatesWaitForRefresh+", jsonDoc="+jsonDoc);
 		
-		String jsonResponse = post(url, jsonDoc);
+		String jsonResponse = put(url, jsonDoc);
 		
 		getIndex().clearFieldTypesCache(type);		
 		
@@ -310,7 +323,12 @@ public class StreamlinedClient {
 	}
 	
 	public void deleteDocumentWithID(String docID, String esDocType) throws ElasticSearchException {
-		URL url = esUrlBuilder().forDocType(esDocType).forDocID(docID).build();
+		URL url =
+			esUrlBuilder()
+			.forDocType(esDocType)
+			.forDocID(docID)
+			.refresh(updatesWaitForRefresh)
+			.build();
 		delete(url);
 		sleep();
 	}
@@ -537,7 +555,17 @@ public class StreamlinedClient {
 		SearchResults<T> hits = search(jsonQuery, docTypeName, docPrototype);
 		
 		return hits;
-	}	
+	}
+
+	public <T extends Document> SearchResults<T> search(Map<String,Object> queryMap, String docTypeName, T docPrototype) throws ElasticSearchException {
+		String queryJson = null;
+		try {
+			queryJson = new ObjectMapper().writeValueAsString(queryMap);
+		} catch (JsonProcessingException e) {
+			throw new ElasticSearchException(e);
+		}
+		return search(queryJson, docTypeName, docPrototype);
+	}
 
 	public <T extends Document> SearchResults<T> search(String jsonQuery, String docTypeName, T docPrototype) throws ElasticSearchException {
 		
@@ -812,15 +840,6 @@ public class StreamlinedClient {
 	
 	public void deleteIndex() throws ElasticSearchException {
 		getIndex().deleteIndex();
-//		URL url = esUrlBuilder().build();
-		
-//		try {
-//			delete(url);	
-//			clearFieldTypesCache();
-//		} catch (NoSuchIndexException e) {
-//			// OK... we tried to delete an index that did not exist
-//			// All other exception types must be passed along 
-//		}
 	}
 
 	public <T extends Document> SearchResults<T> moreLikeThis(T queryDoc) throws ElasticSearchException, IOException, InterruptedException {
@@ -1333,124 +1352,19 @@ public class StreamlinedClient {
 		
 		return fieldType;
 	}
-	
-	
-//	public Map<String,String> getFieldTypes(String type) throws ElasticSearchException {
-//		Map<String,String> fieldTypes = uncacheFieldTypes(type);
-//		if (fieldTypes == null) {
-//			fieldTypes = new HashMap<String,String>();
-//			URL url = esUrlBuilder().forDocType(type)
-//						.forEndPoint("_mapping")
-//						.endPointBeforeType(true).build();
-//			String jsonResponse = get(url);
-//			ObjectNode oNode = objectNode();
-//			ObjectMapper mapper = new ObjectMapper();
-//			try {
-//				oNode = mapper.readValue(jsonResponse, oNode.getClass());
-//			} catch (IOException exc) {
-//				throw new ElasticSearchException(exc);
-//			}
-//			
-//			ObjectNode fieldsProps = (ObjectNode) oNode.get(indexName).get("mappings").get(type).get("properties");
-//			
-//			Iterator<Entry<String, JsonNode>> iterator = fieldsProps.fields();
-//			while (iterator.hasNext()) {
-//				Entry<String, JsonNode> entry = iterator.next();
-//			    String aFldName = entry.getKey();
-//			    JsonNode aFldProps = entry.getValue();			    
-//			    if (aFldName.equals("additionalFields")) {
-//			    	fieldTypes = collectAdditionalFields(aFldProps, fieldTypes);
-//			    } else {
-//				    String aFldType = null;
-//				    if (aFldProps.has("type")) {
-//				    	aFldType = aFldProps.get("type").asText();
-//				    } else {
-//				    	aFldType = "_EMBEDDED_STRUCTURE";
-//				    }
-//				    fieldTypes.put(aFldName, aFldType);
-//			    }
-//			}
-//			
-//			cacheFieldTypes(fieldTypes, type);
-//		}
-//		
-//		return fieldTypes;
-//	}
-	
-//	private Map<String, String> collectAdditionalFields(JsonNode dynFieldsMapping, Map<String, String> fieldTypes) {
-//		ObjectNode props = (ObjectNode) dynFieldsMapping.get("properties");
-//		if (props != null) {
-//			Iterator<Entry<String, JsonNode>> iterator = props.fields();
-//			while (iterator.hasNext()) {
-//				Entry<String, JsonNode> entry = iterator.next();
-//			    String aFldName = entry.getKey();
-//			    JsonNode aFldProps = entry.getValue();			    
-//			    String aFldType = null;
-//			    if (aFldProps.has("type")) {
-//			    	aFldType = aFldProps.get("type").asText();
-//			    } else {
-//			    	aFldType = "_EMBEDDED_STRUCTURE";
-//			    }
-//			    fieldTypes.put("additionalFields."+aFldName, aFldType);			
-//			}
-//		}
-//		
-//		return fieldTypes;
-//	}
-
-//	private static Map<String,String> uncacheFieldTypes(String docClassName) {
-//		Map<String,String> fieldTypes = null;
-//		if (fieldTypesCache != null && fieldTypesCache.containsKey(docClassName)) {
-//			fieldTypes = fieldTypesCache.get(docClassName);
-//		}
-//		return fieldTypes;
-//	}
-//	
-//	public static void cacheFieldTypes(Map<String,String> types, String docClassName) {
-//		if (fieldTypesCache == null) {
-//			fieldTypesCache = new HashMap<String,Map<String,String>>();
-//		}
-//		fieldTypesCache.put(docClassName, types);
-//	}
-//
-//	private static void clearFieldTypesCache(Class<? extends Document> docClass) {
-//		clearFieldTypesCache(docClass.getName());
-//	}	
-//	
-//	private static void clearFieldTypesCache(String docTypeName) {
-//		if (fieldTypesCache != null) {
-//			fieldTypesCache.put(docTypeName, null);
-//		}		
-//	}
-//	
-//	
-//	private static void clearFieldTypesCache() {
-//		fieldTypesCache = null;
-//	}	
-
-//	private ObjectNode objectNode() {
-//		return new ObjectMapper().createObjectNode();
-//	}
 
 	public void updateDocument(Class<? extends Document> docClass, String docID, Map<String, Object> partialDoc) throws ElasticSearchException {
 		updateDocument(docClass.getName(), docID, partialDoc);
-//		URL url = esUrlBuilder().forClass(docClass).forDocID(docID)
-//				    .forEndPoint("_update").build();
-//		String jsonBody = null;
-//		Map<String,Object> jsonData = new HashMap<String,Object>();
-//		jsonData.put("doc", partialDoc);
-//		try {
-//			jsonBody = new ObjectMapper().writeValueAsString(jsonData);
-//		} catch (JsonProcessingException exc) {
-//			throw new ElasticSearchException(exc);
-//		}
-//		
-//		post(url, jsonBody);
 	}
 
 	public void updateDocument(String esDocType, String docID, Map<String, Object> partialDoc) throws ElasticSearchException {
-		URL url = esUrlBuilder().forDocType(esDocType).forDocID(docID)
-				    .forEndPoint("_update").build();
+		URL url =
+			esUrlBuilder()
+			.forDocType(esDocType)
+			.forDocID(docID)
+			.forEndPoint("_update")
+			.refresh(this.updatesWaitForRefresh)
+			.build();
 		String jsonBody = null;
 		Map<String,Object> jsonData = new HashMap<String,Object>();
 		jsonData.put("doc", partialDoc);
@@ -1581,7 +1495,12 @@ public class StreamlinedClient {
 
 	public String clearDocType(String docType) throws ElasticSearchException {
 		String body = "{\"query\": {\"match_all\": {}}}";
-		URL url = esUrlBuilder().forDocType(docType).forEndPoint("_delete_by_query").build();
+		URL url =
+			esUrlBuilder()
+			.forDocType(docType)
+			.forEndPoint("_delete_by_query")
+			.refresh(true)
+			.build();
 		String jsonResponse = okResponseJson();
 		try {
 			jsonResponse = post(url, body);
@@ -1608,7 +1527,10 @@ public class StreamlinedClient {
 		String json = null;
 		try {
 			json = new ObjectMapper().writeValueAsString(settings);
-			URL url = esUrlBuilder().forEndPoint("_settings").build();
+			URL url =
+				esUrlBuilder()
+				.forEndPoint("_settings")
+				.build();
 			put(url, json);
 		} catch (JsonProcessingException e) {
 			throw new ElasticSearchException(e);
