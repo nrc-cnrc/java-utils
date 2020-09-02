@@ -20,10 +20,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import ca.nrc.datastructure.Cloner;
-import ca.nrc.dtrc.elasticsearch.request.AggrBody;
-import ca.nrc.dtrc.elasticsearch.request.BodyBuilder;
-import ca.nrc.dtrc.elasticsearch.request.BodyElement;
-import ca.nrc.dtrc.elasticsearch.request.QueryBody;
+import ca.nrc.dtrc.elasticsearch.request.*;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -569,6 +566,7 @@ public class StreamlinedClient {
 		BodyElement... additionalBodyElts) throws ElasticSearchException {
 
 		AggrBody aggrBody = null;
+		HighlightBody highlightBody = null;
 		if (additionalBodyElts != null){
 			for (BodyElement addBody : additionalBodyElts) {
 				if (addBody instanceof QueryBody) {
@@ -581,9 +579,16 @@ public class StreamlinedClient {
 				} else if (addBody instanceof AggrBody) {
 					if (aggrBody != null) {
 						throw new ElasticSearchException(
-								"More than one AggrBody element was provided.");
+							"More than one AggrBody element was provided.");
 					} else {
 						aggrBody = (AggrBody) addBody;
+					}
+				} else if (addBody instanceof HighlightBody) {
+					if (highlightBody != null) {
+						throw new ElasticSearchException(
+							"More than one HighlightBody element was provided.");
+					} else {
+						highlightBody = (HighlightBody) addBody;
 					}
 				}
 			}
@@ -599,6 +604,13 @@ public class StreamlinedClient {
 		if (aggrBody != null) {
 			reqBody.put("aggregations", aggrBody.getMap());
 		}
+
+		if (highlightBody == null) {
+			highlightBody = new HighlightBody();
+		}
+		highlightBody.hihglightField("longDescription");
+
+		reqBody.put("highlight", highlightBody.getMap());
 
 		String queryJson = null;
 		try {
@@ -665,13 +677,7 @@ public class StreamlinedClient {
 						.addObject("query", query)
 						.closeObject()
 					.closeObject()
-				.closeObject()
-
-				.addObject("highlight")
-					.addObject("fields")
-						.addObject(
-							"longDescription",
-							new HashMap<String,String>());
+				.closeObject();
 
 			if (sortBy.size() > 0) {
 				List<String[]> sortCriteria = new ArrayList<String[]>();
