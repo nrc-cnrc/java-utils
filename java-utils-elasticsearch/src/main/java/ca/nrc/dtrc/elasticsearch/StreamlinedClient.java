@@ -19,6 +19,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import ca.nrc.dtrc.elasticsearch.request.AggrBody;
 import ca.nrc.dtrc.elasticsearch.request.BodyBuilder;
 import ca.nrc.dtrc.elasticsearch.request.QueryBody;
 import org.apache.commons.io.FileUtils;
@@ -600,7 +601,7 @@ public class StreamlinedClient {
 	}
 
 	public <T extends Document> SearchResults<T> searchFreeform(String query, T docPrototype, List<Pair<String,String>> sortBy) throws ElasticSearchException {
-		return searchFreeform(query, null, docPrototype, sortBy, (AggregationsMap) null);
+		return searchFreeform(query, null, docPrototype, sortBy, (AggrBody) null);
 	}
 		
 	public <T extends Document> SearchResults<T> searchFreeform(String query, String docTypeName, 
@@ -610,7 +611,7 @@ public class StreamlinedClient {
 
 	
 	public <T extends Document> SearchResults<T> searchFreeform(String query, String docTypeName, 
-			T docPrototype, List<Pair<String,String>> sortBy, AggregationsMap aggregations) throws ElasticSearchException {
+			T docPrototype, List<Pair<String,String>> sortBy, AggrBody aggregations) throws ElasticSearchException {
 				
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.searchFreeform");
 
@@ -656,7 +657,7 @@ public class StreamlinedClient {
 			}
 
 			if (aggregations != null) {
-				qBuilder.addObject("aggregations", aggregations);
+				qBuilder.addObject("aggregations", aggregations.getMap());
 				qBuilder.closeObject();
 			}
 
