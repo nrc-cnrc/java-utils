@@ -19,8 +19,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import ca.nrc.datastructure.Cloner;
 import ca.nrc.dtrc.elasticsearch.request.AggrBody;
 import ca.nrc.dtrc.elasticsearch.request.BodyBuilder;
+import ca.nrc.dtrc.elasticsearch.request.BodyElement;
 import ca.nrc.dtrc.elasticsearch.request.QueryBody;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.LogManager;
@@ -563,13 +565,39 @@ public class StreamlinedClient {
 	}
 
 	public <T extends Document> SearchResults<T> search(
-		QueryBody query, String docTypeName,
-		T docPrototype, Map<String,Object> aggregations) throws ElasticSearchException {
+		QueryBody query, String docTypeName, T docPrototype,
+		BodyElement... additionalBodyElts) throws ElasticSearchException {
 
-		Map<String,Object> reqBody = query.getMap();
+		AggrBody aggrBody = null;
+		if (additionalBodyElts != null){
+			for (BodyElement addBody : additionalBodyElts) {
+				if (addBody instanceof QueryBody) {
+					if (query != null) {
+						throw new ElasticSearchException(
+								"More than one QueryBody element was provided.");
+					} else {
+						query = (QueryBody) addBody;
+					}
+				} else if (addBody instanceof AggrBody) {
+					if (aggrBody != null) {
+						throw new ElasticSearchException(
+								"More than one AggrBody element was provided.");
+					} else {
+						aggrBody = (AggrBody) addBody;
+					}
+				}
+			}
+		}
 
-		if (aggregations != null) {
-			reqBody.put("aggregations", aggregations);
+		Map<String,Object> reqBody = null;
+		try {
+			reqBody = Cloner.clone(query.getMap());
+		} catch (Cloner.ClonerException e) {
+			throw new ElasticSearchException(e);
+		}
+
+		if (aggrBody != null) {
+			reqBody.put("aggregations", aggrBody.getMap());
 		}
 
 		String queryJson = null;
@@ -578,8 +606,10 @@ public class StreamlinedClient {
 		} catch (JsonProcessingException e) {
 			throw new ElasticSearchException(e);
 		}
+
 		return search(queryJson, docTypeName, docPrototype);
 	}
+
 
 	private <T extends Document> SearchResults<T> search(String jsonQuery,
 		String docTypeName, T docPrototype) throws ElasticSearchException {
