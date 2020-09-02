@@ -19,6 +19,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import ca.nrc.dtrc.elasticsearch.request.BodyBuilder;
+import ca.nrc.dtrc.elasticsearch.request.QueryBody;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -550,28 +552,36 @@ public class StreamlinedClient {
 		
 	}
 	
-	public <T extends Document> SearchResults<T> search(String jsonQuery, T docPrototype) throws ElasticSearchException {
-		String docTypeName = docPrototype.getClass().getName();
-		SearchResults<T> hits = search(jsonQuery, docTypeName, docPrototype);
-		
-		return hits;
+	public <T extends Document> SearchResults<T> search(QueryBody queryBody, T docPrototype) throws ElasticSearchException {
+		return search(queryBody, null, docPrototype);
 	}
 
-	public <T extends Document> SearchResults<T> search(Map<String,Object> queryMap, T docPrototype) throws ElasticSearchException {
-		return search(queryMap, null, docPrototype);
+	public <T extends Document> SearchResults<T> search(
+			QueryBody query, String docTypeName, T docPrototype) throws ElasticSearchException {
+		return search(query, docTypeName, docPrototype, null);
 	}
 
-	public <T extends Document> SearchResults<T> search(Map<String,Object> queryMap, String docTypeName, T docPrototype) throws ElasticSearchException {
+	public <T extends Document> SearchResults<T> search(
+		QueryBody query, String docTypeName,
+		T docPrototype, Map<String,Object> aggregations) throws ElasticSearchException {
+
+		Map<String,Object> reqBody = query.getMap();
+
+		if (aggregations != null) {
+			reqBody.put("aggregations", aggregations);
+		}
+
 		String queryJson = null;
 		try {
-			queryJson = new ObjectMapper().writeValueAsString(queryMap);
+			queryJson = new ObjectMapper().writeValueAsString(reqBody);
 		} catch (JsonProcessingException e) {
 			throw new ElasticSearchException(e);
 		}
 		return search(queryJson, docTypeName, docPrototype);
 	}
 
-	public <T extends Document> SearchResults<T> search(String jsonQuery, String docTypeName, T docPrototype) throws ElasticSearchException {
+	private <T extends Document> SearchResults<T> search(String jsonQuery,
+		String docTypeName, T docPrototype) throws ElasticSearchException {
 		if (docTypeName == null) {
 			docTypeName = docPrototype.getClass().getName();
 		}
@@ -590,17 +600,17 @@ public class StreamlinedClient {
 	}
 
 	public <T extends Document> SearchResults<T> searchFreeform(String query, T docPrototype, List<Pair<String,String>> sortBy) throws ElasticSearchException {
-		return searchFreeform(query, null, docPrototype, sortBy);	
+		return searchFreeform(query, null, docPrototype, sortBy, (AggregationsMap) null);
 	}
 		
 	public <T extends Document> SearchResults<T> searchFreeform(String query, String docTypeName, 
 			T docPrototype) throws ElasticSearchException {
-		return searchFreeform(query, docTypeName, docPrototype, null);
+		return searchFreeform(query, docTypeName, docPrototype, null, null);
 	}
 
 	
 	public <T extends Document> SearchResults<T> searchFreeform(String query, String docTypeName, 
-			T docPrototype, List<Pair<String,String>> sortBy) throws ElasticSearchException {
+			T docPrototype, List<Pair<String,String>> sortBy, AggregationsMap aggregations) throws ElasticSearchException {
 				
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.searchFreeform");
 
@@ -611,50 +621,56 @@ public class StreamlinedClient {
 		if (tLogger.isTraceEnabled()) {
 			tLogger.trace("Invoked with query='"+query+"', docTypeName='"+docTypeName+"', docPrototype="+docPrototype.getClass()+"\n  sortBy="+PrettyPrinter.print(sortBy));
 		}
-		
-		String jsonQuery = null;
-		
-		query = escapeQuotes(query);
-		
-		if (query == null) {
-			jsonQuery= "{}";
-		} else {
-			String jsonQueryInner = 
-					   "\"query\": {"+
-							"\"query_string\": {\"query\": \""+query+"\"}"+
-						"},"+
-						"\"highlight\": {"+
-							"\"fields\": {\"longDescription\": {}}"+
-						"}"
-					;
-			
-			if (sortBy.size() > 0) {
-				jsonQueryInner += ", \"sort\": [";
-				int counter = 0;
-				for (Pair<String,String> sortCriterion: sortBy) {
-					if (counter > 0) {
-						jsonQueryInner += ",";
-					}
-					jsonQueryInner += "{\""+sortCriterion.getFirst()+"\": \""+sortCriterion.getSecond()+"\"}";
-					counter++;
-				}
-				jsonQueryInner += "]";
-			}
-			
-			jsonQuery = "{"+jsonQueryInner+"}";
 
+		QueryBody queryBody = new QueryBody();
+		BodyBuilder<QueryBody> qBuilder = new BodyBuilder<QueryBody>(queryBody);
+
+
+		if (query != null) {
+			query = escapeQuotes(query);
+			qBuilder
+				.addObject("query")
+					.addObject("query_string")
+						.addObject("query", query)
+						.closeObject()
+					.closeObject()
+				.closeObject()
+
+				.addObject("highlight")
+					.addObject("fields")
+						.addObject(
+							"longDescription",
+							new HashMap<String,String>());
+
+			if (sortBy.size() > 0) {
+				List<String[]> sortCriteria = new ArrayList<String[]>();
+				for (Pair<String,String> criterion: sortBy) {
+					sortCriteria.add(
+						new String[] {
+							criterion.getFirst(),
+							criterion.getSecond()
+						});
+				}
+				qBuilder.addObject("sort", sortCriteria);
+				qBuilder.closeObject();
+			}
+
+			if (aggregations != null) {
+				qBuilder.addObject("aggregations", aggregations);
+				qBuilder.closeObject();
+			}
+
+			qBuilder.build();
 		}
-		
-		SearchResults<T> hits = search(jsonQuery, docTypeName, docPrototype);
-				
+
+		SearchResults<T> hits = search(queryBody, docTypeName, docPrototype);
+
 		tLogger.trace("Returning results with #hits="+hits.getTotalHits());
 
 		return hits;
 	}
 	
 	protected String escapeQuotes(String query) {
-		
-		
 		String escQuery = query;
 		if (query != null) {
 			Matcher matcher = Pattern.compile("\"").matcher(query);

@@ -48,11 +48,6 @@ public class SearchResultsTest {
 			Hit<PlayLine> aHit = iterator.next();
 			// etc...
 		}
-
-		// You can aslo ask for some aggregations to be performed on some of
-		// the fields of the hits.
-		//
-		Assert.fail("Document this new feature");
 	}
 
 	///////////////////////////////

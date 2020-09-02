@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import ca.nrc.dtrc.elasticsearch.request.BodyBuilder;
+import ca.nrc.dtrc.elasticsearch.request.QueryBody;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -90,7 +92,7 @@ public class StreamlinedClientTest {
 	/*********************************
 	 * DOCUMENTATION TESTS
 	 *********************************/
-	
+
 	@Test
 	public void test__StreamlinedClient__Synopsis() throws Exception {
 		//
@@ -189,16 +191,47 @@ public class StreamlinedClientTest {
 		// structured query using the QueryBuilder. For example:
 		//
 		//
-		Map<String,Object> structQuery =
-			new QueryBuilder()
-				.addObject("query")
-					.addObject("bool")
-						.addObject("must")
-							.addObject("match")
-								.addObject("surname", "simpson")
-				.buildMap();
+		QueryBody queryBody = new QueryBody();
+		new BodyBuilder<QueryBody>(queryBody)
+			.addObject("query")
+				.addObject("bool")
+					.addObject("must")
+						.addObject("match")
+							.addObject("surname", "simpson")
+			.build();
 
-		hits = client.search(structQuery, personPrototype);
+		hits = client.search(queryBody, personPrototype);
+
+
+		// You can aslo ask for some aggregations to be performed on some of
+		// the fields of the hits.
+		//
+		// For example, will compute the average age of people whose surname is
+		// simpson
+		//
+		queryBody = new QueryBody();
+		new BodyBuilder<QueryBody>(queryBody)
+			.addObject("query")
+				.addObject("bool")
+					.addObject("must")
+						.addObject("match")
+							.addObject("surname", "simpson")
+							.closeObject()
+						.closeObject()
+					.closeObject()
+				.closeObject()
+			.closeObject()
+
+			.addObject("aggs")
+				.addObject("avgAge")
+					.addObject("avg")
+						.addObject("field", "age")
+
+			.build()
+		;
+
+		hits = client.search(queryBody, personPrototype);
+		Double averageAge = (Double) hits.aggrResult("avgAge");
 	}
 
 	@Test
@@ -226,8 +259,8 @@ public class StreamlinedClientTest {
 
 		Thread.sleep(2*1000);
 
-		Map<String,Object> queryMap =
-		new QueryBuilder()
+		QueryBody queryBody = new QueryBody();
+		new BodyBuilder<QueryBody>(queryBody)
 			.addObject("query")
 				.addObject("query_string")
 					.addObject("query", "surname:Simpson")
@@ -239,9 +272,9 @@ public class StreamlinedClientTest {
 					.addObject("sum")
 						.addObject("field", "age")
 
-			.buildMap();
+			.build();
 
-		SearchResults<Person> hits = client.search(queryMap, personPrototype);
+		SearchResults<Person> hits = client.search(queryBody, personPrototype);
 		Double gotTotalAge = (Double) hits.aggrResult("totalAge");
 		Assert.assertEquals("Aggregated value not as expected",
 			new Double(82.0), gotTotalAge);
@@ -393,14 +426,9 @@ public class StreamlinedClientTest {
 		
 		jsonResponse = client.putDocument(new Person("Marg", "Simpson"));
 		
-		String jsonQuery = 
-				"{\n"
-				+ "  \"query\": {\"query_string\": {\"query\": \"Homer\"}}\n"
-				+ "}"
-				;
-		
-		SearchResults gotResults = client.search(jsonQuery, personPrototype);
-				
+		String query = "Homer";
+		SearchResults gotResults = client.searchFreeform(query, personPrototype);
+
 		Person[] expHits = new Person[] {
 				new Person("Homer", "Simpson")
 		};
