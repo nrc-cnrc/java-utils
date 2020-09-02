@@ -557,6 +557,10 @@ public class StreamlinedClient {
 		return hits;
 	}
 
+	public <T extends Document> SearchResults<T> search(Map<String,Object> queryMap, T docPrototype) throws ElasticSearchException {
+		return search(queryMap, null, docPrototype);
+	}
+
 	public <T extends Document> SearchResults<T> search(Map<String,Object> queryMap, String docTypeName, T docPrototype) throws ElasticSearchException {
 		String queryJson = null;
 		try {
@@ -568,7 +572,10 @@ public class StreamlinedClient {
 	}
 
 	public <T extends Document> SearchResults<T> search(String jsonQuery, String docTypeName, T docPrototype) throws ElasticSearchException {
-		
+		if (docTypeName == null) {
+			docTypeName = docPrototype.getClass().getName();
+		}
+
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.search");
 		URL url = esUrlBuilder()
 					.forDocType(docTypeName).forEndPoint("_search")

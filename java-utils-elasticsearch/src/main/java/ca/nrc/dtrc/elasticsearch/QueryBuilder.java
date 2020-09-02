@@ -1,16 +1,13 @@
 package ca.nrc.dtrc.elasticsearch;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class QueryBuilder {
 
     private static final String NO_VALUE_YET = "NO_VALUE_YET";
 
     Map<String,Object> queryMap = new HashMap<String,Object>();
-    List<String> fieldsStack = new ArrayList<String>();
+    Stack<String> fieldsStack = new Stack<String>();
 
     public QueryBuilder addObject(String fldName) {
         return addObject(fldName, new HashMap<String,Object>());
@@ -22,8 +19,13 @@ public class QueryBuilder {
             field = (Map<String, Object>) field.get(aFldName);
         }
         field.put(fldName, fldValue);
-        fieldsStack.add(fldName);
+        fieldsStack.push(fldName);
 
+        return this;
+    }
+
+    public QueryBuilder closeObject() {
+        fieldsStack.pop();
         return this;
     }
 

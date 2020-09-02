@@ -13,24 +13,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ca.nrc.datastructure.Pair;
-import ca.nrc.dtrc.elasticsearch.ESTestHelpers;
 import ca.nrc.dtrc.elasticsearch.ESTestHelpers.PlayLine;
 import ca.nrc.introspection.Introspection;
-import ca.nrc.dtrc.elasticsearch.ExcludeFields;
-import ca.nrc.dtrc.elasticsearch.IncludeFields;
-import ca.nrc.dtrc.elasticsearch.StreamlinedClient;
 import ca.nrc.file.ResourceGetter;
 import ca.nrc.testing.AssertHelpers;
 
@@ -44,6 +36,7 @@ public class StreamlinedClientTest {
 		public String surname;
 		public String birthDay;
 		public String gender;
+		public Integer age = 0;
 
 		public Person() {};
 		
@@ -60,6 +53,11 @@ public class StreamlinedClientTest {
 		
 		public Person setGender(String _gender) {
 			this.gender = _gender;
+			return this;
+		}
+
+		public Person setAge(int _age) {
+			this.age = _age;
 			return this;
 		}
 	}	
@@ -148,45 +146,106 @@ public class StreamlinedClientTest {
 	}
 	
 	@Test
-	public void test__Search__Freeform() throws Exception {
+	public void test__Search() throws Exception {
 		String indexName = "es-test";
 		StreamlinedClient client = new StreamlinedClient(indexName);
-		
+
 		//
-		// Search for some objects. You can specify an arbitrary query as a JSON string
+		// The easiest way to search is to use a free-form query.
+		// You can think of this as the kind query you type into Google.
 		//
-		String jsonQuery = 
-				"{\n"
-				+ "  \"query\": {\"query_string\": {\"query\": \"Homer\"}}\n"
-				+ "}"
-				;
-		SearchResults<Person> hits = client.search(jsonQuery, personPrototype);
-		
-		// Total number of hits available
+		// Freeform queries support a bunch of operators that are described
+		// on this page:
+		//
+		//   https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html
+		//
+		// For example, this will retrieve all people whose surname is 'simpson'
+		// who is older than 30.
+		//
+		String query = "surname:simpson AND age:>30";
+		SearchResults<Person> hits = client.searchFreeform(query, personPrototype);
+
+		// You can then find out how many hits fit the query and loop through
+		// them.
 		Long totalHits = hits.getTotalHits();
-		
-		// Scroll through list of scored hits
 		Iterator<Hit<Person>> iter = hits.iterator();
 		while (iter.hasNext()) {
 			Hit<Person> scoredHit = iter.next();
 			Person hitDocument = scoredHit.getDocument();
 			Double hitScore = scoredHit.getScore();
-		}		
-		
-		//
-		// There are also some more streamlined search methods. For example,
-		// use this method to search all fields for a given free-form 
-		// query.
-		//
-		String query = "(lisa OR marge) AND simpson";
-		hits = client.searchFreeform(query, personPrototype);
-		
-		// Freeform queries support quoted expressions
-		query = "\"lisa simpson\"";
-		hits = client.searchFreeform(query, personPrototype);
-	}
-	
+		}
 
+		//
+		// Note that like Google, ElasticSearch sometimes plays fast and loose
+		// with freeform queries and may return documents that do not meet all
+		// of its constraints. In the immortal words of Captain Barbossa
+		// (Pirates of the Carribean): "Queries are more like GUIDELINES than
+		// ACTUAL RULES".
+		//
+		// Also, the freeform syntax does not support all the operators that are
+		// available in ElasticSearch.
+		//
+		// For more control and flexibility over the query, you should build a
+		// structured query using the QueryBuilder. For example:
+		//
+		//
+		Map<String,Object> structQuery =
+			new QueryBuilder()
+				.addObject("query")
+					.addObject("bool")
+						.addObject("must")
+							.addObject("match")
+								.addObject("surname", "simpson")
+				.buildMap();
+
+		hits = client.search(structQuery, personPrototype);
+	}
+
+	@Test
+	public void test__Search__WithAggregation() throws Exception {
+		// Here is how you can aggregate (ex: sumup, average) the values of
+		// fields
+
+		String indexName = "es-test";
+		StreamlinedClient client = new StreamlinedClient(indexName);
+
+		client.putDocument(
+			new Person("Homer", "Simpson")
+			.setAge(42)
+		);
+
+		client.putDocument(
+			new Person("Marge", "Simpson")
+			.setAge(40)
+		);
+
+		client.putDocument(
+			new Person("Moe", "Sizlack")
+			.setAge(48)
+		);
+
+		Thread.sleep(2*1000);
+
+		Map<String,Object> queryMap =
+		new QueryBuilder()
+			.addObject("query")
+				.addObject("query_string")
+					.addObject("query", "surname:Simpson")
+					.closeObject()
+				.closeObject()
+			.closeObject()
+			.addObject("aggs")
+				.addObject("totalAge")
+					.addObject("sum")
+						.addObject("field", "age")
+
+			.buildMap();
+
+		SearchResults<Person> hits = client.search(queryMap, personPrototype);
+		Double gotTotalAge = (Double) hits.aggrResult("totalAge");
+		Assert.assertEquals("Aggregated value not as expected",
+			new Double(82.0), gotTotalAge);
+	}
 	
 	@Test
 	public void test__SearchSimilarDocs() throws Exception {
@@ -691,6 +750,8 @@ public class StreamlinedClientTest {
 			
 			expTypes.put("firstName", "text");
 			expTypes.put("surname", "text");
+
+			expTypes.put("age", "long");
 		}
 		AssertHelpers.assertDeepEquals("Field types not as expected for type: "+type, 
 				expTypes, gotTypes);
@@ -712,6 +773,7 @@ public class StreamlinedClientTest {
 			expTypes.put("birthDay", "date");
 			expTypes.put("firstName", "text");
 			expTypes.put("surname", "text");
+			expTypes.put("age", "long");
 		}
 		AssertHelpers.assertDeepEquals("Field types not as expected for type: "+type, 
 				expTypes, gotTypes);
@@ -815,7 +877,8 @@ public class StreamlinedClientTest {
 			expFieldTypes.put("firstName", "text");
 			expFieldTypes.put("surname", "text");
 			expFieldTypes.put("_detect_language", "boolean");			
-			expFieldTypes.put("lang", "text");			
+			expFieldTypes.put("lang", "text");
+			expFieldTypes.put("age", "long");
 		}
 		Map<String,String> gotFieldTypes = client.getFieldTypes(Person.class);	
 		AssertHelpers.assertDeepEquals("ElasticSearch types were wrong for fields of class "+Person.class, 
@@ -891,7 +954,7 @@ public class StreamlinedClientTest {
 		DocClusterSet clusters = hamletClient.clusterDocuments(query, esDocTypeName, useFields, algName, maxDocs);
 		
 		String[] expClusterNamesSuperset = new String[] {
-				"Nay", "Ay", "Other Topics", "Shall", "King", "Thou", "Sir", "Thee", "Know", 
+				"Dost Thou Hear", "Nay", "Ay", "Other Topics", "Shall", "King", "Thou", "Sir", "Thee", "Know",
 				"Mother", "Speak", "Play", "Love", "Heaven", "Tis", "Horatio", "Father", "Soul",
 				"Heaven", "Hold", "Thy", "Eyes", "Matter", "Enter", "Dost Thou", "Lord"
 		};

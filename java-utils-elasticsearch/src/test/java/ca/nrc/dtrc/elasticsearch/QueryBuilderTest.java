@@ -14,27 +14,27 @@ public class QueryBuilderTest {
 
     @Test
     public void test__QueryBuilder__Synopsis() throws ElasticSearchException {
-//         Use this class to build complex ES queries like this:
-//
-//                {
-//                    "query": {
-//                    "bool": {
-//                        "must_not": {
-//                            "exists": {
-//                                "field": "username"
-//                            }
-//                        }
-//                    }
-//                }
+
         Map<String,Object> queryMap =
             new QueryBuilder()
                 .addObject("query")
                     .addObject("bool")
-                        .addObject("must_not")
+                        .addObject("must")
                             .addObject("exists")
                                 .addObject("field", "userName")
-                .buildMap();
+                                .closeObject()
+                            .closeObject()
+                        .closeObject()
+                    .closeObject()
+                .closeObject()
+                .addObject("aggs")
+                    .addObject("totalAge")
+                        .addObject("sum")
+                            .addObject("field", "age")
 
+                 // Note: If you don't close the last couple objects that were
+                 // added to the stack, buildMap() will close
+                .buildMap();
     }
 
     /////////////////////////////////
@@ -43,17 +43,47 @@ public class QueryBuilderTest {
 
     @Test
     public void test__QueryBuilder__HappyPath() throws Exception {
-        Map<String,Object> queryMap =
-            new QueryBuilder()
-                .addObject("query")
+
+    Map<String,Object> queryMap =
+        new QueryBuilder()
+            .addObject("query")
                 .addObject("bool")
-                .addObject("must_not")
-                .addObject("exists")
-                .addObject("field", "userName")
-                .buildMap();
+                   .addObject("must")
+                        .addObject("exists")
+                            .addObject("field", "userName")
+                            .closeObject()
+                        .closeObject()
+                    .closeObject()
+                .closeObject()
+            .closeObject()
+            .addObject("aggs")
+                .addObject("totalAge")
+                    .addObject("sum")
+                        .addObject("field", "age")
+
+            .buildMap();
 
         String expJson =
-            "{\"query\": {\"bool\": {\"must_not\": {\"exists\": {\"field\": \"userName\"}}}}}";
+            "{\n"+
+            "  \"aggs\": {\n"+
+            "    \"totalAge\": {\n"+
+            "      \"sum\": {\n"+
+            "        \"field\": \"age\"\n"+
+            "      }\n"+
+            "    }\n"+
+            "  },\n"+
+            "  \"query\": {\n"+
+            "    \"bool\": {\n"+
+            "      \"must\": {\n"+
+            "        \"exists\": {\n"+
+            "          \"field\": \"userName\"\n"+
+            "          }\n"+
+            "        }\n"+
+            "      }\n"+
+            "    }\n"+
+            "  }\n"+
+            "}"
+            ;
         assertJsonEquals(expJson, queryMap);
     }
 

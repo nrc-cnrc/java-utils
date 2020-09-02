@@ -39,7 +39,7 @@ public class Document {
 	@JsonIgnore
 	public String getRawId() { return null; }
 	public String id = null;
-		public final String getId() {
+		public String getId() {
 			if (this.id == null) {
 				String rawId = getRawId();
 				this.setId(rawId);
@@ -53,7 +53,7 @@ public class Document {
 			}
 			return this.id;
 		}
-		public final Document setId(String _id) {
+		public Document setId(String _id) {
 
 		this.id = null;
 			if (_id != null) {
