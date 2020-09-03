@@ -1,11 +1,7 @@
 package ca.nrc.data.harvesting;
 
-import static org.junit.Assert.*;
-
-import org.junit.Assert;
-import org.junit.Test;
-
 import ca.nrc.data.harvesting.SearchEngine.Query;
+import org.junit.Test;
 
 public class SearchEngineMultiQueryTest {
 
@@ -90,7 +86,7 @@ public class SearchEngineMultiQueryTest {
 						.setCheckHitSummary(true)
 						.search(query);
 		
-		int maxBadHits = 4;
+		int maxBadHits = 5;
 		SearchEngineTest.assertResultsFitTheQuery(results, query, maxBadHits);
 		
 		Long expMinRetrieved = new Long(5);
