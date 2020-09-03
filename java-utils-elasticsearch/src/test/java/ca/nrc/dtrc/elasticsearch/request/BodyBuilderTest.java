@@ -13,6 +13,7 @@ public class BodyBuilderTest {
 
     @Test
     public void test__BodyBuilder__Synopsis() {
+        //
         // Use a BodyBuilder to construct elements of the body of an
         // ElasticSearch request.
         //

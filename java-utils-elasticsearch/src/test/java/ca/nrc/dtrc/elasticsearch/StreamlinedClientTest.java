@@ -157,7 +157,7 @@ public class StreamlinedClientTest {
 		// who is older than 30.
 		//
 		String query = "surname:simpson AND age:>30";
-		SearchResults<Person> hits = client.searchFreeform(query, personPrototype);
+		SearchResults<Person> hits = client.search(query, personPrototype);
 
 		// You can then find out how many hits fit the query and loop through
 		// them.
@@ -419,7 +419,7 @@ public class StreamlinedClientTest {
 		jsonResponse = client.putDocument(new Person("Marg", "Simpson"));
 		
 		String query = "Homer";
-		SearchResults gotResults = client.searchFreeform(query, personPrototype);
+		SearchResults gotResults = client.search(query, personPrototype);
 
 		Person[] expHits = new Person[] {
 				new Person("Homer", "Simpson")
@@ -494,7 +494,7 @@ public class StreamlinedClientTest {
 		Thread.sleep(1*1000);
 
 		String query = "denmark AND rotten";
-		SearchResults<ESTestHelpers.PlayLine> gotSearchResults = client.searchFreeform(query, new PlayLine());		
+		SearchResults<ESTestHelpers.PlayLine> gotSearchResults = client.search(query, new PlayLine());
 		assertIsInFirstNHits("Something is rotten in the state of Denmark.", 3, "longDescription", gotSearchResults);
 	}		
 
@@ -507,7 +507,7 @@ public class StreamlinedClientTest {
 		Thread.sleep(1*1000);
 
 		String query = "\"state of denmark\"";
-		SearchResults<ESTestHelpers.PlayLine> gotSearchResults = client.searchFreeform(query, new PlayLine());		
+		SearchResults<ESTestHelpers.PlayLine> gotSearchResults = client.search(query, new PlayLine());
 		assertIsInFirstNHits("Something is rotten in the state of Denmark.", 3, "longDescription", gotSearchResults);
 	}	
 	
@@ -524,7 +524,7 @@ public class StreamlinedClientTest {
 		SortBody sortBody =
 			new SortBody().sortBy("id", SortBody.SortOrder.desc);
 		SearchResults<ESTestHelpers.PlayLine> gotSearchResults =
-			client.searchFreeform(query, new PlayLine(), sortBody);
+			client.search(query, new PlayLine(), sortBody);
 		assertIsInFirstNHits("Something is rotten in the state of Denmark.", 3, "longDescription", gotSearchResults);
 	}		
 	

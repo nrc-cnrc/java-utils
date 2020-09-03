@@ -534,20 +534,20 @@ public class StreamlinedClient {
 		
 	}
 
-	public <T extends Document> SearchResults<T> searchFreeform(
+	public <T extends Document> SearchResults<T> search(
 			String freeformQuery, String docTypeName,
 			T docPrototype) throws ElasticSearchException {
-		return searchFreeform(freeformQuery, docTypeName, docPrototype, null, null);
+		return search(freeformQuery, docTypeName, docPrototype, null, null);
 	}
 
-	public <T extends Document> SearchResults<T> searchFreeform(
+	public <T extends Document> SearchResults<T> search(
 			String freeformQuery, T docPrototype,
 			BodyElement... xtraReqSpecs) throws ElasticSearchException {
-		return searchFreeform(freeformQuery, null,
+		return search(freeformQuery, null,
 				docPrototype, xtraReqSpecs);
 	}
 
-	public <T extends Document> SearchResults<T> searchFreeform(
+	public <T extends Document> SearchResults<T> search(
 			String freeformQuery, String docTypeName, T docPrototype,
 			BodyElement... additionalSearchSpecs)
 			throws ElasticSearchException {
@@ -689,9 +689,9 @@ public class StreamlinedClient {
 		return escQuery;
 	}
 
-	public <T extends Document> SearchResults<T> searchFreeform(String query, T docPrototype) throws ElasticSearchException {
+	public <T extends Document> SearchResults<T> search(String query, T docPrototype) throws ElasticSearchException {
 		String docTypeName = docPrototype.getClass().getName();
-		SearchResults<T> hits = searchFreeform(query, docTypeName, docPrototype);
+		SearchResults<T> hits = search(query, docTypeName, docPrototype);
 		
 		return hits;
 	}
@@ -1421,7 +1421,7 @@ public class StreamlinedClient {
 
 	public <T extends Document> void dumpToFile(File outputFile, String freeformQuery, String docTypeName, T docPrototype, Boolean intoSingleJsonFile) throws ElasticSearchException {
 		try {			
-			SearchResults<T> results = searchFreeform(freeformQuery, docTypeName, docPrototype);
+			SearchResults<T> results = search(freeformQuery, docTypeName, docPrototype);
 			dumpToFile(outputFile, results, intoSingleJsonFile);
 		} catch (Exception e) {
 			throw new ElasticSearchException(e);
@@ -1450,7 +1450,7 @@ public class StreamlinedClient {
 			esDocType = docPrototype.getClass().getName();
 		}
 		tLogger.trace("retrieving docs that fit query="+query);
-		SearchResults<T> allDocs = (SearchResults<T>) searchFreeform(query, esDocType, docPrototype);
+		SearchResults<T> allDocs = (SearchResults<T>) search(query, esDocType, docPrototype);
 		tLogger.trace("GOT docs that fit query="+query+". total hits="+allDocs.getTotalHits());
 
 		dumpToFile(file, allDocs, true, fieldsToIgnore);

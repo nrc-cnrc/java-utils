@@ -1,14 +1,13 @@
 package ca.nrc.dtrc.elasticsearch;
 
 
-import java.util.Iterator;
-
-import org.junit.Assert;
-import org.junit.Test;
-
 import ca.nrc.dtrc.elasticsearch.ESTestHelpers.PlayLine;
 import ca.nrc.json.PrettyPrinter;
 import ca.nrc.testing.AssertHelpers;
+import org.junit.Assert;
+import org.junit.Test;
+
+import java.util.Iterator;
 
 public class SearchResultsTest {
 	
@@ -22,7 +21,7 @@ public class SearchResultsTest {
 		
 		// SearchResults are produced as a result of some search. For example:
 		String query = "content:kingdom";
-		SearchResults<PlayLine> results = client.searchFreeform(query, new PlayLine());
+		SearchResults<PlayLine> results = client.search(query, new PlayLine());
 		
 		// You can loop through the search results as follows..
 		Iterator<Hit<PlayLine>> iterator = results.iterator();
@@ -60,7 +59,7 @@ public class SearchResultsTest {
 		Thread.sleep(1*1000);
 		
 		String query = "+content:kingdom";
-		SearchResults<PlayLine> results = client.searchFreeform(query, new PlayLine());
+		SearchResults<PlayLine> results = client.search(query, new PlayLine());
 		results.setFilter(new HitFilter("additionalFields.speaker:\"PRINCE FORTINBRAS\""));
 		assertLinesSpokenBy(results, "PRINCE FORTINBRAS");
 	}
