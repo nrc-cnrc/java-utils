@@ -1,30 +1,15 @@
 package ca.nrc.dtrc.elasticsearch;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
+import ca.nrc.config.ConfigException;
+import ca.nrc.data.file.ObjectStreamReader;
+import ca.nrc.data.file.ObjectStreamReaderException;
 import ca.nrc.datastructure.Cloner;
+import ca.nrc.datastructure.Pair;
 import ca.nrc.dtrc.elasticsearch.request.*;
-import org.apache.commons.io.FileUtils;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
-
+import ca.nrc.introspection.Introspection;
+import ca.nrc.introspection.IntrospectionException;
+import ca.nrc.json.PrettyPrinter;
+import ca.nrc.ui.commandline.UserIO;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -32,21 +17,20 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import ca.nrc.json.PrettyPrinter;
-import ca.nrc.ui.commandline.UserIO;
-import ca.nrc.config.ConfigException;
-import ca.nrc.data.file.ObjectStreamReader;
-import ca.nrc.data.file.ObjectStreamReaderException;
-import ca.nrc.datastructure.Pair;
-import ca.nrc.introspection.Introspection;
-import ca.nrc.introspection.IntrospectionException;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
+import okhttp3.*;
 import okhttp3.Request.Builder;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+import org.apache.commons.io.FileUtils;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
+
+import java.io.*;
+import java.lang.reflect.InvocationTargetException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class StreamlinedClient {
 		
@@ -724,7 +708,37 @@ public class StreamlinedClient {
 
 		return hits;
 	}
-	
+
+	public <T extends Document> SearchResults<T> searchFreeform(
+			String freeformQuery, String docTypeName, T docPrototype,
+			BodyElement... additionalSearchSpecs)
+			throws ElasticSearchException {
+
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.searchFreeform");
+
+		QueryBody queryBody = new QueryBody();
+		BodyBuilder<QueryBody> qBuilder = new BodyBuilder<QueryBody>(queryBody);
+		if (freeformQuery != null) {
+			freeformQuery = escapeQuotes(freeformQuery);
+			qBuilder
+					.addObject("query")
+					.addObject("query_string")
+					.addObject("query", freeformQuery)
+					.closeObject()
+					.closeObject()
+					.closeObject();
+
+			qBuilder.build();
+		}
+
+		SearchResults<T> hits = search(queryBody, docTypeName, docPrototype,
+			additionalSearchSpecs);
+
+		tLogger.trace("Returning results with #hits="+hits.getTotalHits());
+
+		return hits;
+	}
+
 	protected String escapeQuotes(String query) {
 		String escQuery = query;
 		if (query != null) {
