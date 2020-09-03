@@ -410,8 +410,7 @@ public class StreamlinedClient {
 		
 		return iterator;
 	}		
-	
-	
+
 	public String post(URL url) throws IOException, ElasticSearchException, InterruptedException {
 		return post(url, null);
 	}
@@ -567,6 +566,7 @@ public class StreamlinedClient {
 
 		AggrBody aggrBody = null;
 		HighlightBody highlightBody = null;
+		SortBody sortBody = null;
 		if (additionalBodyElts != null){
 			for (BodyElement addBody : additionalBodyElts) {
 				if (addBody instanceof QueryBody) {
@@ -590,6 +590,13 @@ public class StreamlinedClient {
 					} else {
 						highlightBody = (HighlightBody) addBody;
 					}
+				} else if (addBody instanceof SortBody) {
+					if (sortBody != null) {
+						throw new ElasticSearchException(
+								"More than one SortBody element was provided.");
+					} else {
+						sortBody = (SortBody) addBody;
+					}
 				}
 			}
 		}
@@ -612,6 +619,10 @@ public class StreamlinedClient {
 
 		reqBody.put("highlight", highlightBody.getMap());
 
+		if (sortBody != null) {
+			reqBody.put("sort", sortBody.getMap().get("sort"));
+		}
+
 		String queryJson = null;
 		try {
 			queryJson = new ObjectMapper().writeValueAsString(reqBody);
@@ -619,26 +630,32 @@ public class StreamlinedClient {
 			throw new ElasticSearchException(e);
 		}
 
-		return search(queryJson, docTypeName, docPrototype);
+		return search(new JsonString(queryJson), docTypeName, docPrototype);
 	}
 
 
 	private <T extends Document> SearchResults<T> search(String jsonQuery,
 		String docTypeName, T docPrototype) throws ElasticSearchException {
+
+		return search(new JsonString(jsonQuery), docTypeName, docPrototype);
+	}
+
+	private <T extends Document> SearchResults<T> search(JsonString jsonQuery,
+														 String docTypeName, T docPrototype) throws ElasticSearchException {
 		if (docTypeName == null) {
 			docTypeName = docPrototype.getClass().getName();
 		}
 
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.search");
 		URL url = esUrlBuilder()
-					.forDocType(docTypeName).forEndPoint("_search")
-					.scroll().build();
+				.forDocType(docTypeName).forEndPoint("_search")
+				.scroll().build();
 		tLogger.trace("url="+url+", jsonQuery="+jsonQuery);
-		String jsonResponse = post(url, jsonQuery);
+		String jsonResponse = post(url, jsonQuery.toString());
 		tLogger.trace("jsonResponse="+jsonResponse);
 
 		SearchResults<T> results = new SearchResults<T>(jsonResponse, docPrototype, this);
-				
+
 		return results;
 	}
 
@@ -651,7 +668,6 @@ public class StreamlinedClient {
 		return searchFreeform(query, docTypeName, docPrototype, null, null);
 	}
 
-	
 	public <T extends Document> SearchResults<T> searchFreeform(String query, String docTypeName, 
 			T docPrototype, List<Pair<String,String>> sortBy, AggrBody aggregations) throws ElasticSearchException {
 				
