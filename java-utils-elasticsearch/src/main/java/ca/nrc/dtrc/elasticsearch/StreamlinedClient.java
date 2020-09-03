@@ -542,86 +542,83 @@ public class StreamlinedClient {
 
 	public <T extends Document> SearchResults<T> search(
 			String freeformQuery, T docPrototype,
-			BodyElement... xtraReqSpecs) throws ElasticSearchException {
+			RequestBodyElement... xtraReqSpecs) throws ElasticSearchException {
 		return search(freeformQuery, null,
 				docPrototype, xtraReqSpecs);
 	}
 
 	public <T extends Document> SearchResults<T> search(
 			String freeformQuery, String docTypeName, T docPrototype,
-			BodyElement... additionalSearchSpecs)
+			RequestBodyElement... additionalSearchSpecs)
 			throws ElasticSearchException {
 
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.searchFreeform");
 
-		QueryBody queryBody = new QueryBody();
-		BodyBuilder<QueryBody> qBuilder = new BodyBuilder<QueryBody>(queryBody);
+		Query queryBody = new Query();
+		RequestBuilder<Query> qBuilder = new RequestBuilder<Query>(queryBody);
 		if (freeformQuery != null) {
 			freeformQuery = escapeQuotes(freeformQuery);
 			qBuilder
-					.addObject("query")
+				.addObject("query")
 					.addObject("query_string")
-					.addObject("query", freeformQuery)
-					.closeObject()
-					.closeObject()
-					.closeObject();
+						.addObject("query", freeformQuery);
 
 			qBuilder.build();
 		}
 
 		SearchResults<T> hits = search(queryBody, docTypeName, docPrototype,
-				additionalSearchSpecs);
+			additionalSearchSpecs);
 
 		tLogger.trace("Returning results with #hits="+hits.getTotalHits());
 
 		return hits;
 	}
 
-	public <T extends Document> SearchResults<T> search(QueryBody queryBody, T docPrototype) throws ElasticSearchException {
+	public <T extends Document> SearchResults<T> search(Query queryBody, T docPrototype) throws ElasticSearchException {
 		return search(queryBody, null, docPrototype);
 	}
 
 	public <T extends Document> SearchResults<T> search(
-			QueryBody query, String docTypeName, T docPrototype) throws ElasticSearchException {
+			Query query, String docTypeName, T docPrototype) throws ElasticSearchException {
 		return search(query, docTypeName, docPrototype, null);
 	}
 
 	public <T extends Document> SearchResults<T> search(
-		QueryBody query, String docTypeName, T docPrototype,
-		BodyElement... additionalBodyElts) throws ElasticSearchException {
+			Query query, String docTypeName, T docPrototype,
+			RequestBodyElement... additionalBodyElts) throws ElasticSearchException {
 
-		AggrBody aggrBody = null;
-		HighlightBody highlightBody = null;
-		SortBody sortBody = null;
+		Aggs aggrBody = null;
+		Highlight highlightBody = null;
+		Sort sortBody = null;
 		if (additionalBodyElts != null){
-			for (BodyElement addBody : additionalBodyElts) {
-				if (addBody instanceof QueryBody) {
+			for (RequestBodyElement addBody : additionalBodyElts) {
+				if (addBody instanceof Query) {
 					if (query != null) {
 						throw new ElasticSearchException(
-								"More than one QueryBody element was provided.");
+								"More than one Query element was provided.");
 					} else {
-						query = (QueryBody) addBody;
+						query = (Query) addBody;
 					}
-				} else if (addBody instanceof AggrBody) {
+				} else if (addBody instanceof Aggs) {
 					if (aggrBody != null) {
 						throw new ElasticSearchException(
-							"More than one AggrBody element was provided.");
+							"More than one Aggs element was provided.");
 					} else {
-						aggrBody = (AggrBody) addBody;
+						aggrBody = (Aggs) addBody;
 					}
-				} else if (addBody instanceof HighlightBody) {
+				} else if (addBody instanceof Highlight) {
 					if (highlightBody != null) {
 						throw new ElasticSearchException(
-							"More than one HighlightBody element was provided.");
+							"More than one Highlight element was provided.");
 					} else {
-						highlightBody = (HighlightBody) addBody;
+						highlightBody = (Highlight) addBody;
 					}
-				} else if (addBody instanceof SortBody) {
+				} else if (addBody instanceof Sort) {
 					if (sortBody != null) {
 						throw new ElasticSearchException(
-								"More than one SortBody element was provided.");
+								"More than one Sort element was provided.");
 					} else {
-						sortBody = (SortBody) addBody;
+						sortBody = (Sort) addBody;
 					}
 				}
 			}
@@ -639,7 +636,7 @@ public class StreamlinedClient {
 		}
 
 		if (highlightBody == null) {
-			highlightBody = new HighlightBody();
+			highlightBody = new Highlight();
 		}
 		highlightBody.hihglightField("longDescription");
 

@@ -5,7 +5,7 @@ import org.junit.Test;
 
 import java.io.IOException;
 
-public class BodyBuilderTest {
+public class RequestBuilderTest {
 
     //////////////////////////////////////////
     // DOCUMENTATION TESTS
@@ -14,13 +14,13 @@ public class BodyBuilderTest {
     @Test
     public void test__BodyBuilder__Synopsis() {
         //
-        // Use a BodyBuilder to construct elements of the body of an
+        // Use a RequestBuilder to construct elements of the body of an
         // ElasticSearch request.
         //
         // For example
         //
-        QueryBody query = new QueryBody();
-        new BodyBuilder<QueryBody>(query)
+        Query query = new Query();
+        new RequestBuilder<Query>(query)
             .addObject("query")
                 .addObject("bool")
                     .addObject("must")
@@ -36,8 +36,8 @@ public class BodyBuilderTest {
             // above defined fields.
             .build();
 
-        AggrBody aggregations = new AggrBody();
-        new BodyBuilder<AggrBody>(aggregations)
+        Aggs aggregations = new Aggs();
+        new RequestBuilder<Aggs>(aggregations)
             .addObject("aggs")
                 .addObject("totalAge")
                     .addObject("sum")
@@ -54,8 +54,8 @@ public class BodyBuilderTest {
 
     @Test
     public void test__BodyBuilder__HappyPath() throws Exception {
-        QueryBody query = new QueryBody();
-        new BodyBuilder<QueryBody>(query)
+        Query query = new Query();
+        new RequestBuilder<Query>(query)
             .addObject("query")
                 .addObject("bool")
                     .addObject("must")
@@ -84,7 +84,7 @@ public class BodyBuilderTest {
     // HELPER METHODS
     /////////////////////////////////////
 
-    private void assertJsonEquals(String expJson, BodyElement gotBodyElt) throws IOException {
+    private void assertJsonEquals(String expJson, RequestBodyElement gotBodyElt) throws IOException {
 
         AssertObject.assertEqualsJsonCompare(
             "JSON string was not as expected", expJson, gotBodyElt.map);

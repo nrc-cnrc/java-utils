@@ -1,9 +1,9 @@
 package ca.nrc.dtrc.elasticsearch;
 
 import ca.nrc.dtrc.elasticsearch.ESTestHelpers.PlayLine;
-import ca.nrc.dtrc.elasticsearch.request.BodyBuilder;
-import ca.nrc.dtrc.elasticsearch.request.QueryBody;
-import ca.nrc.dtrc.elasticsearch.request.SortBody;
+import ca.nrc.dtrc.elasticsearch.request.Query;
+import ca.nrc.dtrc.elasticsearch.request.RequestBuilder;
+import ca.nrc.dtrc.elasticsearch.request.Sort;
 import ca.nrc.file.ResourceGetter;
 import ca.nrc.introspection.Introspection;
 import ca.nrc.testing.AssertHelpers;
@@ -183,8 +183,8 @@ public class StreamlinedClientTest {
 		// structured query using the QueryBuilder. For example:
 		//
 		//
-		QueryBody queryBody = new QueryBody();
-		new BodyBuilder<QueryBody>(queryBody)
+		Query queryBody = new Query();
+		new RequestBuilder<Query>(queryBody)
 			.addObject("query")
 				.addObject("bool")
 					.addObject("must")
@@ -201,8 +201,8 @@ public class StreamlinedClientTest {
 		// For example, will compute the average age of people whose surname is
 		// simpson
 		//
-		queryBody = new QueryBody();
-		new BodyBuilder<QueryBody>(queryBody)
+		queryBody = new Query();
+		new RequestBuilder<Query>(queryBody)
 			.addObject("query")
 				.addObject("bool")
 					.addObject("must")
@@ -251,8 +251,8 @@ public class StreamlinedClientTest {
 
 		Thread.sleep(2*1000);
 
-		QueryBody queryBody = new QueryBody();
-		new BodyBuilder<QueryBody>(queryBody)
+		Query queryBody = new Query();
+		new RequestBuilder<Query>(queryBody)
 			.addObject("query")
 				.addObject("query_string")
 					.addObject("query", "surname:Simpson")
@@ -521,8 +521,8 @@ public class StreamlinedClientTest {
 		Thread.sleep(1*1000);
 
 		String query = "denmark AND rotten";
-		SortBody sortBody =
-			new SortBody().sortBy("id", SortBody.SortOrder.desc);
+		Sort sortBody =
+			new Sort().sortBy("id", Sort.SortOrder.desc);
 		SearchResults<ESTestHelpers.PlayLine> gotSearchResults =
 			client.search(query, new PlayLine(), sortBody);
 		assertIsInFirstNHits("Something is rotten in the state of Denmark.", 3, "longDescription", gotSearchResults);

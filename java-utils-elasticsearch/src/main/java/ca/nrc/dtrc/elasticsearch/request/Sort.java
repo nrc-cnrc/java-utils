@@ -7,25 +7,25 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class SortBody extends BodyElement {
+public class Sort extends RequestBodyElement {
 
     public static enum SortOrder {asc, desc};
 
     List<String[]> criteria =
         new ArrayList<String[]>();
 
-    public SortBody() {
+    public Sort() {
         super();
     }
 
-    public SortBody(List<Pair<String,String>> _criteria) {
+    public Sort(List<Pair<String,String>> _criteria) {
         criteria = new ArrayList<String[]>();
         for (Pair<String,String> crit: _criteria) {
             criteria.add(new String[] {crit.getFirst(), crit.getSecond()});
         }
     }
 
-    public SortBody sortBy(String fldName, SortOrder order) {
+    public Sort sortBy(String fldName, SortOrder order) {
         criteria.add(new String[] {fldName, order.toString()});
         return this;
     }

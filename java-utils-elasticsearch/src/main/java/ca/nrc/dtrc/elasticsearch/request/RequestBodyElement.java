@@ -8,7 +8,7 @@ import java.util.Map;
 /**
  * Class that represents parts of the body of an ElasticSearch request
  */
-public class BodyElement {
+public class RequestBodyElement {
 
     protected Map<String,Object> map = new HashMap<String,Object>();
 
