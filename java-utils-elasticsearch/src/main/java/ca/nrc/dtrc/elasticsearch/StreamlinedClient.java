@@ -604,7 +604,7 @@ public class StreamlinedClient {
 		reqBody.put("highlight", highlightBody.getMap());
 
 		if (sortBody != null) {
-			reqBody.put("sort", sortBody.getMap().get("sort"));
+			reqBody.put("sort", sortBody.getMap().get("fields"));
 		}
 
 		String queryJson = null;
@@ -617,12 +617,6 @@ public class StreamlinedClient {
 		return search(new JsonString(queryJson), docTypeName, docPrototype);
 	}
 
-
-//	private <T extends Document> SearchResults<T> search(JsonString jsonQuery,
-//		String docTypeName, T docPrototype) throws ElasticSearchException {
-//
-//		return search(new JsonString(jsonQuery), docTypeName, docPrototype);
-//	}
 
 	private <T extends Document> SearchResults<T> search(JsonString jsonQuery,
 														 String docTypeName, T docPrototype) throws ElasticSearchException {
@@ -681,18 +675,18 @@ public class StreamlinedClient {
 					.closeObject()
 				.closeObject();
 
-			if (sortBy.size() > 0) {
-				List<String[]> sortCriteria = new ArrayList<String[]>();
-				for (Pair<String,String> criterion: sortBy) {
-					sortCriteria.add(
-						new String[] {
-							criterion.getFirst(),
-							criterion.getSecond()
-						});
-				}
-				qBuilder.addObject("sort", sortCriteria);
-				qBuilder.closeObject();
-			}
+//			if (sortBy.size() > 0) {
+//				List<String[]> sortCriteria = new ArrayList<String[]>();
+//				for (Pair<String,String> criterion: sortBy) {
+//					sortCriteria.add(
+//						new String[] {
+//							criterion.getFirst(),
+//							criterion.getSecond()
+//						});
+//				}
+//				qBuilder.addObject("sort", sortCriteria);
+//				qBuilder.closeObject();
+//			}
 
 			if (aggregations != null) {
 				qBuilder.addObject("aggregations", aggregations.getMap());
@@ -702,7 +696,16 @@ public class StreamlinedClient {
 			qBuilder.build();
 		}
 
-		SearchResults<T> hits = search(queryBody, docTypeName, docPrototype);
+		List<BodyElement> xtraReqSpecs = new ArrayList<BodyElement>();
+		if (sortBy != null) {
+			xtraReqSpecs.add(new SortBody(sortBy));
+		}
+//		if (aggregations != null) {
+//			xtraReqSpecs.add(aggregations);
+//		}
+
+		SearchResults<T> hits = search(queryBody, docTypeName, docPrototype,
+			xtraReqSpecs.toArray(new BodyElement[0]));
 
 		tLogger.trace("Returning results with #hits="+hits.getTotalHits());
 

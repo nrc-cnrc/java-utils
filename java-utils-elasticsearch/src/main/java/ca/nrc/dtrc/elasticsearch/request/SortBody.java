@@ -1,6 +1,6 @@
 package ca.nrc.dtrc.elasticsearch.request;
 
-import org.apache.commons.lang3.tuple.Pair;
+import ca.nrc.datastructure.Pair;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,6 +13,13 @@ public class SortBody extends BodyElement {
 
     List<String[]> criteria =
         new ArrayList<String[]>();
+
+    public SortBody(List<Pair<String,String>> _criteria) {
+        criteria = new ArrayList<String[]>();
+        for (Pair<String,String> crit: _criteria) {
+            criteria.add(new String[] {crit.getFirst(), crit.getSecond()});
+        }
+    }
 
     public SortBody sortBy(String fldName, SortOrder order) {
         criteria.add(new String[] {fldName, order.toString()});
