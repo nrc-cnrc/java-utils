@@ -8,7 +8,6 @@ import ca.nrc.datastructure.Pair;
 import ca.nrc.dtrc.elasticsearch.request.*;
 import ca.nrc.introspection.Introspection;
 import ca.nrc.introspection.IntrospectionException;
-import ca.nrc.json.PrettyPrinter;
 import ca.nrc.ui.commandline.UserIO;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -534,7 +533,50 @@ public class StreamlinedClient {
 		if (exception != null) throw exception;
 		
 	}
-	
+
+	public <T extends Document> SearchResults<T> searchFreeform(
+			String freeformQuery, String docTypeName,
+			T docPrototype) throws ElasticSearchException {
+		return searchFreeform(freeformQuery, docTypeName, docPrototype, null, null);
+	}
+
+	public <T extends Document> SearchResults<T> searchFreeform(
+			String freeformQuery, T docPrototype,
+			BodyElement... xtraReqSpecs) throws ElasticSearchException {
+		return searchFreeform(freeformQuery, null,
+				docPrototype, xtraReqSpecs);
+	}
+
+	public <T extends Document> SearchResults<T> searchFreeform(
+			String freeformQuery, String docTypeName, T docPrototype,
+			BodyElement... additionalSearchSpecs)
+			throws ElasticSearchException {
+
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.searchFreeform");
+
+		QueryBody queryBody = new QueryBody();
+		BodyBuilder<QueryBody> qBuilder = new BodyBuilder<QueryBody>(queryBody);
+		if (freeformQuery != null) {
+			freeformQuery = escapeQuotes(freeformQuery);
+			qBuilder
+					.addObject("query")
+					.addObject("query_string")
+					.addObject("query", freeformQuery)
+					.closeObject()
+					.closeObject()
+					.closeObject();
+
+			qBuilder.build();
+		}
+
+		SearchResults<T> hits = search(queryBody, docTypeName, docPrototype,
+				additionalSearchSpecs);
+
+		tLogger.trace("Returning results with #hits="+hits.getTotalHits());
+
+		return hits;
+	}
+
 	public <T extends Document> SearchResults<T> search(QueryBody queryBody, T docPrototype) throws ElasticSearchException {
 		return search(queryBody, null, docPrototype);
 	}
@@ -635,96 +677,6 @@ public class StreamlinedClient {
 		SearchResults<T> results = new SearchResults<T>(jsonResponse, docPrototype, this);
 
 		return results;
-	}
-
-	public <T extends Document> SearchResults<T> searchFreeform(
-		String freeformQuery, String docTypeName,
-		T docPrototype) throws ElasticSearchException {
-		return searchFreeform(freeformQuery, docTypeName, docPrototype, null, null);
-	}
-
-	public <T extends Document> SearchResults<T> searchFreeform(
-		String freeformQuery, String docTypeName, T docPrototype,
-		List<Pair<String,String>> sortBy, AggrBody aggregations)
-		throws ElasticSearchException {
-				
-		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.searchFreeform");
-
-		if (sortBy == null) {
-			sortBy = new ArrayList<Pair<String,String>>();
-		}
-		
-		if (tLogger.isTraceEnabled()) {
-			tLogger.trace("Invoked with query='"+freeformQuery+"', docTypeName='"+docTypeName+"', docPrototype="+docPrototype.getClass()+"\n  sortBy="+PrettyPrinter.print(sortBy));
-		}
-
-		QueryBody queryBody = new QueryBody();
-		BodyBuilder<QueryBody> qBuilder = new BodyBuilder<QueryBody>(queryBody);
-
-		if (freeformQuery != null) {
-			freeformQuery = escapeQuotes(freeformQuery);
-			qBuilder
-				.addObject("query")
-					.addObject("query_string")
-						.addObject("query", freeformQuery)
-						.closeObject()
-					.closeObject()
-				.closeObject();
-
-			qBuilder.build();
-		}
-
-		List<BodyElement> xtraReqSpecs = new ArrayList<BodyElement>();
-		if (sortBy != null) {
-			xtraReqSpecs.add(new SortBody(sortBy));
-		}
-		if (aggregations != null) {
-			xtraReqSpecs.add(aggregations);
-		}
-
-		SearchResults<T> hits = search(queryBody, docTypeName, docPrototype,
-			xtraReqSpecs.toArray(new BodyElement[0]));
-
-		tLogger.trace("Returning results with #hits="+hits.getTotalHits());
-
-		return hits;
-	}
-
-	public <T extends Document> SearchResults<T> searchFreeform(
-			String freeformQuery, T docPrototype,
-			BodyElement... xtraReqSpecs) throws ElasticSearchException {
-		return searchFreeform(freeformQuery, null,
-					docPrototype, xtraReqSpecs);
-	}
-
-	public <T extends Document> SearchResults<T> searchFreeform(
-			String freeformQuery, String docTypeName, T docPrototype,
-			BodyElement... additionalSearchSpecs)
-			throws ElasticSearchException {
-
-		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.searchFreeform");
-
-		QueryBody queryBody = new QueryBody();
-		BodyBuilder<QueryBody> qBuilder = new BodyBuilder<QueryBody>(queryBody);
-		if (freeformQuery != null) {
-			freeformQuery = escapeQuotes(freeformQuery);
-			qBuilder
-					.addObject("query")
-					.addObject("query_string")
-					.addObject("query", freeformQuery)
-					.closeObject()
-					.closeObject()
-					.closeObject();
-
-			qBuilder.build();
-		}
-
-		SearchResults<T> hits = search(queryBody, docTypeName, docPrototype,
-			additionalSearchSpecs);
-
-		tLogger.trace("Returning results with #hits="+hits.getTotalHits());
-
-		return hits;
 	}
 
 	protected String escapeQuotes(String query) {
