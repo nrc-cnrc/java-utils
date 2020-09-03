@@ -9,10 +9,14 @@ import java.util.Map;
 
 public class SortBody extends BodyElement {
 
-    public static enum SortOrder {incr, decr};
+    public static enum SortOrder {asc, desc};
 
     List<String[]> criteria =
         new ArrayList<String[]>();
+
+    public SortBody() {
+        super();
+    }
 
     public SortBody(List<Pair<String,String>> _criteria) {
         criteria = new ArrayList<String[]>();

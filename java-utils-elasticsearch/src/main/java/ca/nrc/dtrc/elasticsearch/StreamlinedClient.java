@@ -637,10 +637,6 @@ public class StreamlinedClient {
 		return results;
 	}
 
-	public <T extends Document> SearchResults<T> searchFreeform(String freeformQuery, T docPrototype, List<Pair<String,String>> sortBy) throws ElasticSearchException {
-		return searchFreeform(freeformQuery, null, docPrototype, sortBy, (AggrBody) null);
-	}
-		
 	public <T extends Document> SearchResults<T> searchFreeform(
 		String freeformQuery, String docTypeName,
 		T docPrototype) throws ElasticSearchException {
@@ -675,24 +671,6 @@ public class StreamlinedClient {
 					.closeObject()
 				.closeObject();
 
-//			if (sortBy.size() > 0) {
-//				List<String[]> sortCriteria = new ArrayList<String[]>();
-//				for (Pair<String,String> criterion: sortBy) {
-//					sortCriteria.add(
-//						new String[] {
-//							criterion.getFirst(),
-//							criterion.getSecond()
-//						});
-//				}
-//				qBuilder.addObject("sort", sortCriteria);
-//				qBuilder.closeObject();
-//			}
-
-			if (aggregations != null) {
-				qBuilder.addObject("aggregations", aggregations.getMap());
-				qBuilder.closeObject();
-			}
-
 			qBuilder.build();
 		}
 
@@ -700,9 +678,9 @@ public class StreamlinedClient {
 		if (sortBy != null) {
 			xtraReqSpecs.add(new SortBody(sortBy));
 		}
-//		if (aggregations != null) {
-//			xtraReqSpecs.add(aggregations);
-//		}
+		if (aggregations != null) {
+			xtraReqSpecs.add(aggregations);
+		}
 
 		SearchResults<T> hits = search(queryBody, docTypeName, docPrototype,
 			xtraReqSpecs.toArray(new BodyElement[0]));
@@ -710,6 +688,13 @@ public class StreamlinedClient {
 		tLogger.trace("Returning results with #hits="+hits.getTotalHits());
 
 		return hits;
+	}
+
+	public <T extends Document> SearchResults<T> searchFreeform(
+			String freeformQuery, T docPrototype,
+			BodyElement... xtraReqSpecs) throws ElasticSearchException {
+		return searchFreeform(freeformQuery, null,
+					docPrototype, xtraReqSpecs);
 	}
 
 	public <T extends Document> SearchResults<T> searchFreeform(

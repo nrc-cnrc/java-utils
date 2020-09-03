@@ -1,32 +1,24 @@
 package ca.nrc.dtrc.elasticsearch;
 
-import static org.junit.Assert.*;
-
-import java.io.File;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import ca.nrc.dtrc.elasticsearch.ESTestHelpers.PlayLine;
 import ca.nrc.dtrc.elasticsearch.request.BodyBuilder;
 import ca.nrc.dtrc.elasticsearch.request.QueryBody;
+import ca.nrc.dtrc.elasticsearch.request.SortBody;
+import ca.nrc.file.ResourceGetter;
+import ca.nrc.introspection.Introspection;
+import ca.nrc.testing.AssertHelpers;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.util.*;
 
-import ca.nrc.datastructure.Pair;
-import ca.nrc.dtrc.elasticsearch.ESTestHelpers.PlayLine;
-import ca.nrc.introspection.Introspection;
-import ca.nrc.file.ResourceGetter;
-import ca.nrc.testing.AssertHelpers;
+import static org.junit.Assert.assertTrue;
 
 public class StreamlinedClientTest {
 		
@@ -529,11 +521,10 @@ public class StreamlinedClientTest {
 		Thread.sleep(1*1000);
 
 		String query = "denmark AND rotten";
-		List<Pair<String,String>> sortBy = new ArrayList<Pair<String,String>>();
-		{
-			sortBy.add(Pair.of("id", "desc"));
-		}
-		SearchResults<ESTestHelpers.PlayLine> gotSearchResults = client.searchFreeform(query, new PlayLine(), sortBy);		
+		SortBody sortBody =
+			new SortBody().sortBy("id", SortBody.SortOrder.desc);
+		SearchResults<ESTestHelpers.PlayLine> gotSearchResults =
+			client.searchFreeform(query, new PlayLine(), sortBody);
 		assertIsInFirstNHits("Something is rotten in the state of Denmark.", 3, "longDescription", gotSearchResults);
 	}		
 	
