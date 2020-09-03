@@ -634,11 +634,11 @@ public class StreamlinedClient {
 	}
 
 
-	private <T extends Document> SearchResults<T> search(String jsonQuery,
-		String docTypeName, T docPrototype) throws ElasticSearchException {
-
-		return search(new JsonString(jsonQuery), docTypeName, docPrototype);
-	}
+//	private <T extends Document> SearchResults<T> search(JsonString jsonQuery,
+//		String docTypeName, T docPrototype) throws ElasticSearchException {
+//
+//		return search(new JsonString(jsonQuery), docTypeName, docPrototype);
+//	}
 
 	private <T extends Document> SearchResults<T> search(JsonString jsonQuery,
 														 String docTypeName, T docPrototype) throws ElasticSearchException {
@@ -659,17 +659,20 @@ public class StreamlinedClient {
 		return results;
 	}
 
-	public <T extends Document> SearchResults<T> searchFreeform(String query, T docPrototype, List<Pair<String,String>> sortBy) throws ElasticSearchException {
-		return searchFreeform(query, null, docPrototype, sortBy, (AggrBody) null);
+	public <T extends Document> SearchResults<T> searchFreeform(String freeformQuery, T docPrototype, List<Pair<String,String>> sortBy) throws ElasticSearchException {
+		return searchFreeform(freeformQuery, null, docPrototype, sortBy, (AggrBody) null);
 	}
 		
-	public <T extends Document> SearchResults<T> searchFreeform(String query, String docTypeName, 
-			T docPrototype) throws ElasticSearchException {
-		return searchFreeform(query, docTypeName, docPrototype, null, null);
+	public <T extends Document> SearchResults<T> searchFreeform(
+		String freeformQuery, String docTypeName,
+		T docPrototype) throws ElasticSearchException {
+		return searchFreeform(freeformQuery, docTypeName, docPrototype, null, null);
 	}
 
-	public <T extends Document> SearchResults<T> searchFreeform(String query, String docTypeName, 
-			T docPrototype, List<Pair<String,String>> sortBy, AggrBody aggregations) throws ElasticSearchException {
+	public <T extends Document> SearchResults<T> searchFreeform(
+		String freeformQuery, String docTypeName, T docPrototype,
+		List<Pair<String,String>> sortBy, AggrBody aggregations)
+		throws ElasticSearchException {
 				
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.searchFreeform");
 
@@ -678,19 +681,18 @@ public class StreamlinedClient {
 		}
 		
 		if (tLogger.isTraceEnabled()) {
-			tLogger.trace("Invoked with query='"+query+"', docTypeName='"+docTypeName+"', docPrototype="+docPrototype.getClass()+"\n  sortBy="+PrettyPrinter.print(sortBy));
+			tLogger.trace("Invoked with query='"+freeformQuery+"', docTypeName='"+docTypeName+"', docPrototype="+docPrototype.getClass()+"\n  sortBy="+PrettyPrinter.print(sortBy));
 		}
 
 		QueryBody queryBody = new QueryBody();
 		BodyBuilder<QueryBody> qBuilder = new BodyBuilder<QueryBody>(queryBody);
 
-
-		if (query != null) {
-			query = escapeQuotes(query);
+		if (freeformQuery != null) {
+			freeformQuery = escapeQuotes(freeformQuery);
 			qBuilder
 				.addObject("query")
 					.addObject("query_string")
-						.addObject("query", query)
+						.addObject("query", freeformQuery)
 						.closeObject()
 					.closeObject()
 				.closeObject();
@@ -937,7 +939,7 @@ public class StreamlinedClient {
 		if (esType == null) esType = queryDoc.getClass().getName();
 		String mltBody = moreLikeThisJsonBody(esType, queryDocMap);
 		
-		SearchResults<T> results = search(mltBody, esType, queryDoc);
+		SearchResults<T> results = search(new JsonString(mltBody), esType, queryDoc);
 		
 		tLogger.trace("Returned results.iterator().hasNext()="+results.iterator().hasNext());
 	
@@ -1038,7 +1040,7 @@ public class StreamlinedClient {
 		
 		
 		SearchResults results = null;
-		results = search(mltBody, esDocTypeName, queryDocs.get(0));
+		results = search(new JsonString(mltBody), esDocTypeName, queryDocs.get(0));
 	
 		return results;
 	}				
