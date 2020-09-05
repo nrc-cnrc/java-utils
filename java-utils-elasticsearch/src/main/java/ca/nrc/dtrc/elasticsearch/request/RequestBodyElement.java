@@ -63,16 +63,10 @@ public class RequestBodyElement {
         Map<String,Object> mergedMap, RequestBodyElement... bodyElts) {
 
         for (RequestBodyElement elt: bodyElts) {
-            System.out.println(
-                    "-- RequestBodyElement.mergeIntoMap: processing elt="+
-                            ((elt != null)?elt.getName():"null"));
             Map<String,Object> eltMap = elt.getValue();
             for (Map.Entry<String,Object> eltEntry: eltMap.entrySet()) {
                 mergedMap.put(eltEntry.getKey(), eltEntry.getValue());
             }
-            System.out.println(
-                    "-- RequestBodyElement.mergeIntoMap: DONE processing elt="+
-                            ((elt != null)?elt.getName():"null"));
         }
 
         return;
