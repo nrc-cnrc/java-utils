@@ -9,31 +9,35 @@ import java.util.Map;
 
 public class Sort extends RequestBodyElement {
 
-    public static enum SortOrder {asc, desc};
+    public static enum Order {asc, desc};
 
-    List<String[]> criteria =
-        new ArrayList<String[]>();
+    List<Pair<String,Order>> criteria =
+        new ArrayList<Pair<String,Order>>();
 
     public Sort() {
         super();
     }
 
-    public Sort(List<Pair<String,String>> _criteria) {
-        criteria = new ArrayList<String[]>();
-        for (Pair<String,String> crit: _criteria) {
-            criteria.add(new String[] {crit.getFirst(), crit.getSecond()});
-        }
+    public Sort(List<Pair<String,Order>> _criteria) {
+        super();
+        criteria = _criteria;
     }
 
-    public Sort sortBy(String fldName, SortOrder order) {
-        criteria.add(new String[] {fldName, order.toString()});
+    public Sort sortBy(String fldName, Order order) {
+        criteria.add(Pair.of(fldName, order));
         return this;
     }
 
     @Override
-    public Map<String,Object> getMap() {
-        map = new HashMap<String,Object>();
-        map.put("fields", criteria);
-        return map;
+    public Map<String,Object> getValue() {
+        List<Map<String,String>> criteriaLst =
+                new ArrayList<Map<String,String>>();
+        for (Pair<String,Order> crit: criteria) {
+            Map<String,String> critMap = new HashMap<String,String>();
+            critMap.put(crit.getFirst(), crit.getSecond().toString());
+            criteriaLst.add(critMap);
+        }
+        this._valueMap.put(getName(), criteriaLst);
+        return _valueMap;
     }
 }

@@ -1,8 +1,8 @@
 package ca.nrc.dtrc.elasticsearch;
 
 import ca.nrc.dtrc.elasticsearch.ESTestHelpers.PlayLine;
+import ca.nrc.dtrc.elasticsearch.request.Aggs;
 import ca.nrc.dtrc.elasticsearch.request.Query;
-import ca.nrc.dtrc.elasticsearch.request.RequestBuilder;
 import ca.nrc.dtrc.elasticsearch.request.Sort;
 import ca.nrc.file.ResourceGetter;
 import ca.nrc.introspection.Introspection;
@@ -184,45 +184,38 @@ public class StreamlinedClientTest {
 		//
 		//
 		Query queryBody = new Query();
-		new RequestBuilder<Query>(queryBody)
-			.addObject("query")
-				.addObject("bool")
-					.addObject("must")
-						.addObject("match")
-							.addObject("surname", "simpson")
-			.build();
+		queryBody
+			.openAttr("bool")
+				.openAttr("must")
+					.openAttr("match")
+						.openAttr("surname")
+							.setOpenedAttr("simpson");
 
 		hits = client.search(queryBody, personPrototype);
 
 
-		// You can aslo ask for some aggregations to be performed on some of
+		// You can also ask for some aggregations to be performed on some of
 		// the fields of the hits.
 		//
 		// For example, will compute the average age of people whose surname is
 		// simpson
 		//
 		queryBody = new Query();
-		new RequestBuilder<Query>(queryBody)
-			.addObject("query")
-				.addObject("bool")
-					.addObject("must")
-						.addObject("match")
-							.addObject("surname", "simpson")
-							.closeObject()
-						.closeObject()
-					.closeObject()
-				.closeObject()
-			.closeObject()
+		queryBody
+			.openAttr("bool")
+				.openAttr("must")
+					.openAttr("match")
+						.openAttr("surname")
+							.setOpenedAttr("simpson");
 
-			.addObject("aggs")
-				.addObject("avgAge")
-					.addObject("avg")
-						.addObject("field", "age")
+		Aggs aggsBody = new Aggs();
+		aggsBody
+			.openAttr("avgAge")
+				.openAttr("avg")
+					.openAttr("field")
+						.setOpenedAttr("age");
 
-			.build()
-		;
-
-		hits = client.search(queryBody, personPrototype);
+		hits = client.search(queryBody, personPrototype, aggsBody);
 		Double averageAge = (Double) hits.aggrResult("avgAge");
 	}
 
@@ -252,21 +245,16 @@ public class StreamlinedClientTest {
 		Thread.sleep(2*1000);
 
 		Query queryBody = new Query();
-		new RequestBuilder<Query>(queryBody)
-			.addObject("query")
-				.addObject("query_string")
-					.addObject("query", "surname:Simpson")
-					.closeObject()
-				.closeObject()
-			.closeObject()
-			.addObject("aggs")
-				.addObject("totalAge")
-					.addObject("sum")
-						.addObject("field", "age")
+		queryBody
+			.openAttr("query_string")
+				.openAttr("query")
+					.setOpenedAttr("surname:Simpson");
 
-			.build();
+		Aggs aggsBody = new Aggs();
+		aggsBody.aggregate("totalAge", "sum", "age");
 
-		SearchResults<Person> hits = client.search(queryBody, personPrototype);
+		SearchResults<Person> hits =
+			client.search(queryBody, personPrototype, aggsBody);
 		Double gotTotalAge = (Double) hits.aggrResult("totalAge");
 		Assert.assertEquals("Aggregated value not as expected",
 			new Double(82.0), gotTotalAge);
@@ -522,7 +510,7 @@ public class StreamlinedClientTest {
 
 		String query = "denmark AND rotten";
 		Sort sortBody =
-			new Sort().sortBy("id", Sort.SortOrder.desc);
+			new Sort().sortBy("id", Sort.Order.desc);
 		SearchResults<ESTestHelpers.PlayLine> gotSearchResults =
 			client.search(query, new PlayLine(), sortBody);
 		assertIsInFirstNHits("Something is rotten in the state of Denmark.", 3, "longDescription", gotSearchResults);

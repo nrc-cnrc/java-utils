@@ -3,9 +3,11 @@ package ca.nrc.dtrc.elasticsearch;
 import ca.nrc.config.ConfigException;
 import ca.nrc.data.file.ObjectStreamReader;
 import ca.nrc.data.file.ObjectStreamReaderException;
-import ca.nrc.datastructure.Cloner;
 import ca.nrc.datastructure.Pair;
-import ca.nrc.dtrc.elasticsearch.request.*;
+import ca.nrc.dtrc.elasticsearch.request.Highlight;
+import ca.nrc.dtrc.elasticsearch.request.JsonString;
+import ca.nrc.dtrc.elasticsearch.request.Query;
+import ca.nrc.dtrc.elasticsearch.request.RequestBodyElement;
 import ca.nrc.introspection.Introspection;
 import ca.nrc.introspection.IntrospectionException;
 import ca.nrc.ui.commandline.UserIO;
@@ -537,7 +539,8 @@ public class StreamlinedClient {
 	public <T extends Document> SearchResults<T> search(
 			String freeformQuery, String docTypeName,
 			T docPrototype) throws ElasticSearchException {
-		return search(freeformQuery, docTypeName, docPrototype, null, null);
+		return search(freeformQuery, docTypeName, docPrototype,
+				new RequestBodyElement[0]);
 	}
 
 	public <T extends Document> SearchResults<T> search(
@@ -547,6 +550,7 @@ public class StreamlinedClient {
 				docPrototype, xtraReqSpecs);
 	}
 
+
 	public <T extends Document> SearchResults<T> search(
 			String freeformQuery, String docTypeName, T docPrototype,
 			RequestBodyElement... additionalSearchSpecs)
@@ -555,16 +559,11 @@ public class StreamlinedClient {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.searchFreeform");
 
 		Query queryBody = new Query();
-		RequestBuilder<Query> qBuilder = new RequestBuilder<Query>(queryBody);
-		if (freeformQuery != null) {
-			freeformQuery = escapeQuotes(freeformQuery);
-			qBuilder
-				.addObject("query")
-					.addObject("query_string")
-						.addObject("query", freeformQuery);
-
-			qBuilder.build();
-		}
+		queryBody
+			.openAttr("query_string")
+				.openAttr("query")
+				.setOpenedAttr(freeformQuery)
+			;
 
 		SearchResults<T> hits = search(queryBody, docTypeName, docPrototype,
 			additionalSearchSpecs);
@@ -580,80 +579,39 @@ public class StreamlinedClient {
 
 	public <T extends Document> SearchResults<T> search(
 			Query query, String docTypeName, T docPrototype) throws ElasticSearchException {
-		return search(query, docTypeName, docPrototype, null);
+		return search(query, docTypeName, docPrototype, new RequestBodyElement[0]);
 	}
+
+	public <T extends Document> SearchResults<T> search(
+			Query query, T docPrototype, RequestBodyElement... additionalSearchSpecs)
+			throws ElasticSearchException {
+		return search(query, null, docPrototype, additionalSearchSpecs);
+	}
+
 
 	public <T extends Document> SearchResults<T> search(
 			Query query, String docTypeName, T docPrototype,
 			RequestBodyElement... additionalBodyElts) throws ElasticSearchException {
 
-		Aggs aggrBody = null;
-		Highlight highlightBody = null;
-		Sort sortBody = null;
-		if (additionalBodyElts != null){
-			for (RequestBodyElement addBody : additionalBodyElts) {
-				if (addBody instanceof Query) {
-					if (query != null) {
-						throw new ElasticSearchException(
-								"More than one Query element was provided.");
-					} else {
-						query = (Query) addBody;
-					}
-				} else if (addBody instanceof Aggs) {
-					if (aggrBody != null) {
-						throw new ElasticSearchException(
-							"More than one Aggs element was provided.");
-					} else {
-						aggrBody = (Aggs) addBody;
-					}
-				} else if (addBody instanceof Highlight) {
-					if (highlightBody != null) {
-						throw new ElasticSearchException(
-							"More than one Highlight element was provided.");
-					} else {
-						highlightBody = (Highlight) addBody;
-					}
-				} else if (addBody instanceof Sort) {
-					if (sortBody != null) {
-						throw new ElasticSearchException(
-								"More than one Sort element was provided.");
-					} else {
-						sortBody = (Sort) addBody;
-					}
-				}
-			}
+		RequestBodyElement[] bodyElements =
+			new RequestBodyElement[additionalBodyElts.length+1];
+		bodyElements[0] = query;
+		for (int ii=1; ii < bodyElements.length; ii++) {
+			bodyElements[ii] = additionalBodyElts[ii-1];
+		}
+		Map<String,Object> reqMap = RequestBodyElement.merge(bodyElements);
+		if (!reqMap.containsKey("highlight")) {
+			Highlight highlight = new Highlight().hihglightField("longDescription");
+			RequestBodyElement.mergeIntoMap(reqMap, highlight);
 		}
 
-		Map<String,Object> reqBody = null;
+		String reqJson = null;
 		try {
-			reqBody = Cloner.clone(query.getMap());
-		} catch (Cloner.ClonerException e) {
-			throw new ElasticSearchException(e);
-		}
-
-		if (aggrBody != null) {
-			reqBody.put("aggregations", aggrBody.getMap());
-		}
-
-		if (highlightBody == null) {
-			highlightBody = new Highlight();
-		}
-		highlightBody.hihglightField("longDescription");
-
-		reqBody.put("highlight", highlightBody.getMap());
-
-		if (sortBody != null) {
-			reqBody.put("sort", sortBody.getMap().get("fields"));
-		}
-
-		String queryJson = null;
-		try {
-			queryJson = new ObjectMapper().writeValueAsString(reqBody);
+			reqJson = new ObjectMapper().writeValueAsString(reqMap);
 		} catch (JsonProcessingException e) {
 			throw new ElasticSearchException(e);
 		}
-
-		return search(new JsonString(queryJson), docTypeName, docPrototype);
+		return search(new JsonString(reqJson), docTypeName, docPrototype);
 	}
 
 

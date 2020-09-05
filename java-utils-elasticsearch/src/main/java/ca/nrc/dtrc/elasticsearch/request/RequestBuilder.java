@@ -7,7 +7,7 @@ import java.util.Stack;
 public class RequestBuilder<T extends RequestBodyElement> {
     private static final String NO_VALUE_YET = "NO_VALUE_YET";
 
-    Map<String,Object> map = new HashMap<String,Object>();
+    Map<String,Object> value = new HashMap<String,Object>();
     Stack<String> fieldsStack = new Stack<String>();
     T instance = null;
 
@@ -20,7 +20,7 @@ public class RequestBuilder<T extends RequestBodyElement> {
     }
 
     public RequestBuilder addObject(String fldName, Object fldValue) {
-        Map<String,Object> field = map;
+        Map<String,Object> field = value;
         for (String aFldName: fieldsStack) {
             field = (Map<String, Object>) field.get(aFldName);
         }
@@ -36,7 +36,7 @@ public class RequestBuilder<T extends RequestBodyElement> {
     }
 
     public T build() {
-        instance.init(map);
+        instance.set_valueMap(value);
         return instance;
     }
 }
