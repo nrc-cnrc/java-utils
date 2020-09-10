@@ -1,17 +1,9 @@
 package ca.nrc.testing;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import org.apache.commons.lang.StringUtils;
+import ca.nrc.json.PrettyPrinter;
 import org.junit.Assert;
 
-import ca.nrc.json.PrettyPrinter;
+import java.util.*;
 
 public class AssertCollection {
 
@@ -71,18 +63,52 @@ public class AssertCollection {
 	}
 
 	public static <T> void assertContainsAll(String mess,
-											 Set<T> expItems, Set<T> gotItems) {
-		Set<T> itemsNotFound = new HashSet<T>();
-		for (T item : expItems) {
+		Set<T> expSet, Set<T> gotItems) {
+		Set<T> expItemsNotFound = new HashSet<T>();
+		for (T item : expSet) {
 			if (!gotItems.contains(item)) {
-				itemsNotFound.add(item);
+				expItemsNotFound.add(item);
 			}
 		}
-		if (!itemsNotFound.isEmpty()) {
+		if (!expItemsNotFound.isEmpty()) {
 			mess +=
-					"\nThe following expected items were not contained in the actual collection:\n" +
-							PrettyPrinter.print(itemsNotFound) + "\n" +
-							"Actual collection was:\n" + PrettyPrinter.print(gotItems);
+			"\nThe following expected items were not found in the actual collection:\n" +
+				PrettyPrinter.print(expItemsNotFound) + "\n" +
+				"Actual collection was:\n" + PrettyPrinter.print(gotItems);
+			Assert.fail(mess);
+		}
+	}
+
+
+	public static <T> void assertContainsNoneOf(String mess,
+		T[] unexpectedItemsArr, T[] gotItemsArr) {
+		Set<T> unexpectedItems = new HashSet<T>();
+		Collections.addAll(unexpectedItems, unexpectedItemsArr);
+		Set<T> gotItems = new HashSet<T>();
+		Collections.addAll(gotItems, gotItemsArr);
+		assertContainsNoneOf(mess, unexpectedItems, gotItems);
+	}
+
+	public static <T> void assertContainsNoneOf(String mess,
+ 		T[] unexpectedItemsArr, Set<T> gotItems) {
+		Set<T> unexpectedItems = new HashSet<T>();
+		Collections.addAll(unexpectedItems, unexpectedItemsArr);
+		assertContainsNoneOf(mess, unexpectedItems, gotItems);
+	}
+
+	public static <T> void assertContainsNoneOf(String mess,
+		Set<T> unexpectedSet, Set<T> gotItems) {
+		Set<T> unexpectedItemsFound = new HashSet<T>();
+		for (T item : unexpectedSet) {
+			if (gotItems.contains(item)) {
+				unexpectedItemsFound.add(item);
+			}
+		}
+		if (!unexpectedItemsFound.isEmpty()) {
+			mess +=
+			"\nThe following unexpected items were found in the actual collection:\n" +
+				PrettyPrinter.print(unexpectedItemsFound) + "\n" +
+				"Actual collection was:\n" + PrettyPrinter.print(gotItems);
 			Assert.fail(mess);
 		}
 	}
