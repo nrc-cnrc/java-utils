@@ -51,6 +51,8 @@ public class StreamlinedClient {
 		
 	private String serverName = "localhost";
 	private int port = 9200;
+
+	Boolean _indexExists = null;
 	
 	private UserIO userIO = null;
 		public void setUserIO(UserIO _userIO) {this.userIO = _userIO;}
@@ -126,6 +128,7 @@ public class StreamlinedClient {
 
 	public StreamlinedClient setIndexName(String _indexName) {
 		this.indexName = canonicalIndexName(_indexName);
+		this._indexExists = null;
 		
 		return this;
 	}
@@ -163,9 +166,20 @@ public class StreamlinedClient {
 		
 		return jsonResponse;
 	}
-	
+
+	public void defineIndex() throws ElasticSearchException {
+		defineIndex(null, null);
+	}
+
 	public void defineIndex(IndexDef iDef, Boolean force) throws ElasticSearchException {
-				
+		if (iDef == null) {
+			iDef = new IndexDef();
+		}
+
+		if (force == null) {
+			force = true;
+		}
+
 		Map<String,Object> indexMappings = iDef.indexMappings();
 		Map<String,Object> indexSettings = iDef.settingsAsProps();
 		defineIndex(indexSettings, indexMappings, force);
@@ -176,6 +190,13 @@ public class StreamlinedClient {
 		getIndex().setDefinition(indexSettings, indexMappings, force);
 		return;
 	}
+
+	private void defineIndexIfNotExists() throws ElasticSearchException {
+		if (!indexExists()) {
+			defineIndex();
+		}
+	}
+
 
 	private Map<String, Object> indexSettings() throws ElasticSearchException {
 		URL url = esUrlBuilder().forEndPoint("_settings").build();
@@ -194,21 +215,22 @@ public class StreamlinedClient {
 	}
 
 	public boolean indexExists() {
-		URL url = null;
-		boolean exists = true;
-		try {
-			url = esUrlBuilder().forEndPoint("_search").build();
-		} catch (ElasticSearchException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		if (_indexExists == null) {
+			URL url = null;
+			_indexExists = true;
+			try {
+				url = esUrlBuilder().forEndPoint("_search").build();
+			} catch (ElasticSearchException e) {
+				throw new RuntimeException(e);
+			}
+			try {
+				get(url);
+			} catch (ElasticSearchException e) {
+				_indexExists = false;
+			}
 		}
-		try {
-			get(url);
-		} catch (ElasticSearchException e) {
-			exists = false;
-		}
-		
-		return exists;
+
+		return _indexExists;
 	}
 
 	public void defineFieldTypes(Map<String,String> typeDefs) throws ElasticSearchException {
@@ -222,6 +244,13 @@ public class StreamlinedClient {
 			}
 			aMapping.put("type", aType);
 			mappingsDict.put(typeName, aMapping);
+		}
+
+		// The 'id' field should always be of type 'keyword'
+		{
+			Map<String, String> aMapping = new HashMap<String, String>();
+			aMapping.put("type", "keyword");
+			mappingsDict.put("id", aMapping);
 		}
 		
 		String jsonString;
@@ -242,6 +271,7 @@ public class StreamlinedClient {
 	
 	public String putDocument(Document doc) throws ElasticSearchException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.putDocument");
+		defineIndexIfNotExists();
 		if (tLogger.isTraceEnabled()) {
 			try {
 				tLogger.trace("(Document): putting document with id="+doc.getId()+", doc="+
