@@ -131,7 +131,14 @@ public class StreamlinedClientTest {
 		while (iter.hasNext()) {
 			Person person = iter.next().getDocument();
 		}
-		
+
+		// Loop through the IDs of adocuments in the index
+		results = client.listAll(personPrototype);
+		Iterator<String> idsIter = results.docIDIterator();
+		while (idsIter.hasNext()) {
+			String docID = idsIter.next();
+		}
+
 		// Get a specific document by its ID
 		Person person = (Person) client.getDocumentWithID("Homer", Person.class);
 		

@@ -193,7 +193,7 @@ public class StreamlinedClient {
 		return settings;
 	}
 
-	protected boolean indexExists() {
+	public boolean indexExists() {
 		URL url = null;
 		boolean exists = true;
 		try {
@@ -354,37 +354,39 @@ public class StreamlinedClient {
 		
 		return docs;
 	}	
-	
+
 	public <T extends Document> SearchResults<T> listAll(T docPrototype) throws ElasticSearchException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.listAll");
 		@SuppressWarnings("unchecked")
 		Class<T> docClass = (Class<T>) docPrototype.getClass();
 		String type = docClass.getName();
 		tLogger.trace("searching for all type="+type);
-		URL url = esUrlBuilder().forClass(docClass).forEndPoint("_search").scroll().build();
-		String jsonResponse = post(url, "{}");
-		
-		SearchResults<T> results = new SearchResults<T>(jsonResponse, docPrototype, this);
-		
-		return results;
-	}		
 
-	public <T extends Document> SearchResults<T> listAll(String esDocTypeName , T docPrototype) throws ElasticSearchException {
+		String query = "";
+		SearchResults<T> results = search(query, type, docPrototype);
+		return results;
+	}
+
+	public <T extends Document> SearchResults<T> listAll(
+		String esDocTypeName , T docPrototype) throws ElasticSearchException {
+		return listAll(esDocTypeName, docPrototype, new RequestBodyElement[0]);
+	}
+
+	public <T extends Document> SearchResults<T> listAll(
+		String esDocTypeName , T docPrototype, RequestBodyElement... options)
+		throws ElasticSearchException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.listAll");
 		tLogger.trace("searching for all type="+esDocTypeName);
-		URL url = esUrlBuilder().forDocType(esDocTypeName).forEndPoint("_search").scroll().build();
-		
-		tLogger.trace("invoking url="+url);
-		String jsonResponse = post(url, "{}");
-		
-		SearchResults<T> results = new SearchResults<T>(jsonResponse, docPrototype, this);
-		
+
+		SearchResults<T> results =
+			search("", esDocTypeName, docPrototype, options);
 		return results;
-	}		
+	}
 
 	public <T extends Document> Iterator<T> typeIterator(String esDocTypeName , T docPrototype) throws ElasticSearchException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.listAll");
 		tLogger.trace("searching for all type="+esDocTypeName);
+
 		URL url = esUrlBuilder().forDocType(esDocTypeName).forEndPoint("_search").scroll().build();
 		
 		tLogger.trace("invoking url="+url);
