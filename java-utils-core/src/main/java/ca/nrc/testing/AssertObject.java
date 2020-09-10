@@ -1,15 +1,14 @@
 package ca.nrc.testing;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-
-import org.junit.Assert;
-
+import ca.nrc.json.PrettyPrinter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.Assert;
 
-import ca.nrc.json.PrettyPrinter;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  * Allows a "deep equal" between two objects, no matter 
@@ -80,6 +79,17 @@ public class AssertObject {
 		String expObjectJsonString = PrettyPrinter.print(expObject, ignoreFields, decimalsTolerance);
 		assertEqualsJsonCompare(message, expObjectJsonString, gotObject, ignoreFields, true, decimalsTolerance);		
 	}
+
+	public static <T> void assertDeepEquals(
+			String message, T[] expObjects, Iterator<T> gotObjectIterator) throws IOException {
+		Set<String> emptyIgnoreFields = new HashSet<String>();
+		Set<T> gotObjects = new HashSet<T>();
+		while (gotObjectIterator.hasNext()) {
+			gotObjects.add(gotObjectIterator.next());
+		}
+		assertDeepEquals(message, expObjects, gotObjects, emptyIgnoreFields, null);
+	}
+
 	
 	public static void assertDeepNotEqual(String message, Object expObject, Object gotObject) {
 		Boolean areEqual = false;
