@@ -1,21 +1,16 @@
 package ca.nrc.dtrc.elasticsearch;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.lang3.tuple.Pair;
-import org.apache.commons.lang3.tuple.Triple;
-import org.apache.log4j.Logger;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
+import org.apache.log4j.Logger;
+
+import java.io.IOException;
+import java.util.*;
 
 public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 	
@@ -175,9 +170,7 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 		
 		return Pair.of(Pair.of(totalHits, scrollID), scoredDocuments);
 	}	
-	
 
-	
 	@Override
 	public Iterator<Hit<T>> iterator() {
 		ScoredHitsIterator<T> iter = null;
@@ -188,7 +181,11 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 		}
 		return iter;
 	}
-	
+
+	public DocIDIterator<T> docIDIterator() {
+		return new DocIDIterator<T>(iterator());
+	}
+
 	public UnscoredHitsIterator<T> unscoredHitsIterator() {
 		UnscoredHitsIterator<T> iter = null;
 		List<T> unscoredHitsBatch = new ArrayList<T>();
