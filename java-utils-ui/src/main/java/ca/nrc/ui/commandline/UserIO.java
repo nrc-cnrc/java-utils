@@ -109,7 +109,7 @@ public class UserIO {
 		}
 	}
 	
-	protected boolean verbosityLevelIsMet(Verbosity minLevel) {
+	public boolean verbosityLevelIsMet(Verbosity minLevel) {
 		boolean answer = false;
 		Integer minLevelInt = verbosityToInt(minLevel);
 		Integer verbosityInt = verbosityToInt(verbosity);
@@ -117,7 +117,7 @@ public class UserIO {
 		return answer;
 	}
 
-	protected static Integer verbosityToInt(Verbosity level) {
+	public static Integer verbosityToInt(Verbosity level) {
 		Integer levelNum = null;
 		if (level != null) {
 			String minLevelStr = level.toString();
