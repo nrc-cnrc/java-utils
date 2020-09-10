@@ -353,7 +353,12 @@ public class StreamlinedClient {
 
 		
 		return docs;
-	}	
+	}
+
+	public <T extends Document> SearchResults<T> listAll(
+			String esDocTypeName , T docPrototype) throws ElasticSearchException {
+		return listAll(esDocTypeName, docPrototype, new RequestBodyElement[0]);
+	}
 
 	public <T extends Document> SearchResults<T> listAll(T docPrototype) throws ElasticSearchException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.listAll");
@@ -362,14 +367,17 @@ public class StreamlinedClient {
 		String type = docClass.getName();
 		tLogger.trace("searching for all type="+type);
 
-		String query = "";
+//		String query = "";
+		Query query = new Query();
+		query
+			.openAttr("exists")
+				.openAttr("field")
+					.setOpenedAttr("id")
+			;
+
+
 		SearchResults<T> results = search(query, type, docPrototype);
 		return results;
-	}
-
-	public <T extends Document> SearchResults<T> listAll(
-		String esDocTypeName , T docPrototype) throws ElasticSearchException {
-		return listAll(esDocTypeName, docPrototype, new RequestBodyElement[0]);
 	}
 
 	public <T extends Document> SearchResults<T> listAll(
