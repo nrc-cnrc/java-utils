@@ -375,7 +375,6 @@ public class StreamlinedClient {
 					.setOpenedAttr("id")
 			;
 
-
 		SearchResults<T> results = search(query, type, docPrototype);
 		return results;
 	}
@@ -386,8 +385,16 @@ public class StreamlinedClient {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.listAll");
 		tLogger.trace("searching for all type="+esDocTypeName);
 
+		Query query = new Query();
+		query
+			.openAttr("exists")
+				.openAttr("field")
+				.setOpenedAttr("id")
+			;
+
 		SearchResults<T> results =
-			search("", esDocTypeName, docPrototype, options);
+			search(query, esDocTypeName, docPrototype, options);
+
 		return results;
 	}
 
