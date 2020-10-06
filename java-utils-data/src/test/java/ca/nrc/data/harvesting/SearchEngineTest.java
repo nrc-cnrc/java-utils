@@ -1,31 +1,24 @@
 package ca.nrc.data.harvesting;
 
-import static org.junit.Assert.*;
+import ca.nrc.data.harvesting.SearchEngine.Hit;
+import ca.nrc.data.harvesting.SearchEngine.Query;
+import ca.nrc.data.harvesting.SearchEngine.SearchEngineException;
+import ca.nrc.json.PrettyPrinter;
+import ca.nrc.testing.AssertHelpers;
+import ca.nrc.testing.AssertNumber;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.StringUtils;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-
-import ca.nrc.data.harvesting.SearchEngine;
-import ca.nrc.data.harvesting.SearchEngine.Hit;
-import ca.nrc.data.harvesting.SearchEngine.Query;
-import ca.nrc.data.harvesting.SearchEngine.SearchEngineException;
-import ca.nrc.data.harvesting.SearchEngine.Type;
-import ca.nrc.json.PrettyPrinter;
-import ca.nrc.testing.AssertHelpers;
-import ca.nrc.testing.AssertNumber;
+import static org.junit.Assert.fail;
 
 public abstract class SearchEngineTest {
 
@@ -227,7 +220,7 @@ public abstract class SearchEngineTest {
 		SearchEngine.Query query = 
 				new SearchEngine.Query("machine learning").setSite(site);
 		List<SearchEngine.Hit> results = engine.search(query).retrievedHits; 
-		assertResultsFitTheQuery(results, query, 3);
+		assertResultsFitTheQuery(results, query, 4);
 	}	
 
 	
@@ -239,7 +232,7 @@ public abstract class SearchEngineTest {
 		SearchEngine.Query query = new SearchEngine.Query("machine learning");
 		query.setSite(site);
 		List<SearchEngine.Hit> results = engine.search(query).retrievedHits; 
-		assertResultsFitTheQuery(results, query, 3);
+		assertResultsFitTheQuery(results, query, 4);
 	}
 	
 	@Test
