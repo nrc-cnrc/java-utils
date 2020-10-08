@@ -1,6 +1,6 @@
-#The java-utils project
+# The java-utils project
 
-##Description
+## Description
 
 _java-utils_ is a collection of java utility classes used in various project at 
 the National Research Council of Canada.
@@ -44,7 +44,7 @@ _Java-utils_ is a _Maven_ project with several sub-modules:
  - _java-utils-ui_: Classes for building and testing Command Line Interface 
         (CLI) or web-based UIs
 
-##Documentation
+## Documentation
 
 There is no documentation per-se. However, most classes have a JUnit test case 
 that starts with a section lableled "DOCUMENTATION TESTS".
