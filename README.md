@@ -51,4 +51,3 @@ that starts with a section lableled "DOCUMENTATION TESTS".
 
 Tests in this section provide well documented code examples that illustrate the 
 different ways in which the class and its methods can be used. 
-
