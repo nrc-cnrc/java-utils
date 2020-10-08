@@ -51,3 +51,43 @@ that starts with a section lableled "DOCUMENTATION TESTS".
 
 Tests in this section provide well documented code examples that illustrate the 
 different ways in which the class and its methods can be used. 
+
+# Installing _java-utils_
+
+At the moment, binary jars for _java-utils_ are not available on any 
+public Maven artifactory. To use _java-utils_ in one of your projects, you must 
+download it from GitHub and install it with maven command:
+
+    mvn clean install -DskipTests=true
+    
+You can then include any _java-utils_ module in your project by adding an entry 
+to your project's _pom.xml_ file. For example, to include module 
+_java-utils-core_, you would add something like this to your pom:
+
+		<dependency>
+			<groupId>ca.nrc.java-utils</groupId>
+			<artifactId>java-utils-core</artifactId>
+			<version>1.0.25-SNAPSHOT</version>
+		</dependency>
+
+## _java-utils_ properties
+
+Some of the _java-utils_ classes can be configured using properties whose names 
+all start with _ca.nrc_. 
+
+You can configure those using either:
+
+- Environment variables
+- Java JRE system variables
+- The _ca_nrc_ properties file   
+
+The first two approaches are self explanatory.
+
+For the 3rd approach (_ca_nrc_ properties file), just create a properties file 
+called _ca_nrc.properties_ and defined all your _ca.nrc_ props in it. Then, point 
+to this file using either an environment or JRE variable called _ca_nrc_.  
+
+For example:
+
+     java -Dca_nrc=/path/to/your/ca_nrc.properties
+     
