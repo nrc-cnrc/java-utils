@@ -6,18 +6,12 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
+import org.junit.*;
 
-import org.junit.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.firefox.FirefoxDriver;
 
 import com.fasterxml.jackson.databind.node.ArrayNode;
 
@@ -31,10 +25,11 @@ public class WebDriverUtilsTest {
 	private WebDriverUtils wdUtils;
 	
 	@BeforeClass 
-	public static void setUpBeforeClass() throws Exception {	
+	public static void setUpBeforeClass() throws Exception {
+		AssumeChromeDriverIsDefined.assume();
 		theDriver = WebDriverFactory.getDriver();
 	}
-	
+
 	@Before
 	public void setUp() throws Exception {
 		int resetWaitMSecs = 3*1000;
@@ -44,7 +39,6 @@ public class WebDriverUtilsTest {
 	@After
 	public void tearDown() throws Exception {
 	}
-	
 	
 	/*****************************************************************************
 	 * DOCUMENTATION TESTS
