@@ -232,7 +232,7 @@ public abstract class SearchEngineTest {
 		SearchEngine.Query query = new SearchEngine.Query("machine learning");
 		query.setSite(site);
 		List<SearchEngine.Hit> results = engine.search(query).retrievedHits; 
-		assertResultsFitTheQuery(results, query, 4);
+		assertResultsFitTheQuery(results, query, 6);
 	}
 	
 	@Test

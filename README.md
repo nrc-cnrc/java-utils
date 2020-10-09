@@ -84,10 +84,15 @@ You can configure those using either:
 The first two approaches are self explanatory.
 
 For the 3rd approach (_ca_nrc_ properties file), just create a properties file 
-called _ca_nrc.properties_ and defined all your _ca.nrc_ props in it. Then, point 
+called _ca_nrc.properties_ and define all your _ca.nrc.*_ props in it. Then, point 
 to this file using either an environment or JRE variable called _ca_nrc_.  
 
 For example:
 
-     java -Dca_nrc=/path/to/your/ca_nrc.properties
+       
+     # Using JRE variables  
+     java -Dca_nrc=/path/to/your/ca_nrc.properties etc...
+     
+     # Using environment variable
+     export ca_nrc=/path/to/your/ca_nrc.properties; java etc...
      

@@ -5,7 +5,10 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.List;
 
+import ca.nrc.config.ConfigException;
+import ca.nrc.data.JavaUtilsDataConfig;
 import org.junit.After;
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -19,6 +22,24 @@ public class SearchEngine_BingTest extends SearchEngineTest {
 	@Before
 	public void setUp() throws Exception {
 		super.setUp();
+
+		// Don't run the tests unless a Bing key has been defined.
+		//
+		boolean keyIsDefined = bingKeyIsDefined();
+		Assume.assumeTrue(
+			"No bing key defined. Skipping all tests in SearchEngine_BingTest." +
+			"To run those tests, obtain a Bing key from Microsoft Azure and setup a config property ca.nrc.javautils.bingKey with that value",
+			bingKeyIsDefined());
+	}
+
+	private boolean bingKeyIsDefined() {
+		boolean keyDefined = true;
+		try {
+			JavaUtilsDataConfig.getBingKey();
+		} catch (ConfigException e) {
+			keyDefined = false;
+		}
+		return keyDefined;
 	}
 
 	@After
