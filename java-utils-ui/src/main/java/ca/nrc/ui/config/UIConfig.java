@@ -14,11 +14,13 @@ public class UIConfig extends Config {
 	}
 
 	public String getBrowserName() throws ConfigException {
-		String name = getConfigProperty("ca.nrc.ui.test.browsername", false);
-		if (name == null) {
+		String name = null;
+		try {
+			name = getConfigProperty("ca.nrc.ui.test.browsername");
+		} catch (ConfigException e) {
 			name = "chrome";
 		}
-		
+
 		return name;
 	}
 

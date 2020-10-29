@@ -43,7 +43,7 @@ public class Config {
 
 	@JsonIgnore
 	public static String getConfigProperty(String propName) throws ConfigException {
-		return getConfigProperty(propName, null, String.class);
+		return getConfigProperty(propName, (String)null, String.class);
 	}
 
 	@JsonIgnore
@@ -51,15 +51,15 @@ public class Config {
 		return getConfigProperty(propName, defValue, String.class);
 	}
 
-
 	@JsonIgnore
-	public static String getConfigProperty(String propName, boolean failIfNoConfig) throws ConfigException {
-		return getConfigProperty(propName, (String)null, String.class);
+	public static <T> T getConfigProperty(String propName, Class<T> clazz) throws ConfigException {
+		return getConfigProperty(propName, (T)null, clazz);
 	}
+
 
 	@JsonIgnore
 	public static <T> T getConfigProperty(
-			String propName, String defaultVal, Class<T> clazz) throws ConfigException {
+			String propName, T defaultVal, Class<T> clazz) throws ConfigException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.config.Config.getConfigProperty");
 
 		if (propName.contains("_")) {
@@ -67,6 +67,8 @@ public class Config {
 					"Bad property name: '"+propName+"'.\n"+
 							"Property names should not include underscores.");
 		}
+
+		T prop = null;
 
 		propName = convertToUndescore(propName);
 		String propJson = null;
@@ -81,13 +83,13 @@ public class Config {
 
 		if (propJson == null) {
 			if (defaultVal != null) {
-				propJson = defaultVal;
+				prop = defaultVal;
 			} else {
 				throwConfigPropNotFound(propName);
 			}
+		} else {
+			prop = parsePropValue(propName, propJson, clazz);
 		}
-
-		T prop = parsePropValue(propName, propJson, clazz);
 
 		return prop;
 	}

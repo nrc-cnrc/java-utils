@@ -21,6 +21,15 @@ public class AssertConfig extends Asserter<Object> {
         return this;
     }
 
+//    public <T> AssertConfig assertConfigPropertyEquals(
+//            T expValue, String propName, T _default) throws Exception {
+//        String gotValue = Config.getConfigProperty(propName, _default);
+//        AssertObject.assertDeepEquals(
+//            "Congfig prop "+propName+" did not have the expected value",
+//            expValue, gotValue);
+//        return this;
+//    }
+
     public <T> AssertConfig assertParsedPropValueIs(T expValue,
         String propStr, Class<T> clazz) throws Exception {
         T gotValue = Config.parsePropValue("propName", propStr, clazz);

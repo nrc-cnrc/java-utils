@@ -122,9 +122,21 @@ public class ConfigTest {
 		// type.
 		// For example...
 		//
+		// Integer type:
+		//
 		String propName = "com.acme.someint";
-		environmentVariables.set(propName, "13");
-//		Integer intPropVal = Config.getConfigProperty(propName, Integer.class);
+		environmentVariables.
+			set(propName.replaceAll("\\.", "_"), "13");
+		Integer intPropVal = Config.getConfigProperty(propName, Integer.class);
+
+		// Map type:
+		//
+		propName = "com.acme.somemap";
+		environmentVariables.
+				set(propName.replaceAll("\\.", "_"),
+					"{\"firstname\": \"Homer\", \"surname\": \"Simpson\"}");
+		Map<String,String> mapPropVal =
+			Config.getConfigProperty(propName, Map.class);
 	}
 
 	///////////////////////////////////////////////
@@ -152,6 +164,19 @@ public class ConfigTest {
 			.assertConfigPropertyEquals(
 				defaultVal, "com.acme.nonexistantprop", defaultVal);
 	}
+
+	@Test
+	public void test__getConfigProperty__IntegerValue() throws Exception {
+		String propName = "com.acme.someint";
+		environmentVariables.
+			set(propName.replaceAll("\\.", "_"), "13");
+		Integer expValue = new Integer(13);
+//		new AssertConfig("")
+//			.assertConfigPropertyEquals(expValue, propName, null);
+		Assert.fail("Implement this test");
+	}
+
+
 
 	@Test
 	public void test__possiblePropFileNames__HappyPath() throws Exception {
