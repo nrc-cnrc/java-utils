@@ -635,7 +635,6 @@ public class StreamlinedClient {
 		return search(query, null, docPrototype, additionalSearchSpecs);
 	}
 
-
 	public <T extends Document> SearchResults<T> search(
 			Query query, String docTypeName, T docPrototype,
 			RequestBodyElement... additionalBodyElts) throws ElasticSearchException {
@@ -663,7 +662,7 @@ public class StreamlinedClient {
 
 
 	private <T extends Document> SearchResults<T> search(JsonString jsonQuery,
-														 String docTypeName, T docPrototype) throws ElasticSearchException {
+	 	String docTypeName, T docPrototype) throws ElasticSearchException {
 		if (docTypeName == null) {
 			docTypeName = docPrototype.getClass().getName();
 		}
@@ -674,9 +673,10 @@ public class StreamlinedClient {
 				.scroll().build();
 		tLogger.trace("url="+url+", jsonQuery="+jsonQuery);
 		String jsonResponse = post(url, jsonQuery.toString());
-		tLogger.trace("jsonResponse="+jsonResponse);
 
 		SearchResults<T> results = new SearchResults<T>(jsonResponse, docPrototype, this);
+
+		tLogger.trace("returning results with #hits="+results.getTotalHits());
 
 		return results;
 	}
