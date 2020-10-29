@@ -193,10 +193,20 @@ public abstract class SubCommand {
 	protected  Integer verbosityToInt(UserIO.Verbosity level) {
 		return getUserIO().verbosityToInt(level);
 	}
-	
+
 
 	public void usageMissingOption(String optionName) {
-		usage("Sub-command '"+name+"' requires a value for the '"+optionName+"' option.");
+		usageMissingOption(optionName, null);
+	}
+
+	public void usageMissingOption(String optionName, String mess) {
+		String errMessage =
+			"Sub-command '"+name+"' requires a value for the '"+
+			optionName+"' option.";
+		if (mess != null) {
+			errMessage = mess + "\n" + errMessage;
+		}
+		usage(errMessage);
 	}
 
 	public void usageMissingOption(String[] optionNames) {
