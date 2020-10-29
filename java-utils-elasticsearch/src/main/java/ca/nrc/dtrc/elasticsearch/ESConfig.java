@@ -13,7 +13,7 @@ public class ESConfig extends Config {
 	
 	public static String host() throws ConfigException {
 		if (hostCached == null) {
-			hostCached = getConfigProperty("ca_nrc_javautils_elasticsearch_host", "localhost");
+			hostCached = getConfigProperty("ca.nrc.javautils.elasticsearch.host", "localhost");
 		}
 		return hostCached;
 	}
@@ -21,7 +21,7 @@ public class ESConfig extends Config {
 	public static int port() throws ConfigException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.ESConfig.port");
 		if (portCached == null) {
-			portCached = getConfigProperty("ca_nrc_javautils_elasticsearch_port", "9200");
+			portCached = getConfigProperty("ca.nrc.javautils.elasticsearch.port", "9200");
 		}
 		
 		int port = -1;

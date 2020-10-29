@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
@@ -42,59 +43,82 @@ public class Config {
 
 	@JsonIgnore
 	public static String getConfigProperty(String propName) throws ConfigException {
-		return getConfigProperty(propName, true);
+		return getConfigProperty(propName, null, String.class);
 	}
-	
-	
+
 	@JsonIgnore
 	public static String getConfigProperty(String propName, String defValue) throws ConfigException {
-		Logger tLogger = LogManager.getLogger("ca.nrc.config.Config.getConfigProperty");
-		String prop = getConfigProperty(propName, false);
-		if (prop == null) {
-			tLogger.trace("** Using defValue="+defValue);
-			prop = defValue;
-		}
-	
-		return prop;
+		return getConfigProperty(propName, defValue, String.class);
 	}
+
 
 	@JsonIgnore
 	public static String getConfigProperty(String propName, boolean failIfNoConfig) throws ConfigException {
-		return getConfigProperty(propName, failIfNoConfig, null);
+		return getConfigProperty(propName, (String)null, String.class);
 	}
-	
+
 	@JsonIgnore
-	public static String getConfigProperty(String propName, boolean failIfNoConfig, Map<String,String> propOverrides) throws ConfigException {
+	public static <T> T getConfigProperty(
+			String propName, String defaultVal, Class<T> clazz) throws ConfigException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.config.Config.getConfigProperty");
+
+		if (propName.contains("_")) {
+			throw new ConfigException(
+					"Bad property name: '"+propName+"'.\n"+
+							"Property names should not include underscores.");
+		}
+
 		propName = convertToUndescore(propName);
-		String prop = null;
-		
-		if (propOverrides != null && propOverrides.containsKey(propName)) {
-			prop = propOverrides.get(propName);
+		String propJson = null;
+
+
+		if (propJson == null) {
+			propJson = lookInEnvAndSystemProps(propName);
 		}
-		if (prop == null) {
-			prop = lookInEnvAndSystemProps(propName);
+		if (propJson == null) {
+			propJson = lookInPropFiles(propName);
 		}
-		if (prop == null) {
-			prop = lookInPropFiles(propName);
+
+		if (propJson == null) {
+			if (defaultVal != null) {
+				propJson = defaultVal;
+			} else {
+				throwConfigPropNotFound(propName);
+			}
 		}
-				
-		if (prop == null && failIfNoConfig) {
-			throw new ConfigException("No configuration property or environment variable '"+propName+"'");
-		}
-	
+
+		T prop = parsePropValue(propName, propJson, clazz);
+
 		return prop;
 	}
 
+	private static void throwInvalidPropertyJson(String propName,
+ 		String propJson, Class clazz) throws InvalidPropJsonException {
+		throw new InvalidPropJsonException(propName, propJson, clazz);
+	}
+
+
+	private static void throwConfigPropNotFound(String propName)
+		throws ConfigPropNotFoundException {
+		throw new ConfigPropNotFoundException(
+			"No configuration property or environment variable '"+
+			convertToDots(propName)+"'");
+	}
 
 	private static String convertToUndescore(String propName) {
 		propName = propName.replaceAll("\\.+", "_");
 		return propName;
 	}
 
+	private static String convertToDots(String propName) {
+		propName = propName.replaceAll("\\_+", ".");
+		return propName;
+	}
+
 
 	private static String lookInEnvAndSystemProps(String propName) {
-		String prop = System.getenv(propName);
+		String propEnvVariable = propName.replaceAll("\\.", "_");
+		String prop = System.getenv(propEnvVariable);
 		if (prop == null) {
 			prop = System.getProperty(propName);			
 		}
@@ -121,6 +145,9 @@ public class Config {
 			if (prop == null) {
 				String propNameOtherFormat = changePropNameFormat(propName);
 				prop = props.getProperty(propNameOtherFormat);
+			}
+			if (prop != null) {
+				break;
 			}
 		}
 		
@@ -169,7 +196,35 @@ public class Config {
 			overridesRegistry.remove(prop);
 		}
 	}
-	
-	
-	
+
+	public static <T> T parsePropValue(
+		String propName, String propJson, Class<T> clazz)
+		throws ConfigException {
+		if (clazz == String.class) {
+			propJson = ensureStringValueIsQuoted(propJson);
+		}
+		ObjectMapper mapper = new ObjectMapper();
+		T value = null;
+		try {
+			value = mapper.readValue(propJson, clazz);
+		} catch (IOException e) {
+			throwInvalidPropertyJson(propName, propJson, clazz);
+
+			throw new ConfigException(
+				"Could not parse property value as type "+clazz+"\n"+
+				"Value was: '"+propJson+"'",
+				e);
+		}
+		return value;
+	}
+
+	private static String ensureStringValueIsQuoted(String propStr) {
+		if (!propStr.startsWith("\"")) {
+			propStr = "\""+propStr;
+		}
+		if (!propStr.endsWith("\"")) {
+			propStr = propStr + "\"";
+		}
+		return propStr;
+	}
 }

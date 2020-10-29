@@ -83,6 +83,15 @@
 			<artifactId>junit</artifactId>
 			<version>4.12</version>
 		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/com.github.stefanbirkner/system-rules -->
+		<dependency>
+			<groupId>com.github.stefanbirkner</groupId>
+			<artifactId>system-rules</artifactId>
+			<version>1.18.0</version>
+			<!--			<scope>test</scope> -->
+		</dependency>
+
  
 		<dependency>
 			<groupId>org.json</groupId>

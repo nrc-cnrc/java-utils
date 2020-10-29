@@ -59,13 +59,6 @@
 					<artifactId>license-maven-plugin</artifactId>
 					<version>1.16</version>
 				</plugin>
-				
-				<!-- 
-		  		  This plugin is used to prevent blacklisted license (ex: GPL) from 
-		  		  making their way into the project 
-				-->
-		 	
-	 	
 			</plugins>
 		</pluginManagement>			
 	
@@ -78,9 +71,11 @@
 	                <configuration>
 	                    <printLicenses>true</printLicenses>
 	                    <blacklistedLicenses>
-	                        <license>regex:.*GNU General Public License.*</license>
-	                        <license>regex:.*(^|[^L])GPL.*</license>
-	                        <license>regex:.*Affero.*</license>
+							<!-- GPL and Afferor are not allowed, unless they are IN ADDITION
+                                 to another license -->
+							<license>regex:.*(?&lt;!\+\s?)GNU General Public License.*</license>
+							<license>regex:.*(?&lt;!(L|\+\s?))GPL.*</license>
+							<license>regex:.*(?&lt;!\+\s?)Affero.*</license>
 	                    </blacklistedLicenses>
 	                    <failBuildOnBlacklisted>true</failBuildOnBlacklisted>
 	                </configuration>
@@ -163,7 +158,9 @@
 		    <groupId>log4j</groupId>
 		    <artifactId>log4j</artifactId>
 		    <version>1.2.17</version>
-		</dependency>	 
+		</dependency>
+
+
 	 
 	</dependencies>
   

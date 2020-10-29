@@ -565,7 +565,17 @@ public class PrettyPrinterTest {
 				+ "]"
 				  ;
 		Assert.assertEquals(expJson, gotJson);		
-	}				
+	}
+
+	@Test
+	public void test_print__StringWithSpecialChars() {
+		String str = "quoted word: \"hello\" backslash char: \\";
+
+		String gotJson = PrettyPrinter.print(str);
+		String expJson = "\"quoted word: \\\"hello\\\" backslash char: \\\\\"";
+		Assert.assertEquals(expJson, gotJson);
+	}
+
 	@Test
 	public void test__checkForLoops__SequenceThatDoesNOTIntroduceALoop() {
 		Hello obj1 = new Hello("hi");
