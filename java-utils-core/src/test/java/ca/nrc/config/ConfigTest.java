@@ -101,22 +101,18 @@ public class ConfigTest {
 			// This is OK. We expect the exception to be raised.
 		}
 
-		// However, you can make getConfigProperty() return a default value
+		// However, you can make getConfigProperty() return a null value
 		//   if the prop is not found
-		propValue =
-			Config.getConfigProperty(
-		"nonexistantPropName", "this is the default");
-
-		// Note that if you pass null as the default value, getConfigProperty()
-		//  assumes there is no default value. To set a property to a default
-		//  value of null, do the following instead
 		//
-		try {
-			propValue = Config.getConfigProperty("nonexistantPropName");
-			Assert.fail("We should never make it here because the prop name does not exist");
-		} catch (ConfigPropNotFoundException e) {
-			propValue = null;
-		}
+		boolean failIfAbsent = false;
+		propValue =
+			Config.getConfigProperty("nonexistantPropName", failIfAbsent);
+
+		// You can also provide a non-null default value which will be returned
+		//   if the property is not found.
+		//
+		String defValue = "hello";
+		propValue = Config.getConfigProperty("nonexistantPropName", defValue);
 
 		// You can use properties to store JSON serialisations of any data
 		// type.
@@ -175,8 +171,6 @@ public class ConfigTest {
 //			.assertConfigPropertyEquals(expValue, propName, null);
 		Assert.fail("Implement this test");
 	}
-
-
 
 	@Test
 	public void test__possiblePropFileNames__HappyPath() throws Exception {

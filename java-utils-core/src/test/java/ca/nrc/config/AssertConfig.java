@@ -11,15 +11,23 @@ public class AssertConfig extends Asserter<Object> {
 
     public AssertConfig assertConfigPropertyEquals(
         String expValue, String propName) throws Exception {
-        return assertConfigPropertyEquals(expValue, propName, null);
+        return assertConfigPropertyEquals(expValue, propName, true);
     }
 
     public AssertConfig assertConfigPropertyEquals(
-        String expValue, String propName, String _default) throws Exception {
-        String gotValue = Config.getConfigProperty(propName, _default);
+        String expValue, String propName, boolean failIfAbsent) throws Exception {
+        String gotValue = Config.getConfigProperty(propName, failIfAbsent);
         AssertString.assertStringEquals(expValue, gotValue);
         return this;
     }
+
+    public AssertConfig assertConfigPropertyEquals(
+        String expValue, String propName, String defVal) throws Exception {
+        String gotValue = Config.getConfigProperty(propName, defVal);
+        AssertString.assertStringEquals(expValue, gotValue);
+        return this;
+    }
+
 
 //    public <T> AssertConfig assertConfigPropertyEquals(
 //            T expValue, String propName, T _default) throws Exception {

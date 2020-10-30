@@ -43,7 +43,13 @@ public class Config {
 
 	@JsonIgnore
 	public static String getConfigProperty(String propName) throws ConfigException {
-		return getConfigProperty(propName, (String)null, String.class);
+		return getConfigProperty(propName, true, String.class);
+	}
+
+	@JsonIgnore
+	public static String getConfigProperty(String propName,
+		boolean failIfAbsent) throws ConfigException {
+		return getConfigProperty(propName, failIfAbsent, String.class);
 	}
 
 	@JsonIgnore
@@ -53,13 +59,13 @@ public class Config {
 
 	@JsonIgnore
 	public static <T> T getConfigProperty(String propName, Class<T> clazz) throws ConfigException {
-		return getConfigProperty(propName, (T)null, clazz);
+		return getConfigProperty(propName, true, clazz);
 	}
-
 
 	@JsonIgnore
 	public static <T> T getConfigProperty(
-			String propName, T defaultVal, Class<T> clazz) throws ConfigException {
+		String propName, boolean failIfAbsent, Class<T> clazz) throws ConfigException {
+
 		Logger tLogger = LogManager.getLogger("ca.nrc.config.Config.getConfigProperty");
 
 		if (propName.contains("_")) {
@@ -82,13 +88,24 @@ public class Config {
 		}
 
 		if (propJson == null) {
-			if (defaultVal != null) {
-				prop = defaultVal;
-			} else {
+			if (failIfAbsent) {
 				throwConfigPropNotFound(propName);
 			}
 		} else {
 			prop = parsePropValue(propName, propJson, clazz);
+		}
+
+		return prop;
+	}
+
+	@JsonIgnore
+	public static <T> T getConfigProperty(
+		String propName, T defaultVal, Class<T> clazz) throws ConfigException {
+
+		Logger tLogger = LogManager.getLogger("ca.nrc.config.Config.getConfigProperty");
+		T prop = getConfigProperty(propName, false, clazz);
+		if (prop == null) {
+			prop = defaultVal;
 		}
 
 		return prop;
