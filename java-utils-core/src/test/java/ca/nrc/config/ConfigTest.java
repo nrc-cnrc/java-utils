@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import ca.nrc.testing.AssertString;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
 import org.junit.*;
 
@@ -133,6 +134,13 @@ public class ConfigTest {
 					"{\"firstname\": \"Homer\", \"surname\": \"Simpson\"}");
 		Map<String,String> mapPropVal =
 			Config.getConfigProperty(propName, Map.class);
+
+		// Note: If you provide a default value, then you don't need to
+		//   specify the class of the return value, as it will be assumed
+		//   to be the same as the class of the provided default
+		//
+		String[] defNames = new String[] {"home", "marge"};
+		String[] names = Config.getConfigProperty("com.acme.names", defNames);
 	}
 
 	///////////////////////////////////////////////
@@ -167,9 +175,54 @@ public class ConfigTest {
 		environmentVariables.
 			set(propName.replaceAll("\\.", "_"), "13");
 		Integer expValue = new Integer(13);
-//		new AssertConfig("")
-//			.assertConfigPropertyEquals(expValue, propName, null);
-		Assert.fail("Implement this test");
+		new AssertConfig("")
+			.assertConfigPropertyEquals(expValue, propName, Integer.class);
+	}
+
+	@Test
+	public void test__getConfigProperty__MapValue() throws Exception {
+		String propName = "com.acme.somemap";
+		Map<String,String> expValue = new HashMap<String,String>();
+		{
+			expValue.put("name", "homer simpson");
+		}
+
+		String propJson = new ObjectMapper().writeValueAsString(expValue);
+		environmentVariables.
+			set(propName.replaceAll("\\.", "_"), propJson);
+		new AssertConfig("")
+			.assertConfigPropertyEquals(expValue, propName, Map.class);
+	}
+
+	@Test
+	public void test__getConfigProperty__ObjectArrayValue() throws Exception {
+		String propName = "com.acme.somemap";
+		String[] expValue = new String[] {"homer", "simpson"};
+		String propJson = new ObjectMapper().writeValueAsString(expValue);
+		environmentVariables.
+				set(propName.replaceAll("\\.", "_"), propJson);
+		new AssertConfig("")
+			.assertConfigPropertyEquals(expValue, propName, String[].class);
+	}
+
+	@Test
+	public void test__getConfigProperty__PrimitiveTypeArrayValue() throws Exception {
+		String propName = "com.acme.somemap";
+		int[] expValue = new int[] {1, 2, 3};
+		String propJson = new ObjectMapper().writeValueAsString(expValue);
+		environmentVariables.
+			set(propName.replaceAll("\\.", "_"), propJson);
+		new AssertConfig("")
+			.assertConfigPropertyEquals(expValue, propName, int[].class);
+	}
+
+	@Test
+	public void test__getConfigProperty__DefaultValueIsAString() throws Exception {
+		String propName = "com.acme.nonexistantstring";
+		String defValue = "hello";
+		String expValue = defValue;
+		new AssertConfig("")
+			.assertConfigPropertyEquals(expValue, propName, defValue);
 	}
 
 	@Test

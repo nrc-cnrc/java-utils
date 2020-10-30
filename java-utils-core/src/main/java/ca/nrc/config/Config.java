@@ -64,7 +64,7 @@ public class Config {
 
 	@JsonIgnore
 	public static <T> T getConfigProperty(
-		String propName, boolean failIfAbsent, Class<T> clazz) throws ConfigException {
+		String propName, boolean failIfAbsent, Class<?> clazz) throws ConfigException {
 
 		Logger tLogger = LogManager.getLogger("ca.nrc.config.Config.getConfigProperty");
 
@@ -93,6 +93,19 @@ public class Config {
 			}
 		} else {
 			prop = parsePropValue(propName, propJson, clazz);
+		}
+
+		return prop;
+	}
+
+	@JsonIgnore
+	public static <T> T getConfigProperty(
+		String propName, T defaultVal) throws ConfigException {
+
+		Logger tLogger = LogManager.getLogger("ca.nrc.config.Config.getConfigProperty");
+		T prop = getConfigProperty(propName, false, defaultVal.getClass());
+		if (prop == null) {
+			prop = defaultVal;
 		}
 
 		return prop;
@@ -217,7 +230,7 @@ public class Config {
 	}
 
 	public static <T> T parsePropValue(
-		String propName, String propJson, Class<T> clazz)
+		String propName, String propJson, Class<?> clazz)
 		throws ConfigException {
 		if (clazz == String.class) {
 			propJson = ensureStringValueIsQuoted(propJson);
@@ -225,7 +238,7 @@ public class Config {
 		ObjectMapper mapper = new ObjectMapper();
 		T value = null;
 		try {
-			value = mapper.readValue(propJson, clazz);
+			value = (T) mapper.readValue(propJson, clazz);
 		} catch (IOException e) {
 			throwInvalidPropertyJson(propName, propJson, clazz);
 
