@@ -12,7 +12,6 @@ package ca.nrc.data.harvesting;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -21,7 +20,6 @@ import java.net.JarURLConnection;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import de.l3s.boilerpipe.BoilerpipeProcessingException;
 import de.l3s.boilerpipe.extractors.ArticleExtractor;
@@ -33,13 +31,8 @@ import org.apache.log4j.Logger;
 import org.htmlcleaner.CleanerProperties;
 import org.htmlcleaner.HtmlCleaner;
 import org.htmlcleaner.TagNode;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.parser.Parser;
 
 import ca.nrc.config.ConfigException;
-import ca.nrc.data.harvesting.SearchEngine.SearchEngineException;
-
 import ca.nrc.data.harvesting.SearchEngine.SearchEngineException;
 
 /**
@@ -186,91 +179,72 @@ public class PageHarvester_HtmlCleaner extends PageHarvester {
 	}
 
 	@Override
-	protected void parseCurrentPage() throws PageHarvesterException {
-		if (null == html) return;
-		
-		currentRoot = cleaner.clean(html);
-		title = null;
-		
-		inlineAllIFramesContent(currentRoot);
-
-		this.html = cleaner.getInnerHtml(currentRoot);
-		
-		if (harvestFullText) {
-//			this.text = currentRoot.getText().toString();
-			this.text = new Html2Plaintext().toPlaintext(this.html);
-		} else {
-			this.text = extractMainText(this.html);
-		}
-		
-		TagNode elt = currentRoot.findElementByName("title", true);
-		if (elt != null) {
-			title = elt.getText().toString();
-		}
-		
-		// If no <TITLE> element, take the first Hn element of the highest 
-		// level present
-		if (title == null) {
-			for (String hLevel: new String[] {"h1", "h2", "h3", "h4"}) {
-				elt = currentRoot.findElementByName(hLevel, true);
-				if (elt != null) {
-					title = elt.getText().toString();
-					break;
-				}
-			}
-		}	
-	}
-
-//	protected TagNode cleanHtml(String html) {
-//		// 
-//		// Carry out various transformations on the HTML code which will make
-//		// it easier to acquire plain-text content from it.
-//		//
-//
-//		Document doc = Jsoup.parse(html, "", Parser.xmlParser());
-//
-//		// Remove <Script> tags
-//	    doc.select("script").remove();
-//	    
-//	    // 
-//
-//		
-//		// Insert a <br/> after each DIV.
-//		// This ensures that the content of different DIVs
-//		// will appear on different lines, which will facilitate
-//		// eventual segmentation of the text into sentences.
-//		//
-//		html = html.replaceAll("</div>", "</div><br/>");
-//		TagNode root = cleaner.clean(html);
-//		
-//		return root;
-//	}
-
-	@Override
 	protected void loadPage(String url) throws PageHarvesterException {
 		try {
 			this.currentURL = new URL(url);
-	
+
 			URL urlObj = currentURL;
 			String protocol = urlObj.getProtocol();
-	
+
 			if (protocol.equals("file")) {
 				this.html = getFilePage(urlObj);
-	 		} else if (protocol.equals("jar")) {
-	 			this.html = getJarPage(urlObj);
+			} else if (protocol.equals("jar")) {
+				this.html = getJarPage(urlObj);
 			} else if (protocol.equals("http") || protocol.equals("https")) {
 				this.html = getHttpPage(urlObj);
 			} else {
 				throw new IOException("Unsupported protocol: " + protocol + " found in URL " + url);
 			}
-			
+
+			currentRoot = cleaner.clean(html);
+			inlineAllIFramesContent(currentRoot);
+			this.html = cleaner.getInnerHtml(currentRoot);
+
 			parseCurrentPage();
-	
+
 		} catch (IOException exc) {
 			throw new PageHarvesterException(exc, "Failed to get content of url: "+url);
 		}
-		
 	}
+
+	@Override
+	protected void parseCurrentPageTitle() throws PageHarvesterException {
+		title = null;
+		if (currentRoot != null) {
+			TagNode elt = currentRoot.findElementByName("title", true);
+			if (elt != null) {
+				title = elt.getText().toString();
+			}
+
+			// If no <TITLE> element, take the first Hn element of the highest
+			// level present
+			if (title == null) {
+				for (String hLevel : new String[]{"h1", "h2", "h3", "h4"}) {
+					elt = currentRoot.findElementByName(hLevel, true);
+					if (elt != null) {
+						title = elt.getText().toString();
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	@Override
+	protected void parseCurrentPageText() throws PageHarvesterException {
+		this.text  = null;
+		if (currentRoot != null) {
+			this.html = cleaner.getInnerHtml(currentRoot);
+
+			if (harvestFullText) {
+				//			this.text = currentRoot.getText().toString();
+				this.text = new Html2Plaintext().toPlaintext(this.html);
+			} else {
+				this.text = extractMainText(this.html);
+			}
+		}
+	}
+
 	protected String getHttpPage(URL url) throws PageHarvesterException, IOException {
 		String oldUserAgent = System.getProperty("http.agent");
 		failureStatus  = 0;
