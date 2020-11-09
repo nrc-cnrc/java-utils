@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import ca.nrc.testing.AssertString;
 import org.htmlcleaner.HtmlCleaner;
 import org.htmlcleaner.TagNode;
 import org.junit.After;
@@ -30,10 +31,6 @@ import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import ca.nrc.data.harvesting.IPageVisitor;
-import ca.nrc.data.harvesting.PageHarvester_HtmlCleaner;
-import ca.nrc.data.harvesting.PageHarvesterException;
-import ca.nrc.data.harvesting.SearchEngine;
 import ca.nrc.data.harvesting.SearchEngine.Hit;
 import ca.nrc.file.ResourceGetter;
 import ca.nrc.testing.AssertHelpers;
@@ -147,18 +144,18 @@ public abstract class PageHarvesterTest {
 		
 		// Plain-text should not contain any HTML code
 		String plainText = harvester.getText();
-		AssertHelpers.assertStringDoesNotContain(plainText, "<title>"); 
-		AssertHelpers.assertStringContains(plainText, "Wages, full-time work sliding for young Canadians, StatsCan says - Business - CBC News");
+		AssertString.assertStringDoesNotContain(plainText, "<title>");
+		AssertString.assertStringContains(plainText, "Wages, full-time work sliding for young Canadians");
 		
 		// Main text should not contain HTML codes, nor side bars
 		String mainText = harvester.getText();
-		AssertHelpers.assertStringDoesNotContain(mainText, "<title>"); 
-		AssertHelpers.assertStringDoesNotContain(mainText, "Photo Galleries");
-		AssertHelpers.assertStringContains(mainText, "Wages, full-time work sliding for young Canadians, StatsCan says - Business - CBC News");
+		AssertString.assertStringDoesNotContain(mainText, "<title>");
+		AssertString.assertStringDoesNotContain(mainText, "Photo Galleries");
+		AssertString.assertStringContains(mainText, "Wages, full-time work sliding for young Canadians, StatsCan says - Business - CBC News");
 
 		String gotTitle = harvester.getTitle();
 		String expTitle = "Wages, full-time work sliding for young Canadians, StatsCan says - Business - CBC News";
-		AssertHelpers.assertStringEquals(expTitle, gotTitle);
+		AssertString.assertStringEquals(expTitle, gotTitle);
 	}
 	
 	@Test(expected = PageHarvesterException.class)

@@ -33,7 +33,7 @@ public class PageHarvester_HtmlUnit extends PageHarvester_JSEnabled {
 	}
 
 	@Override
-	protected void getPage(String url) throws PageHarvesterException {
+	protected void loadPage(String url) throws PageHarvesterException {
 	    try {
 			final HtmlPage page = webClient.getPage(url);
 			List<DomElement> bodies = page.getElementsByTagName("body");

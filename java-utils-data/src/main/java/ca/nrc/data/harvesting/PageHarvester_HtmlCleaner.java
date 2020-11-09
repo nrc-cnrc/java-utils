@@ -253,7 +253,7 @@ public class PageHarvester_HtmlCleaner extends PageHarvester {
 //	}
 
 	@Override
-	protected void getPage(String url) throws PageHarvesterException {
+	protected void loadPage(String url) throws PageHarvesterException {
 		try {
 			this.currentURL = new URL(url);
 	

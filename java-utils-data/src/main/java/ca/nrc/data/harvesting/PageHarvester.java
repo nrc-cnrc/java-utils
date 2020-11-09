@@ -22,7 +22,7 @@ public abstract class PageHarvester {
 
 	
 	/** Downloads the page into the harvester */
-	protected abstract void getPage(String url) throws PageHarvesterException;
+	protected abstract void loadPage(String url) throws PageHarvesterException;
 
 	/** Get Html of last downloaded page 
 	 * @throws PageHarvesterException */
@@ -109,4 +109,9 @@ public abstract class PageHarvester {
 			visitor.visitPage(url, getHtml(), getText());
 		}
 	}
+
+	protected void getPage(String url) throws PageHarvesterException {
+		loadPage(url);
+	}
+
 }

@@ -16,9 +16,11 @@ import ca.nrc.data.harvesting.SearchEngine.Query;
 import ca.nrc.data.harvesting.SearchEngine.SearchEngineException;
 import ca.nrc.ui.web.testing.WebDriverFactory;
 
-public class PageHarvester_WebDriver extends PageHarvester_JSEnabled {
+public abstract class PageHarvester_WebDriver extends PageHarvester_JSEnabled {
 
 	WebDriver _driver = null;
+
+	protected abstract WebDriver makeDriver() throws PageHarvesterException;
 	
 	@Override
 	public void clickOn(String eltRegexp) {
@@ -26,21 +28,16 @@ public class PageHarvester_WebDriver extends PageHarvester_JSEnabled {
 		
 	}
 
-	private WebDriver webDriver() throws PageHarvesterException {
+	protected WebDriver webDriver() throws PageHarvesterException {
 		if (_driver == null) {
-			try {
-				_driver = WebDriverFactory.getDriver();
-			} catch (ConfigException e) {
-				throw new PageHarvesterException(
-						"Could not instantiate a WebDriver", e);
-			}
+			_driver = makeDriver();
 		}
 		return _driver;
 	}
 	
 	
 	@Override
-	protected void getPage(String url) throws PageHarvesterException {
+	protected void loadPage(String url) throws PageHarvesterException {
 		webDriver().get(url);
 	}
 
