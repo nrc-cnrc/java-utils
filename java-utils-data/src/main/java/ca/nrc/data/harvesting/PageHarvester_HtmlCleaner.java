@@ -83,13 +83,6 @@ public class PageHarvester_HtmlCleaner extends PageHarvester {
 		return theCleaner;
 	}
 
-	/**
-	 * Crawl a web page, clean mal-formated tags and extractor main content
-	 * 
-	 * @param url
-	 * @throws IOException
-	 */
-	
 	@Override
 	public URL getCurrentURL() {
 		return currentURL;
@@ -192,7 +185,8 @@ public class PageHarvester_HtmlCleaner extends PageHarvester {
 //		}
 	}
 
-	protected void parseHTML(String html) throws PageHarvesterException {
+	@Override
+	protected void parseCurrentPage() throws PageHarvesterException {
 		if (null == html) return;
 		
 		currentRoot = cleaner.clean(html);
@@ -270,7 +264,7 @@ public class PageHarvester_HtmlCleaner extends PageHarvester {
 				throw new IOException("Unsupported protocol: " + protocol + " found in URL " + url);
 			}
 			
-			parseHTML(html);
+			parseCurrentPage();
 	
 		} catch (IOException exc) {
 			throw new PageHarvesterException(exc, "Failed to get content of url: "+url);

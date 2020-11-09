@@ -112,6 +112,21 @@ public abstract class PageHarvester {
 
 	protected void getPage(String url) throws PageHarvesterException {
 		loadPage(url);
+		parseCurrentPage();
+	}
+
+	protected void parseCurrentPage() throws PageHarvesterException {
+		parseCurrentPageTitle();
+		parseCurrentPageText();
+	}
+
+	protected void parseCurrentPageTitle() throws PageHarvesterException {
+
+
+	}
+
+	protected void parseCurrentPageText() throws PageHarvesterException {
+
 	}
 
 }
