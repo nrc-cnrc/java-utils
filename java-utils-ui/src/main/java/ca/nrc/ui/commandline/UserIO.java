@@ -18,7 +18,10 @@ import java.util.regex.Pattern;
 
 public class UserIO {
 	
-	public static enum Verbosity {Levelnull, Level0, Level1, Level2, Level3, Level4, Level5};
+	public static enum Verbosity {
+		Levelnull, Level0, Level1, Level2, Level3, Level4, Level5,
+		LevelMax
+	};
 	protected Verbosity verbosity = Verbosity.Level1;
 	
 	
@@ -120,15 +123,19 @@ public class UserIO {
 	public static Integer verbosityToInt(Verbosity level) {
 		Integer levelNum = null;
 		if (level != null) {
-			String minLevelStr = level.toString();
-			
-			Pattern pattern = Pattern.compile("^Level([\\d]+|null)$");
-	        Matcher matcher = pattern.matcher(minLevelStr);
-	        boolean matches = matcher.matches();
-			String levelNumStr = matcher.group(1);
-			
-			if (!levelNumStr.equals("null")) {
-				levelNum = Integer.parseInt(levelNumStr);
+			if (level == Verbosity.LevelMax) {
+				levelNum = Integer.MAX_VALUE;
+			} else {
+				String minLevelStr = level.toString();
+
+				Pattern pattern = Pattern.compile("^Level([\\d]+|null)$");
+				Matcher matcher = pattern.matcher(minLevelStr);
+				boolean matches = matcher.matches();
+				String levelNumStr = matcher.group(1);
+
+				if (!levelNumStr.equals("null")) {
+					levelNum = Integer.parseInt(levelNumStr);
+				}
 			}
 		}
 		return levelNum;
@@ -158,7 +165,7 @@ public class UserIO {
 		Pattern patt = Pattern.compile("^\\s*([yn])");
 		boolean answer = false;
 		while (true) {
-			echo("\n"+mess+" (y/n)\n> ", false);	
+			echo("\n"+mess+" (y/n)\n> ", Verbosity.Level0, false);
 			Scanner input = new Scanner(System.in);
 			String yn = input.nextLine();
 			Matcher matcher = patt.matcher(yn);

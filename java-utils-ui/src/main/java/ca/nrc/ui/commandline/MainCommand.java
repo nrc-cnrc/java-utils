@@ -1,10 +1,7 @@
 package ca.nrc.ui.commandline;
 
 import java.security.InvalidParameterException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
@@ -12,6 +9,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 
 import ca.nrc.datastructure.Pair;
+import org.apache.commons.lang3.StringUtils;
 
 /*******************************************************************************
  * 
@@ -120,16 +118,32 @@ public class MainCommand {
 	}
 	
 	private void usageBadSubCommand() {
-		String overview = "Usage: ["+String.join(" | ", subCommands.keySet())+"] <OPTION>?";
-		echo(overview);
-		echo("");
-		echo(1);
-		echo(usageOneLiner);
-		echo(-1);
-		echo("");
-		error("First argument must be one of the following commands: "+String.join(", ", subCommands.keySet()));		
+		String overview = consoleOverview();
+
+		error("Bad command name\n\n"+overview);
+		return;
 	}
-	
+
+	private String consoleOverview() {
+		String[] commands =
+			subCommands.keySet().toArray(new String[0]);
+		Arrays.sort(commands);
+		String overview =
+			"Usage: ["+
+					StringUtils.join(commands, " | ")+
+					"] <OPTION>?"+
+					"\n\n"+
+					"Commands overview.\n\n"
+			;
+
+		for (String commandName: commands) {
+			SubCommand command = subCommands.get(commandName);
+			overview += "  "+commandName+": "+command.getUsageOverview()+"\n\n";
+		}
+
+		return overview;
+	}
+
 	private void usageBadCommandLine(String message) {
 		String overview = "Usage: ["+String.join(" | ", subCommands.keySet())+"] <OPTION>?";
 		echo(overview);
