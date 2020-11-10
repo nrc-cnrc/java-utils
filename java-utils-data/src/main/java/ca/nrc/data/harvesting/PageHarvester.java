@@ -27,6 +27,9 @@ public abstract class PageHarvester {
 	/** Get Html of last downloaded page 
 	 * @throws PageHarvesterException */
 	public abstract String getHtml() throws PageHarvesterException;
+
+	protected abstract String text4elemement(
+		String tagName, boolean failIfMoreThanOne) throws PageHarvesterException;
 	
 	/** Get Title of last downloaded page 
 	 * @throws PageHarvesterException */

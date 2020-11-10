@@ -16,17 +16,11 @@ import ca.nrc.data.harvesting.SearchEngine.Query;
 import ca.nrc.data.harvesting.SearchEngine.SearchEngineException;
 import ca.nrc.ui.web.testing.WebDriverFactory;
 
-public abstract class PageHarvester_WebDriver extends PageHarvester_JSEnabled {
+public abstract class PageHarvester_WebDriver extends PageHarvester {
 
 	WebDriver _driver = null;
 
 	protected abstract WebDriver makeDriver() throws PageHarvesterException;
-	
-	@Override
-	public void clickOn(String eltRegexp) {
-		// TODO Auto-generated method stub
-		
-	}
 
 	protected WebDriver webDriver() throws PageHarvesterException {
 		if (_driver == null) {
@@ -91,5 +85,23 @@ public abstract class PageHarvester_WebDriver extends PageHarvester_JSEnabled {
 		// TODO Auto-generated method stub
 		throw new PageHarvesterException("Method not implemented yet");
 	}
+
+	@Override
+	protected String text4elemement(String tagName,
+		 boolean failIfMoreThanOne) throws PageHarvesterException {
+		String text = null;
+		List<WebElement> elts = webDriver().findElements(By.name(tagName));
+		if (elts != null || !elts.isEmpty()) {
+			if (elts.size() > 1 && failIfMoreThanOne) {
+				throw new PageHarvesterException(
+					"More than one ("+elts.size()+
+					") elements found with tag name '"+tagName+"'");
+			}
+			text = elts.get(0).getText();
+		}
+
+		return text;
+	}
+
 
 }

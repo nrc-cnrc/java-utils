@@ -1,6 +1,6 @@
 package ca.nrc.data.harvesting;
 
-public class PageHarvester_JBrowserDriverTest extends PageHarvester_WebDriverTest {
+public class PageHarvester_JBrowserDriverTest extends PageHarvesterTest {
 
     @Override
     protected PageHarvester makeHarvesterToTest() {

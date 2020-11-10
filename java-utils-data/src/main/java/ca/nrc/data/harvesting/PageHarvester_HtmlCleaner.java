@@ -209,25 +209,34 @@ public class PageHarvester_HtmlCleaner extends PageHarvester {
 
 	@Override
 	protected void parseCurrentPageTitle() throws PageHarvesterException {
-		title = null;
-		if (currentRoot != null) {
-			TagNode elt = currentRoot.findElementByName("title", true);
-			if (elt != null) {
-				title = elt.getText().toString();
-			}
+		boolean failIfMoreThanOne = true;
+		title = text4elemement("title", failIfMoreThanOne);
 
-			// If no <TITLE> element, take the first Hn element of the highest
-			// level present
-			if (title == null) {
-				for (String hLevel : new String[]{"h1", "h2", "h3", "h4"}) {
-					elt = currentRoot.findElementByName(hLevel, true);
-					if (elt != null) {
-						title = elt.getText().toString();
-						break;
-					}
+		// If no <TITLE> element, take the first Hn element of the highest
+		// level present
+		if (title == null) {
+			for (String hLevel : new String[]{"h1", "h2", "h3", "h4"}) {
+				title = text4elemement(hLevel, false);
+				if (title != null) {
+					break;
 				}
 			}
 		}
+
+		return;
+	}
+
+	@Override
+	protected String text4elemement(String tagName, boolean failIfMoreThanOne)
+		throws PageHarvesterException {
+		String eltText = null;
+		if (currentRoot != null) {
+			TagNode elt = currentRoot.findElementByName(tagName, true);
+			if (elt != null) {
+				eltText = elt.getText().toString();
+			}
+		}
+		return eltText;
 	}
 
 	@Override
