@@ -186,6 +186,10 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 		return new DocIDIterator<T>(iterator());
 	}
 
+	public DocIterator<T> docIterator() {
+		return new DocIterator<T>(iterator());
+	}
+
 	public UnscoredHitsIterator<T> unscoredHitsIterator() {
 		UnscoredHitsIterator<T> iter = null;
 		List<T> unscoredHitsBatch = new ArrayList<T>();
