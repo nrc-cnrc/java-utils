@@ -91,13 +91,15 @@ public abstract class PageHarvester_WebDriver extends PageHarvester {
 		 boolean failIfMoreThanOne) throws PageHarvesterException {
 		String text = null;
 		List<WebElement> elts = webDriver().findElements(By.name(tagName));
-		if (elts != null || !elts.isEmpty()) {
+		if (elts != null) {
 			if (elts.size() > 1 && failIfMoreThanOne) {
 				throw new PageHarvesterException(
 					"More than one ("+elts.size()+
 					") elements found with tag name '"+tagName+"'");
 			}
-			text = elts.get(0).getText();
+			if (!elts.isEmpty()) {
+				text = elts.get(0).getText();
+			}
 		}
 
 		return text;

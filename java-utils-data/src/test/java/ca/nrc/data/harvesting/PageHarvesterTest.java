@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import ca.nrc.testing.AssertString;
+import ca.nrc.ui.web.testing.WebDriverFactory;
 import org.htmlcleaner.HtmlCleaner;
 import org.htmlcleaner.TagNode;
 import org.junit.After;
@@ -116,31 +117,30 @@ public abstract class PageHarvesterTest {
 		String expTitleText = "Welcome to Wikipedia";
 
 		String html = harvester.getHtml();
-		AssertHelpers.assertStringContains(html, "<title>"+expTitleHead+"</title>");
+		AssertString.assertStringContains(html, "<title>"+expTitleHead+"</title>");
 		
 		// Plain-text should not contain any HTML code
 		String plainText = harvester.getText();
 		AssertHelpers.assertStringDoesNotContain(plainText, "<title>"); 
-		AssertHelpers.assertStringContains(plainText, expTitleText);
+		AssertString.assertStringContains(plainText, expTitleText);
 		
 		// Main text should not contain HTML codes, nor side bars
 		String mainText = harvester.getText();
 		AssertHelpers.assertStringDoesNotContain(mainText, "<title>"); 
 		AssertHelpers.assertStringDoesNotContain(mainText, "About Wikipedia");
-		AssertHelpers.assertStringContains(mainText, expTitleText);
+		AssertString.assertStringContains(mainText, expTitleText);
 
 		String gotTitle = harvester.getTitle();
 		AssertHelpers.assertStringEquals(expTitleText, gotTitle);
 	}
-	
-	
+
 	@Test
 	public void test__harvestSinglePage__HappyPath() throws IOException, BoilerpipeProcessingException, PageHarvesterException {
 		String url = ResourceGetter.getResourceFileUrl("local_html_files/cbcNewsExample.html").toString();
 		harvester.harvestSinglePage(url);
 
 		String html = harvester.getHtml();
-		AssertHelpers.assertStringContains(html, "<title>Wages, full-time work sliding for young Canadians, StatsCan says - Business - CBC News</title>");
+		AssertString.assertStringContains(html, "<title>Wages, full-time work sliding for young Canadians, StatsCan says - Business - CBC News</title>");
 		
 		// Plain-text should not contain any HTML code
 		String plainText = harvester.getText();
@@ -231,7 +231,7 @@ public abstract class PageHarvesterTest {
 		harvester.harvestSinglePage(url);
 		String gotContent = harvester.getText();
 		String expSubstring = "Content included through an iframe";
-		AssertHelpers.assertStringContains(gotContent, expSubstring);
+		AssertString.assertStringContains(gotContent, expSubstring);
 	}
 
 	@Test
@@ -247,21 +247,9 @@ public abstract class PageHarvesterTest {
 		harvester.harvestSinglePage(url);
 		String gotContent = harvester.getText();
 		String expSubstring = "This content was already inlined in the iframe of the page";
-		AssertHelpers.assertStringContains(gotContent, expSubstring);
+		AssertString.assertStringContains(gotContent, expSubstring);
 	}
-	
-	
-//
-//	@Test
-//	public void test_DELETE_ME() throws PageHarvesterException {
-////		String url ="http://www.marinetechnologynews.com/news/c/icebreaking-offshore-vessel-arctic";
-//		String url = "http://news.nationalpost.com/life/travel/giant-luxury-cruise-ship-crystal-serenity-makes-historic-voyage-in-melting-arctic";
-//		harvester.harvestSinglePage(url);
-//		String gotHtml = harvester.getHtml();
-//		Assert.assertTrue(harvester.failureStatus == 0);
-//		AssertHelpers.assertStringEquals("BLAH", gotHtml);
-//	}
-	
+
 	@After
 	public void tearDown() throws Exception {
 	}

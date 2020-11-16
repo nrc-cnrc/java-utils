@@ -49,7 +49,6 @@ public class PageHarvester_HtmlCleaner extends PageHarvester {
 
 	private String html;
 	private String text;
-	private String title;
 	private URL currentURL;
 	private TagNode currentRoot;
 	
@@ -83,7 +82,7 @@ public class PageHarvester_HtmlCleaner extends PageHarvester {
 	
 	@Override
 	public String getTitle() {
-		return this.title;
+		return this.currentTitle;
 	}	
 	
 	@Override
@@ -180,6 +179,8 @@ public class PageHarvester_HtmlCleaner extends PageHarvester {
 
 	@Override
 	protected void loadPage(String url) throws PageHarvesterException {
+		Logger tLogger = Logger.getLogger("ca.nrc.data.harvesting.PageHarvester_HtmlCleaner.loadPage");
+		tLogger.trace("url="+url);
 		try {
 			this.currentURL = new URL(url);
 
@@ -196,32 +197,24 @@ public class PageHarvester_HtmlCleaner extends PageHarvester {
 				throw new IOException("Unsupported protocol: " + protocol + " found in URL " + url);
 			}
 
+			if (html == null) {
+				throw new PageHarvesterException("Could not download page "+url);
+			}
+
+			tLogger.trace("loading html=\n"+html);
+
 			currentRoot = cleaner.clean(html);
 			inlineAllIFramesContent(currentRoot);
 			this.html = cleaner.getInnerHtml(currentRoot);
 
+			tLogger.trace("parsing specific elments from the html");
 			parseCurrentPage();
 
 		} catch (IOException exc) {
 			throw new PageHarvesterException(exc, "Failed to get content of url: "+url);
 		}
-	}
 
-	@Override
-	protected void parseCurrentPageTitle() throws PageHarvesterException {
-		boolean failIfMoreThanOne = true;
-		title = text4elemement("title", failIfMoreThanOne);
-
-		// If no <TITLE> element, take the first Hn element of the highest
-		// level present
-		if (title == null) {
-			for (String hLevel : new String[]{"h1", "h2", "h3", "h4"}) {
-				title = text4elemement(hLevel, false);
-				if (title != null) {
-					break;
-				}
-			}
-		}
+		tLogger.trace("exiting");
 
 		return;
 	}

@@ -4,23 +4,18 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 
-import org.htmlcleaner.TagNode;
-
 import ca.nrc.config.ConfigException;
 import ca.nrc.data.harvesting.SearchEngine.Hit;
 import ca.nrc.data.harvesting.SearchEngine.IHitVisitor;
 import ca.nrc.data.harvesting.SearchEngine.Query;
 import ca.nrc.data.harvesting.SearchEngine.SearchEngineException;
-import de.l3s.boilerpipe.BoilerpipeProcessingException;
-import de.l3s.boilerpipe.extractors.ArticleExtractor;
-import de.l3s.boilerpipe.extractors.KeepEverythingExtractor;
 
 public abstract class PageHarvester {
 
 	protected IPageVisitor visitor;
 	private String error;
+	protected String currentTitle;
 
-	
 	/** Downloads the page into the harvester */
 	protected abstract void loadPage(String url) throws PageHarvesterException;
 
@@ -124,9 +119,24 @@ public abstract class PageHarvester {
 	}
 
 	protected void parseCurrentPageTitle() throws PageHarvesterException {
+		String html = getHtml();
+		boolean failIfMoreThanOne = true;
+		currentTitle = text4elemement("title", failIfMoreThanOne);
 
+		// If no <TITLE> element, take the first Hn element of the highest
+		// level present
+		if (currentTitle == null) {
+			for (String hLevel : new String[]{"h1", "h2", "h3", "h4"}) {
+				currentTitle = text4elemement(hLevel, false);
+				if (currentTitle != null) {
+					break;
+				}
+			}
+		}
 
+		return;
 	}
+
 
 	protected void parseCurrentPageText() throws PageHarvesterException {
 
