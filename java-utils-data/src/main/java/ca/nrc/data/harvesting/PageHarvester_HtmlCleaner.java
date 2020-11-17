@@ -15,10 +15,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.JarURLConnection;
-import java.net.URL;
-import java.net.URLDecoder;
+import java.net.*;
+import java.util.ArrayList;
 import java.util.List;
 
 import de.l3s.boilerpipe.BoilerpipeProcessingException;
@@ -52,8 +50,8 @@ public class PageHarvester_HtmlCleaner extends PageHarvester {
 	private URL currentURL;
 	private TagNode currentRoot;
 	
-	private boolean harvestFullText = false;
-		public void setHarvestFullText(boolean _fullText) {this.harvestFullText = _fullText;}
+//	private boolean harvestFullText = false;
+//		public void setHarvestFullText(boolean _fullText) {this.harvestFullText = _fullText;}
 	
 
 	// 0 --> last page harvest went OK
@@ -245,6 +243,36 @@ public class PageHarvester_HtmlCleaner extends PageHarvester {
 				this.text = extractMainText(this.html);
 			}
 		}
+	}
+
+	@Override
+	public void harvestSingleLink(String linkText) throws PageHarvesterException {
+		linkText = linkText.toLowerCase();
+		TagNode[] aElts =
+			currentRoot.getElementsByName("a", true);
+		List<TagNode> matchingElts = new ArrayList<TagNode>();
+		for (TagNode anElt: aElts) {
+			String eltAnchor = anElt.getText().toString();
+			if (eltAnchor.toLowerCase().equals(linkText)) {
+				matchingElts.add(anElt);
+			}
+		}
+
+		if (matchingElts.size() == 0) {
+			throw new PageHarvesterException("No link was found with anchor text '"+linkText+"'");
+		}
+		if (matchingElts.size() > 1) {
+			throw new PageHarvesterException("More than one ("+matchingElts.size()+") link had anchor text '"+linkText+"'");
+		}
+
+		String href = matchingElts.get(0).getAttributeByName("href");
+		try {
+			URL url = new URL(currentURL, href);
+			harvestSinglePage(url);
+		} catch (MalformedURLException e) {
+			throw new PageHarvesterException(e);
+		}
+		return;
 	}
 
 	protected String getHttpPage(URL url) throws PageHarvesterException, IOException {

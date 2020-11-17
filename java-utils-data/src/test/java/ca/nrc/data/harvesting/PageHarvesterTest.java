@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import ca.nrc.testing.AssertString;
-import ca.nrc.ui.web.testing.WebDriverFactory;
 import org.htmlcleaner.HtmlCleaner;
 import org.htmlcleaner.TagNode;
 import org.junit.After;
@@ -74,6 +73,7 @@ public abstract class PageHarvesterTest {
 		// Note: By default, the harvester tries to remove 'container' elements like navigation menus, banners, etc...
 		//   from plain-text. If you want to include those in the plain-text, you must set 'harvestFullText' option
 		//   to true, BEFORE invoking harvestSinglePage().
+		//
 		String plainText = harvester.getText();
 				
 		// Get the title of the page
@@ -101,7 +101,13 @@ public abstract class PageHarvesterTest {
 		// 
 		// The visitor will be invoked on each of the hits found.
 		//
-		harvester.crawlHits(new SearchEngine.Query("donald trump"), visitor);		
+		harvester.crawlHits(new SearchEngine.Query("donald trump"), visitor);
+
+		// You can ask the harvester to harvest a link that has a particular
+		// anchor text
+		//
+		harvester.harvestSinglePage(urlHelloWorld);
+		harvester.harvestSingleLink("Google Link");
 	}
 		
 	/*******************************************************************************
@@ -175,7 +181,18 @@ public abstract class PageHarvesterTest {
 		TagNode node = new HtmlCleaner().clean(gotHtml);
 		assertTrue(node.findElementByName("body", true) != null);
 	}
-		
+
+	@Test
+	public void test__harvestSingleLink__HappyPath() throws Exception {
+		String urlHelloWorld = ResourceGetter.getResourceFileUrl("local_html_files/hello_world.html").toString();
+		harvester.harvestSinglePage(urlHelloWorld);
+		String linkText = "Google Link";
+		harvester.harvestSingleLink(linkText);
+		new HarvesterAsserter(harvester)
+			.currentPageTitleContains("Google")
+			;
+	}
+
 	@Test @Ignore
 	public void testHyperLink() throws Exception {
 		Assert.fail("Ignore this failure for now. There is a very weird bug in PageLinkVisitor.visit()\n"+

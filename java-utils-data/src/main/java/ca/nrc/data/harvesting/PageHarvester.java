@@ -16,6 +16,11 @@ public abstract class PageHarvester {
 	private String error;
 	protected String currentTitle;
 
+	protected boolean harvestFullText = false;
+		protected void setHarvestFullText(boolean _fullText) {
+			this.harvestFullText = _fullText;
+		}
+
 	/** Downloads the page into the harvester */
 	protected abstract void loadPage(String url) throws PageHarvesterException;
 
@@ -142,4 +147,5 @@ public abstract class PageHarvester {
 
 	}
 
+	public abstract void harvestSingleLink(String linkText) throws PageHarvesterException;
 }
