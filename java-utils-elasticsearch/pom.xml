@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>ca.nrc.java-utils</groupId>
 		<artifactId>java-utils</artifactId>
-		<version>1.0.25</version>
+		<version>1.0.26-SNAPSHOT</version>
 	</parent>
 	
 	<artifactId>java-utils-elasticsearch</artifactId>
@@ -79,19 +79,19 @@
 		<dependency>
 			<groupId>ca.nrc.java-utils</groupId>
 			<artifactId>java-utils-core</artifactId>
-			<version>1.0.25</version>
+			<version>1.0.26-SNAPSHOT</version>
 		</dependency>
 	
 		<dependency>
 			<groupId>ca.nrc.java-utils</groupId>
 			<artifactId>java-utils-data</artifactId>
-			<version>1.0.25</version>
+			<version>1.0.26-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
 			<groupId>ca.nrc.java-utils</groupId>
 			<artifactId>java-utils-ui</artifactId>
-			<version>1.0.25</version>
+			<version>1.0.26-SNAPSHOT</version>
 		</dependency>
 
 		<dependency>
