@@ -1,8 +1,11 @@
 package ca.nrc.data.harvesting;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import ca.nrc.config.ConfigException;
 import ca.nrc.data.harvesting.SearchEngine.Hit;
@@ -15,9 +18,11 @@ public abstract class PageHarvester {
 	protected IPageVisitor visitor;
 	private String error;
 	protected String currentTitle;
+	protected static Map<String,DownloadActivity> downloadActivities =
+		new HashMap<String,DownloadActivity>();
 
 	protected boolean harvestFullText = false;
-		protected void setHarvestFullText(boolean _fullText) {
+		public void setHarvestFullText(boolean _fullText) {
 			this.harvestFullText = _fullText;
 		}
 
@@ -113,9 +118,51 @@ public abstract class PageHarvester {
 		}
 	}
 
-	protected void getPage(String url) throws PageHarvesterException {
-		loadPage(url);
+	protected void getPage(String urlStr) throws PageHarvesterException {
+		try {
+			URL url = new URL(urlStr);
+			bePoliteWithHost(url);
+
+			Long startMSecs = System.currentTimeMillis();
+			loadPage(urlStr);
+			Long endMSecs = System.currentTimeMillis();
+			logDownload(urlStr, startMSecs, endMSecs);
+		} catch (DownloadActivityException | MalformedURLException e) {
+			throw new PageHarvesterException(e);
+		}
 		parseCurrentPage();
+	}
+
+	/**
+	 * This method will sleep for an appropriate amount of time in order to
+	 * not harass a particular host with too many requests in too short a time.
+	 */
+	private void bePoliteWithHost(URL url) throws PageHarvesterException {
+		DownloadActivity lastDownload = downloadActivities.get(url.getHost());
+		if (lastDownload != null) {
+			Long nowMSecs = System.currentTimeMillis();
+			Long elapsedSinceLastDownload = nowMSecs - lastDownload.endedAtMsecs;
+
+			// The sleep time is calculated in such a way that if the last download
+			// took N msecs, then we won't bother that host until N msecs later.
+			//
+			Long msecsToSleep =
+				lastDownload.lastedMsecs - elapsedSinceLastDownload;
+
+			if (msecsToSleep > 0) {
+				try {
+					Thread.sleep(msecsToSleep);
+				} catch (InterruptedException e) {
+					throw new PageHarvesterException(e);
+				}
+			}
+		}
+	}
+
+	private void logDownload(String urlStr, Long startMSecs, Long endMSecs) throws DownloadActivityException {
+		DownloadActivity activity =
+			new DownloadActivity(urlStr, startMSecs, endMSecs);
+		downloadActivities.put(activity.host, activity);
 	}
 
 	protected void parseCurrentPage() throws PageHarvesterException {
