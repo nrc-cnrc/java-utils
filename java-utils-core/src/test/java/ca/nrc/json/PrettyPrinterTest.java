@@ -1,6 +1,5 @@
 package ca.nrc.json;
 
-//import static ca.nrc.testing.Assert.assertEquals;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
@@ -12,20 +11,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.junit.After;
 import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import ca.nrc.json.PrettyPrinter;
-
-//import ca.nrc.testing.AssertHelpers;
-//
+import org.junit.jupiter.api.*;
 
 public class PrettyPrinterTest {
 	
@@ -63,11 +50,11 @@ public class PrettyPrinterTest {
 	}
 
 
-	@Before
+	@BeforeEach
 	public void setUp() throws Exception {
 	}
 
-	@After
+	@AfterEach
 	public void tearDown() throws Exception {
 	}
 	

@@ -8,10 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.json.JSONObject;
-import org.junit.Test;
-
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
+import org.junit.jupiter.api.*;
 
 public class JSONUtilsTest extends JSONUtils {
 

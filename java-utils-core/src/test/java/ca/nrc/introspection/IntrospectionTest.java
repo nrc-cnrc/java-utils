@@ -4,11 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.*;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import ca.nrc.introspection.Introspection;
 import ca.nrc.testing.AssertObject;
 
 public class IntrospectionTest {

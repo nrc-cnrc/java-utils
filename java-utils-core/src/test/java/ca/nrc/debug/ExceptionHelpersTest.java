@@ -6,7 +6,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 
-import org.junit.Test;
+import org.junit.jupiter.api.*;
 
 import ca.nrc.testing.AssertHelpers;
 
