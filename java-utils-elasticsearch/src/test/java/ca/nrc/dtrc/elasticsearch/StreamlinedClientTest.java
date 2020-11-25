@@ -970,7 +970,8 @@ public class StreamlinedClientTest {
 		String[] expClusterNamesSuperset = new String[] {
 				"Dost Thou Hear", "Nay", "Ay", "Other Topics", "Shall", "King", "Thou", "Sir", "Thee", "Know",
 				"Mother", "Speak", "Play", "Love", "Heaven", "Tis", "Horatio", "Father", "Soul",
-				"Heaven", "Hold", "Thy", "Eyes", "Matter", "Enter", "Dost Thou", "Lord"
+				"Heaven", "Hold", "Thy", "Eyes", "Matter", "Enter", "Dost Thou", "Lord",
+				"Good Friends"
 		};
 		Object[] gotClusterNames =  clusters.getClusterNames().toArray();
 		
@@ -989,7 +990,7 @@ public class StreamlinedClientTest {
 		String[] expIDs = new String[] {
 				"1.2.143", "1.2.144", "1.2.184", "1.4.44", "1.4.94", "1.5.109", "1.5.185", "1.5.97",
 				"2.2.434", "2.2.595", "3.2.128", "3.3.81", "3.3.85", "3.3.96", "3.4.165",
-				"3.4.55", "4.3.36", "5.2.52", "5.2.344", "5.2.357"	
+				"3.4.55", "4.3.36", "5.2.52", "5.2.344", "5.2.357"
 		};
 		String[] gotIDs = clusters.getCluster("Heaven").getDocIDs().toArray(new String[]{});
 		AssertHelpers.assertContainsAll("Cluster IDs not as expected", expIDs, gotIDs);
