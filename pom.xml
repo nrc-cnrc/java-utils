@@ -7,10 +7,7 @@
 	<packaging>pom</packaging>
  
 	<version>1.0.26-SNAPSHOT</version>
-	
-	<properties>
-	</properties>
-    
+
 	<modules>
 	   <!-- Note: Order of modules is important.
 		Make sure any modulte A that is required by module B
@@ -21,7 +18,17 @@
 	 	<module>java-utils-elasticsearch</module>
 	 	<module>java-utils-string</module>
 	</modules>
-	 
+
+	<properties>
+		<maven.compiler.target>1.8</maven.compiler.target>
+		<maven.compiler.source>1.8</maven.compiler.source>
+
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+		<junit.version>4.12</junit.version>
+	</properties>
+
 	<!-- 
 	   Needed for the licensescan-maven-plugin, which we use to prevent 
 	   blacklisted license (ex: GPL) from making their way into the 
