@@ -167,6 +167,11 @@ public class AssertString {
 		} else {
 			Assertions.assertFalse(gotString.contains(unexpSubstring), message);
 		}
-	}	
+	}
 
+	public static void assertStringEndsWith(String expEnd, String gotString) {
+		Assertions.assertTrue(
+			gotString.endsWith(expEnd),
+			"String did not have the expected end.\n   expEnd : "+expEnd+"\n   gotString :\n"+gotString);
+	}
 }
