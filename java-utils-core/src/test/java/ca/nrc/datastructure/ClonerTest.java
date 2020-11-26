@@ -1,6 +1,5 @@
 package ca.nrc.datastructure;
 
-import org.junit.Assert;
 import org.junit.jupiter.api.*;
 
 public class ClonerTest {
@@ -26,10 +25,11 @@ public class ClonerTest {
 		String[] clone = Cloner.clone(orig);
 		clone[1] = "universe";
 		
-		Assert.assertEquals("First element should have been the same because it was not changed in the clone", orig[0], clone[0]);
-		Assert.assertTrue(
-			"Second element should have differed because it was changed in the clone.",
-			! orig[1].equals(clone[1])
-		);
+		Assertions.assertEquals(
+			orig[0], clone[0],
+			"First element should have been the same because it was not changed in the clone");
+		Assertions.assertTrue(
+			! orig[1].equals(clone[1]),
+			"Second element should have differed because it was changed in the clone.");
 	}
 }

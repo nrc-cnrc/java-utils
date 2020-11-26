@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
-import org.junit.Assert;
+import org.junit.jupiter.api.*;
 
 public class AssertFile {
 	
@@ -65,8 +65,9 @@ public class AssertFile {
 	
    public static void assertDirectoryHasNFiles(String mess, File dir, int expNum) throws IOException {        
         File[] gotFiles = dir.listFiles();
-        Assert.assertEquals(mess+"\nDirectory "+dir+" did not contain the expected number of files",
-                    expNum, gotFiles.length);
+        Assertions.assertEquals(
+		  		expNum, gotFiles.length,
+        		mess+"\nDirectory "+dir+" did not contain the expected number of files");
     }
 
 	

@@ -3,7 +3,6 @@ package ca.nrc.introspection;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.Assert;
 import org.junit.jupiter.api.*;
 
 import ca.nrc.testing.AssertObject;
@@ -17,7 +16,7 @@ public class IntrospectionTest {
 		Integer intNum = 
 					Introspection.downcastTo(Integer.class, num);
 		
-		Assert.assertEquals("", intNum, new Integer(1));
+		Assertions.assertEquals(intNum, new Integer(1));
 	}
 	
 	@Test
@@ -50,16 +49,22 @@ public class IntrospectionTest {
 	public void test__getField__HappyPath() throws Exception {
 		Dummy obj = new Dummy();
 		
-		Assert.assertEquals("Value of pubFieldNoAccessors", Introspection.getFieldValue(obj, "pubFieldNoAccessors"));
-		Assert.assertEquals("Value of privFieldWithBothAccessors", Introspection.getFieldValue(obj, "privFieldWithBothAccessors"));
+		Assertions.assertEquals(
+			Introspection.getFieldValue(obj, "pubFieldNoAccessors"),
+			"Value of pubFieldNoAccessors");
+		Assertions.assertEquals(
+			Introspection.getFieldValue(obj, "privFieldWithBothAccessors"),
+			"Value of privFieldWithBothAccessors");
 	}
 	
 	@Test
 	public void test__getField__ObjectInheritsFromAParentClass__IncludesInheritedAttributes() throws Exception {
 		DummySubclass obj = new DummySubclass();
-		Assert.assertEquals("Value of pubFieldNoAccessors", Introspection.getFieldValue(obj, "pubFieldNoAccessors"));
-		Assert.assertEquals("Value of privFieldWithBothAccessors", Introspection.getFieldValue(obj, "privFieldWithBothAccessors"));
-		Assert.assertEquals(1, Introspection.getFieldValue(obj, "subclassAttr1"));
-		Assert.assertEquals("hello", Introspection.getFieldValue(obj, "subclassAttr2"));
+		Assertions.assertEquals(
+			"Value of pubFieldNoAccessors", Introspection.getFieldValue(obj, "pubFieldNoAccessors"));
+		Assertions.assertEquals(
+			"Value of privFieldWithBothAccessors", Introspection.getFieldValue(obj, "privFieldWithBothAccessors"));
+		Assertions.assertEquals(1, Introspection.getFieldValue(obj, "subclassAttr1"));
+		Assertions.assertEquals("hello", Introspection.getFieldValue(obj, "subclassAttr2"));
 	}
 }

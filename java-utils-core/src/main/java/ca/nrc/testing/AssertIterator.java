@@ -1,10 +1,11 @@
 package ca.nrc.testing;
 
 import ca.nrc.json.PrettyPrinter;
-import org.junit.Assert;
 
 import java.io.IOException;
 import java.util.*;
+
+import org.junit.jupiter.api.*;
 
 public class AssertIterator {
 
@@ -64,7 +65,7 @@ public class AssertIterator {
                     "\nThe following unexpected items were found in the actual collection:\n" +
                             PrettyPrinter.print(unexpectedItemsFound) + "\n" +
                             "Actual collection was:\n" + PrettyPrinter.print(gotItems);
-            Assert.fail(mess);
+            Assertions.fail(mess);
         }
     }
 }

@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.junit.Test;
+import org.junit.jupiter.api.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 
@@ -67,7 +67,7 @@ public class AssertHelpersTest {
 		assertEqualsJsonCompare(expJsonString, people);				
 	}
 	
-	@Test(expected=AssertionError.class)
+	@Test
 	public void test__assertStringEquals__Synopsis() {
 		
 		// Say you want to compare two very long strings that contain a lot of brackets...
@@ -85,9 +85,9 @@ public class AssertHelpersTest {
 		//
 		// So, instead of using assertEquals(), you should use assertStringEquals()
 		//
-		assertStringEquals(expected, got);
-		
-	
+		Assertions.assertThrows(AssertionError.class, () -> {
+			AssertString.assertStringEquals(expected, got);
+		});
 	}
 	
 	@Test
@@ -117,25 +117,31 @@ public class AssertHelpersTest {
 		assertIsSubsetOf("", list1, list2);
 	}
 
-	@Test(expected=AssertionError.class)
+	@Test
 	public void test__assertIsSubsetOf__CaseWhereItFailes() {
 		String[] list1 = new String[] {"a", "b"};
 		String[] list2 = new String[] {"a", "c"};
-		assertIsSubsetOf("", list1, list2);
+		Assertions.assertThrows(AssertionError.class, () -> {
+			assertIsSubsetOf("", list1, list2);
+		});
 	}
 
-	@Test(expected=AssertionError.class)
+	@Test
 	public void test__assertIsSubsetOf__FirstSetIsNullButNotSecond() {
 		String[] list1 = null;
 		String[] list2 = new String[] {"a", "b"};
-		assertIsSubsetOf("", list1, list2);
+		Assertions.assertThrows(AssertionError.class, () -> {
+			assertIsSubsetOf("", list1, list2);
+		});
 	}
 	
-	@Test(expected=AssertionError.class)
+	@Test
 	public void test__assertIsSubsetOf__SecondSetIsNullButNotFirst() {
 		String[] list1 = new String[] {"a", "b"};
 		String[] list2 = null;
-		assertIsSubsetOf("", list1, list2);
+		Assertions.assertThrows(AssertionError.class, () -> {
+			assertIsSubsetOf("", list1, list2);
+		});
 	}
 
 	@Test
@@ -170,47 +176,52 @@ public class AssertHelpersTest {
 		String expected = "Hello world";
 		String got = expected;
 		
-		assertStringEquals(expected, got);
+		AssertString.assertStringEquals(expected, got);
 	}
 	
-	@Test(expected=AssertionError.class)
+	@Test
 	public void test__assertStringEquals__StringsDifferInMiddle__ShouldRaiseException() {
 		String expected = "Hello world";
 		String got = "Hello BEAUTIFULE world";
-		
-		assertStringEquals(expected, got);
+		Assertions.assertThrows(AssertionError.class, () -> {
+			AssertString.assertStringEquals(expected, got);
+		});
 	}
 	
-	@Test(expected=AssertionError.class)
+	@Test
 	public void test__assertStringEquals__StringsDifferInBeginning__ShouldRaiseException() {
 		String expected = "Hello world";
 		String got = "I say: Hello world";
-		
-		assertStringEquals(expected, got);
+		Assertions.assertThrows(AssertionError.class, () -> {
+			AssertString.assertStringEquals(expected, got);
+		});
 	}
 	
-	@Test(expected=AssertionError.class)
+	@Test
 	public void test__assertStringEquals__StringsDifferAtEnd__ShouldRaiseException() {
 		String expected = "Hello world";
 		String got = "Hello world, he said";
-		
-		assertStringEquals(expected, got);
+		Assertions.assertThrows(AssertionError.class, () -> {
+			AssertString.assertStringEquals(expected, got);
+		});
 	}
 	
-	@Test(expected=AssertionError.class)
+	@Test
 	public void test__assertStringEquals__FirstStringEmptyButNotSecond__ShouldRaiseException() {
 		String expected = "";
 		String got = "Hello world";
-		
-		assertStringEquals(expected, got);
+		Assertions.assertThrows(AssertionError.class, () -> {
+			AssertString.assertStringEquals(expected, got);
+		});
 	}
 
-	@Test(expected=AssertionError.class)
+	@Test
 	public void test__assertStringEquals__FirstStringNonEmptyButSecondOneIs__ShouldRaiseException() {
 		String expected = "Hello world";
 		String got = "";
-		
-		assertStringEquals(expected, got);
+		Assertions.assertThrows(AssertionError.class, () -> {
+			AssertString.assertStringEquals(expected, got);
+		});
 	}
 	
 	@Test
@@ -220,14 +231,16 @@ public class AssertHelpersTest {
 		AssertHelpers.assertContainsAll("", expSuperset, expSubset);
 	}
 
-	@Test(expected=AssertionError.class)
+	@Test
 	public void test__assertContainsAll__FailsHappyPath() {
 		String[] expSuperset = new String[] {"Marge", "Homer", "Maggy", "Bart", "Lisa"};
 		String[] expSubset = new String[] {"Lisa", "Homer", "Snoopy"};
-		AssertHelpers.assertContainsAll("", expSuperset, expSubset);
+		Assertions.assertThrows(AssertionError.class, () -> {
+			AssertHelpers.assertContainsAll("", expSuperset, expSubset);
+		});
 	}
 
-	@Test(expected=AssertionError.class)
+	@Test
 	public void test__assertUnOrderedSameElements_SameElementsSomeRepeated_AndDifferentSize__ShouldRaiseException() throws Exception {
 		//Even though the two lists contain the same elements, some are duplicated so they do not contain the same elements
 		//Also tests if different sized lists are considered equal
@@ -238,19 +251,23 @@ public class AssertHelpersTest {
 		List<String> second = new ArrayList<String>();
 		second.add("one");
 		second.add("two");
-		assertUnOrderedSameElements("", first, second);
+		Assertions.assertThrows(AssertionError.class, () -> {
+			assertUnOrderedSameElements("", first, second);
+		});
 	}
 	
-	@Test(expected=AssertionError.class)
+	@Test
 	public void test__assertUnOrderedSameElements_SameElementsSomeRepeated_AndDifferentSize_Array__ShouldRaiseException() throws Exception {
 		//Even though the two lists contain the same elements, some are duplicated so they do not contain the same elements
 		//Also tests if different sized lists are considered equal
 		String[] first = {"one","one", "two"};
 		String[] second = {"one","two"};
-		assertUnOrderedSameElements("", first, second);
+		Assertions.assertThrows(AssertionError.class, () -> {
+			assertUnOrderedSameElements("", first, second);
+		});
 	}
 	
-	@Test(expected=AssertionError.class)
+	@Test
 	public void test__assertUnOrderedSameElements_DifferentElements__ShouldRaiseException() throws Exception {
 		//Two lists containing different elements
 		List<String> first = new ArrayList<String>();
@@ -259,19 +276,23 @@ public class AssertHelpersTest {
 		List<String> second = new ArrayList<String>();
 		second.add("one");
 		second.add("three");
-		assertUnOrderedSameElements("", first, second);
+		Assertions.assertThrows(AssertionError.class, () -> {
+			assertUnOrderedSameElements("", first, second);
+		});
 	}
 	
-	@Test(expected=AssertionError.class)
+	@Test
 	public void test__assertUnOrderedSameElements_DifferentElements_Array__ShouldRaiseException() throws Exception {
 		//Two lists containing different elements
 		String[] first = new String[]{"one", "two"};
 		String[] second = new String[]{"one", "three"};
-		assertUnOrderedSameElements("", first, second);
+		Assertions.assertThrows(AssertionError.class, () -> {
+			assertUnOrderedSameElements("", first, second);
+		});
 	}
 	
 	
-	@Test(expected=AssertionError.class)
+	@Test
 	public void test__assertHashMapsEqualUnOrdered__DifferentKeys() throws Exception {
 		HashMap<String, String> a = new HashMap<>();
 		a.put("one", "");
@@ -279,10 +300,13 @@ public class AssertHelpersTest {
 		HashMap<String, String> b = new HashMap<>();
 		b.put("one", "");
 		b.put("three", "");
-		assertHashMapsEqualUnOrdered("",a,b);
+
+		Assertions.assertThrows(AssertionError.class, () -> {
+			assertHashMapsEqualUnOrdered("",a,b);
+		});
 	}
 	
-	@Test(expected=AssertionError.class)
+	@Test
 	public void test__assertHashMapsEqualUnOrdered__SameKeysDifferentContent() throws IOException{
 		HashMap<String, String> a = new HashMap<>();
 		a.put("one", "1");
@@ -290,7 +314,9 @@ public class AssertHelpersTest {
 		HashMap<String, String> b = new HashMap<>();
 		b.put("one", "1");
 		b.put("two", "different");
-		assertHashMapsEqualUnOrdered("",a,b);
+		Assertions.assertThrows(AssertionError.class, () -> {
+			assertHashMapsEqualUnOrdered("", a, b);
+		});
 	}
 	
 	@Test
@@ -308,7 +334,7 @@ public class AssertHelpersTest {
 		assertHashMapsEqualUnOrdered("",a,b);
 	}
 	
-	@Test(expected=AssertionError.class)
+	@Test
 	public void test__assertHashMapsEqualUnOrdered__ListsDifferent() throws IOException{
 		HashMap<String, List<String>> a = new HashMap<>();
 		List<String> aList = new ArrayList<>();
@@ -320,7 +346,9 @@ public class AssertHelpersTest {
 		bList.add("one");
 		bList.add("three");
 		b.put("lst", bList);
-		assertHashMapsEqualUnOrdered("",a,b);		
+		Assertions.assertThrows(AssertionError.class, () -> {
+			assertHashMapsEqualUnOrdered("", a, b);
+		});
 	}
 	
 	@Test

@@ -145,14 +145,12 @@
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
 			<artifactId>junit-jupiter</artifactId>
-			<scope>test</scope>
 		</dependency>
 		<!-- For old JUnit4 tests -->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>${junit.version}</version>
-			<scope>test</scope>
 		</dependency>
 
 		<!-- Not sure why this is also needed... apparently
@@ -162,7 +160,6 @@
 		<dependency>
 			<groupId>org.junit.vintage</groupId>
 			<artifactId>junit-vintage-engine</artifactId>
-			<scope>test</scope>
 		</dependency>
 
 		<dependency>
@@ -181,7 +178,6 @@
 			<groupId>junit</groupId>
 		    <artifactId>junit</artifactId>
 		    <version>4.12</version>
-		    <scope>test</scope>
 		</dependency>
 	 
 		<dependency>

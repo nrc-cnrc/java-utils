@@ -4,7 +4,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang.StringUtils;
-import org.junit.Assert;
+import org.junit.jupiter.api.*;
 
 public class AssertString {
 	
@@ -25,7 +25,7 @@ public class AssertString {
 		int firstDiffOffset = StringUtils.indexOfDifference(expString, gotString);
 		
 		if (expString == null || gotString == null) {
-			Assert.assertEquals(message, expString, gotString);
+			Assertions.assertEquals(message, expString, gotString);
 		}
 
 		if (firstDiffOffset >= 0) {
@@ -46,7 +46,7 @@ public class AssertString {
 					"<<FIRST_DIFF>>" +
 					gotRest + "\n";
 			
-			Assert.fail(message);
+			Assertions.fail(message);
 		}
 	}
 
@@ -103,11 +103,11 @@ public class AssertString {
 		if (isRegexp) {
 			Pattern patt = Pattern.compile(pattern);
 			Matcher matcher = patt.matcher(gotString);
-			Assert.assertTrue(message+"\nDid not find any occurence of regepx "+pattern, 
-					matcher.find());
+			Assertions.assertTrue(matcher.find(),
+			message+"\nDid not find any occurence of regepx "+pattern);
 		} else {
-			Assert.assertTrue(message+"\nDid not find any occurence of regepx "+pattern,
-					gotString.contains(pattern));			
+			Assertions.assertTrue(gotString.contains(pattern),
+			message+"\nDid not find any occurence of regepx "+pattern);
 		}
 	}	
 	
@@ -162,10 +162,10 @@ public class AssertString {
 		if (isRegexp) {
 			Pattern patt = Pattern.compile(unexpSubstring);
 			Matcher matcher = patt.matcher(gotString);
-			Assert.assertFalse(message+"\nFound at least one occurence of regepx "+unexpSubstring, 
-					matcher.find());
+			Assertions.assertFalse(matcher.find(),
+			message+"\nFound at least one occurence of regepx "+unexpSubstring);
 		} else {
-			Assert.assertFalse(message, gotString.contains(unexpSubstring));			
+			Assertions.assertFalse(gotString.contains(unexpSubstring), message);
 		}
 	}	
 

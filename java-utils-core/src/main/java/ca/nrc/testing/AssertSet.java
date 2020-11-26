@@ -1,7 +1,7 @@
 package ca.nrc.testing;
 
 import ca.nrc.json.PrettyPrinter;
-import org.junit.Assert;
+import org.junit.jupiter.api.*;
 
 import java.io.IOException;
 import java.util.*;
@@ -48,7 +48,7 @@ public class AssertSet {
             mess += "   "+gotItem.toString()+"\n";
         }
 
-        Assert.assertTrue(mess, found);
+        Assertions.assertTrue(found, mess);
     }
 
     public static <T> void assertContains(String mess,
@@ -94,7 +94,7 @@ public class AssertSet {
                     "\nThe following expected items were not contained in the actual collection:\n"+
                             PrettyPrinter.print(itemsNotFound)+"\n"+
                             "Actual collection was:\n"+PrettyPrinter.print(gotItems);
-            Assert.fail(mess);
+            Assertions.fail(mess);
         }
     }
 

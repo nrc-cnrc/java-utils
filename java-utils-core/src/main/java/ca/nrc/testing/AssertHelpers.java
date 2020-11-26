@@ -2,11 +2,8 @@ package ca.nrc.testing;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -15,17 +12,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import org.apache.commons.lang.StringUtils;
-import org.junit.Assert;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.*;
 
 import ca.nrc.json.PrettyPrinter;
-import ca.nrc.testing.AssertHelpers.Comp;
 
 /*
  * Additional useful assertions. For example, for easily comparing complex data structures.
@@ -319,7 +309,7 @@ public class AssertHelpers {
 						+ "\n"
 						+ "Second collection:\n"+PrettyPrinter.print(subsetArr)+"\n"
 						;
-					Assert.fail(message);
+					Assertions.fail(message);
 
 			}
 			ii++;
@@ -437,7 +427,7 @@ public class AssertHelpers {
 				sizeMessage.append("\n");
 			}
 			
-			Assert.fail(sizeMessage.toString());
+			Assertions.fail(sizeMessage.toString());
 		}else{
 			HashSet<T> expHashSet = new HashSet<>(exp);
 			HashSet<U> gotHashSet = new HashSet<>(got);
@@ -457,7 +447,7 @@ public class AssertHelpers {
 					message.append("\n");
 				}
 				
-				Assert.fail(message.toString());	
+				Assertions.fail(message.toString());
 			}						
 		}
 	}
@@ -480,62 +470,25 @@ public class AssertHelpers {
 	
 	private static void assertBothNullOrNone(String mess, Object obj1, Object obj2) {
 		if (obj1 == null && obj2 != null) {
-			Assert.fail(mess+"\n\nFirst object was null, but second was not");
+			Assertions.fail(mess+"\n\nFirst object was null, but second was not");
 		}
 		if (obj1 != null && obj2 == null) {
-			Assert.fail(mess+"\n\nSecond object was null, but first was not");
+			Assertions.fail(mess+"\n\nSecond object was null, but first was not");
 		}
 	}
 
 	public static <T> void assertIsSubsetOf(String mess, Set<T> set1, Set<T> set2) {
 		if (set1 == null && set1 != null) {
-			Assert.fail("First set was null, but not the second one.");
+			Assertions.fail("First set was null, but not the second one.");
 		}
 		
 		for (T elt: set1) {
 			if (!set2.contains(elt)) {
-				Assert.fail(mess+"\n\nElement "+elt+" was present in the first set but not in the second one");
+				Assertions.fail(mess+"\n\nElement "+elt+" was present in the first set but not in the second one");
 			}
 		}
 	}
 
-	
-	/**
-	 * Indicates if contents of two HashMaps are the same.
-	 * When the value of the HashMap is a List, order is ignored
-	 * Assumes keys and values can be tested for equality through the equals function, with the exception of Lists which is handled differently by this method.
-	 * @param failMessageStart Beginning of the message displayed when the assert fails
-	 * @param exp HashMap containing the expected results
-	 * @param got HashMap containing the actual results
-	 * @throws IOException 
-	 */
-//	public static <K,V> void assertHashMapsEqualUnOrdered(String failMessageStart, Map<K, V> exp, Map<K, V> got){
-//		List<K> expKeys = new ArrayList<K>(exp.keySet());
-//		List<K> gotKeys = new ArrayList<K>(got.keySet());
-//		
-//		//Verify that the keys are the same
-//		assertUnOrderedSameElements(failMessageStart + "\nHashMap keys differ: ", expKeys, gotKeys);
-//		
-//		for(K expKey: expKeys){
-//			V expVal = exp.get(expKey);
-//			V gotVal = got.get(expKey);
-//			
-//			StringBuffer errorMessage = new StringBuffer(failMessageStart);
-//			errorMessage.append("\n Key: ");
-//			errorMessage.append(expKey);
-//			
-//			if(expVal instanceof List<?> && gotVal instanceof List<?>){
-//				assertUnOrderedSameElements(errorMessage.toString(), (List<?>)expVal, (List<?>)gotVal);
-//			}else if (!expVal.equals(gotVal)){
-//				errorMessage.append("\n Values not equal ");
-//				errorMessage.append(expVal);
-//				errorMessage.append(", ");
-//				errorMessage.append(gotVal);
-//				Assert.fail(errorMessage.toString());
-//			}
-//		}
-//	}
-	
 	public static <K,V> void assertHashMapsEqualUnOrdered(String failMessageStart, Map<K, V> exp, Map<K, V> got) throws IOException{
 		
 		for (K aKey: exp.keySet()) {
@@ -556,10 +509,12 @@ public class AssertHelpers {
 	}	
 
 	public static void assertValueInRange(String message, double minValue, double maxValue, double gotValue) {
-		Assert.assertTrue(message+"\nValue: "+ gotValue + " was smaller than expexected min value: " + minValue, 
-				gotValue >= minValue);
-		Assert.assertTrue(message+"\nValue: "+ gotValue + " was greater than expexected max value: " + maxValue, 
-				gotValue <= maxValue);
+		Assertions.assertTrue(
+			gotValue >= minValue,
+			message+"\nValue: "+ gotValue + " was smaller than expexected min value: " + minValue);
+		Assertions.assertTrue(
+			gotValue <= maxValue,
+			message+"\nValue: "+ gotValue + " was greater than expexected max value: " + maxValue);
 	}
 
 	public static void assertFileContentIs(String message, String expContent, File filePath) throws IOException {
@@ -595,21 +550,21 @@ public class AssertHelpers {
 	private static void assertAtLeast(String mess, Number gotN, Number minN) {
 		mess += "\nNumber "+gotN+" should have been at least "+minN;
 		if (gotN instanceof Integer) {
-			Assert.assertTrue(mess, gotN.intValue() >= minN.intValue());			
+			Assertions.assertTrue(gotN.intValue() >= minN.intValue(), mess);
 		}
 	}
 
 	private static void assertAtMost(String mess, Number gotN, Number maxN) {
 		mess += "\nNumber "+gotN+" should have been at most "+maxN;
 		if (gotN instanceof Integer) {
-			Assert.assertTrue(mess, gotN.intValue() <= maxN.intValue());			
+			Assertions.assertTrue(gotN.intValue() <= maxN.intValue(), mess);
 		}
 	}
 
 	public static void assertElapsedLessThan(String mess, long start, long maxSecs) {
 		long elapsed = System.currentTimeMillis() - start;
 		if (elapsed > maxSecs) {
-			Assert.fail(mess+"\nElapsed time of "+elapsed+"secs was longer than expected (max="+maxSecs+"secs).");
+			Assertions.fail(mess+"\nElapsed time of "+elapsed+"secs was longer than expected (max="+maxSecs+"secs).");
 		}
 	}
 }

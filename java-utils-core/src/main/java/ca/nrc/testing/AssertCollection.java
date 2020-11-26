@@ -1,7 +1,7 @@
 package ca.nrc.testing;
 
 import ca.nrc.json.PrettyPrinter;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 
 import java.util.*;
 
@@ -29,7 +29,7 @@ public class AssertCollection {
 			mess += "   " + gotItem.toString() + "\n";
 		}
 
-		Assert.assertTrue(mess, found);
+		Assertions.assertTrue(found, mess);
 	}
 
 	public static <T> void assertContains(String mess,
@@ -75,7 +75,7 @@ public class AssertCollection {
 			"\nThe following expected items were not found in the actual collection:\n" +
 				PrettyPrinter.print(expItemsNotFound) + "\n" +
 				"Actual collection was:\n" + PrettyPrinter.print(gotItems);
-			Assert.fail(mess);
+			Assertions.fail(mess);
 		}
 	}
 
@@ -109,7 +109,7 @@ public class AssertCollection {
 			"\nThe following unexpected items were found in the actual collection:\n" +
 				PrettyPrinter.print(unexpectedItemsFound) + "\n" +
 				"Actual collection was:\n" + PrettyPrinter.print(gotItems);
-			Assert.fail(mess);
+			Assertions.fail(mess);
 		}
 	}
 }

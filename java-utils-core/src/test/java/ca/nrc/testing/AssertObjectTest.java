@@ -1,6 +1,6 @@
 package ca.nrc.testing;
 
-import org.junit.Test;
+import org.junit.jupiter.api.*;
 
 import java.util.Collections;
 import java.util.HashSet;

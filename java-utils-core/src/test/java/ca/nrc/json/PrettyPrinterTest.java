@@ -1,7 +1,5 @@
 package ca.nrc.json;
 
-import static org.junit.Assert.*;
-
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -11,7 +9,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.junit.Assert;
 import org.junit.jupiter.api.*;
 
 public class PrettyPrinterTest {
@@ -103,7 +100,7 @@ public class PrettyPrinterTest {
 		String str = "hello world";
 		String gotJson = PrettyPrinter.print(str);
 		String expJson = "\"hello world\"";
-		Assert.assertEquals("", expJson, gotJson);
+		Assertions.assertEquals(expJson, gotJson, "");
 	}
 	
 	@Test
@@ -128,7 +125,7 @@ public class PrettyPrinterTest {
 			+ "}"
 				;
 		
-		Assert.assertEquals(expJson, gotJson);	
+		Assertions.assertEquals(expJson, gotJson);	
 	}
 	
 	@Test
@@ -138,7 +135,7 @@ public class PrettyPrinterTest {
 		String gotJson = PrettyPrinter.print(someString);
 		String expJson = "\"He said: \\\"Hello World\\\".\"";
 		
-		Assert.assertEquals(expJson, gotJson);
+		Assertions.assertEquals(expJson, gotJson);
 	}	
 	
 	@Test
@@ -146,7 +143,7 @@ public class PrettyPrinterTest {
 		String gotJson = PrettyPrinter.print(null);
 		String expJson = "null";
 		
-		Assert.assertEquals(expJson, gotJson);
+		Assertions.assertEquals(expJson, gotJson);
 		
 	}	
 	
@@ -157,7 +154,7 @@ public class PrettyPrinterTest {
 		list.add("world");
 		String gotJson = PrettyPrinter.print(list);
 		String expJson = "[\n  \"hello\",\n  \"world\"\n]";
-		Assert.assertEquals("", expJson, gotJson);
+		Assertions.assertEquals(expJson, gotJson);
 	}
 
 	@Test
@@ -179,7 +176,7 @@ public class PrettyPrinterTest {
 				"  \"moe\"\n"+
 				"]";
 
-		Assert.assertEquals("", expJson, gotJson);
+		Assertions.assertEquals(expJson, gotJson);
 	}
 	
 	@Test
@@ -197,7 +194,7 @@ public class PrettyPrinterTest {
 				"    -123\n"+
 				"}";
 
-		Assert.assertEquals("", expJson, gotJson);
+		Assertions.assertEquals(expJson, gotJson);
 	}	
 
 	@Test
@@ -209,7 +206,7 @@ public class PrettyPrinterTest {
 				"{\n" +
 				"}";
 
-		Assert.assertEquals("", expJson, gotJson);
+		Assertions.assertEquals(expJson, gotJson);
 	}	
 	@Test
 	public void test__print__MapOfNonComparablesToStrings() {
@@ -255,7 +252,7 @@ public class PrettyPrinterTest {
 			+ "]"
 				;
 		
-		Assert.assertEquals(expJson, gotJson);
+		Assertions.assertEquals(expJson, gotJson);
 	}
 	
 
@@ -276,7 +273,7 @@ public class PrettyPrinterTest {
 			+ "}"
 				;
 		
-		Assert.assertEquals(expJson, gotJson);
+		Assertions.assertEquals(expJson, gotJson);
 		
 	}
 
@@ -307,7 +304,7 @@ public class PrettyPrinterTest {
 				"    \"universe\"\n" +
 				"  ]\n" +
 				"]";
-		Assert.assertEquals(expJson, gotJson);
+		Assertions.assertEquals(expJson, gotJson);
 	}
 
 	@Test
@@ -317,7 +314,7 @@ public class PrettyPrinterTest {
 		set.add("abc");
 		String gotJson = new PrettyPrinter().print(set);
 		String expJson = "[\n  \"abc\",\n  \"xyz\"\n]";
-		Assert.assertEquals("", expJson, gotJson);
+		Assertions.assertEquals(expJson, gotJson);
 	}
 	
 	@Test
@@ -348,7 +345,7 @@ public class PrettyPrinterTest {
 				"    }\n" +
 		        "}"
 				;
-		Assert.assertEquals(expJson, gotJson);
+		Assertions.assertEquals(expJson, gotJson);
 	}
 	
 	@Test
@@ -387,7 +384,7 @@ public class PrettyPrinterTest {
 				"    null\n" +				
 		        "}"
 				;
-		Assert.assertEquals(expJson, gotJson);
+		Assertions.assertEquals(expJson, gotJson);
 	}	
 	
 	@Test
@@ -400,7 +397,7 @@ public class PrettyPrinterTest {
 				"    \"non-static value\"\n" +
 		        "}"
 				;
-		Assert.assertEquals(expJson, gotJson);		
+		Assertions.assertEquals(expJson, gotJson);		
 	}
 	
 	@Test
@@ -408,7 +405,7 @@ public class PrettyPrinterTest {
 		int num = 10;
 		String gotJson = new PrettyPrinter().print(num);
 		String expJson =  "10";
-		Assert.assertEquals(expJson, gotJson);		
+		Assertions.assertEquals(expJson, gotJson);		
 	}	
 	
 	@Test
@@ -417,14 +414,14 @@ public class PrettyPrinterTest {
 		
 		String gotJson = PrettyPrinter.print(num);
 		String expJson =  "0.17437343";
-		Assert.assertEquals(expJson, gotJson);		
+		Assertions.assertEquals(expJson, gotJson);		
 
 		// Now we ask for 4 decimals;
 		int decimals = 4;
 		gotJson = PrettyPrinter.print(num, decimals);
 		// In th to 4 decimals
 		expJson =  "0.1744";
-		Assert.assertEquals(expJson, gotJson);				
+		Assertions.assertEquals(expJson, gotJson);				
 	}	
 	
 	@Test
@@ -433,14 +430,14 @@ public class PrettyPrinterTest {
 		
 		String gotJson = PrettyPrinter.print(num);
 		String expJson =  "0.17437343";
-		Assert.assertEquals(expJson, gotJson);		
+		Assertions.assertEquals(expJson, gotJson);		
 
 		// Now we ask for 4 decimals;
 		int decimals = 4;
 		gotJson = PrettyPrinter.print(num, decimals);
 		// In th to 4 decimals
 		expJson =  "0.1744";
-		Assert.assertEquals(expJson, gotJson);				
+		Assertions.assertEquals(expJson, gotJson);				
 	}	
 
 	@Test
@@ -454,7 +451,7 @@ public class PrettyPrinterTest {
 				+ "  12.3427\n"
 				+ "]"
 				  ;
-		Assert.assertEquals(expJson, gotJson);		
+		Assertions.assertEquals(expJson, gotJson);		
 
 		// Now we ask for 2 decimals;
 		int decimals = 2;
@@ -467,7 +464,7 @@ public class PrettyPrinterTest {
 				+ "]"
 				  ;
 				
-		Assert.assertEquals(expJson, gotJson);				
+		Assertions.assertEquals(expJson, gotJson);				
 	}	
 	
 	@Test
@@ -481,7 +478,7 @@ public class PrettyPrinterTest {
 				+ "  12.3427\n"
 				+ "]"
 				  ;
-		Assert.assertEquals(expJson, gotJson);		
+		Assertions.assertEquals(expJson, gotJson);		
 
 		// Now we ask for 2 decimals;
 		int decimals = 2;
@@ -494,7 +491,7 @@ public class PrettyPrinterTest {
 				+ "]"
 				  ;
 				
-		Assert.assertEquals(expJson, gotJson);				
+		Assertions.assertEquals(expJson, gotJson);				
 	}	
 	
 	@Test
@@ -508,7 +505,7 @@ public class PrettyPrinterTest {
 				+ "  12.3427\n"
 				+ "]"
 				  ;
-		Assert.assertEquals(expJson, gotJson);		
+		Assertions.assertEquals(expJson, gotJson);		
 
 		// Now we ask for 2 decimals;
 		int decimals = 2;
@@ -521,7 +518,7 @@ public class PrettyPrinterTest {
 				+ "]"
 				  ;
 				
-		Assert.assertEquals(expJson, gotJson);				
+		Assertions.assertEquals(expJson, gotJson);				
 	}		
 	
 	@Test
@@ -536,7 +533,7 @@ public class PrettyPrinterTest {
 				+ "  100\n"
 				+ "]"
 				  ;
-		Assert.assertEquals(expJson, gotJson);		
+		Assertions.assertEquals(expJson, gotJson);		
 	}			
 
 	@Test
@@ -551,7 +548,7 @@ public class PrettyPrinterTest {
 				+ "  100\n"
 				+ "]"
 				  ;
-		Assert.assertEquals(expJson, gotJson);		
+		Assertions.assertEquals(expJson, gotJson);		
 	}
 
 	@Test
@@ -560,7 +557,7 @@ public class PrettyPrinterTest {
 
 		String gotJson = PrettyPrinter.print(str);
 		String expJson = "\"quoted word: \\\"hello\\\" backslash char: \\\\\"";
-		Assert.assertEquals(expJson, gotJson);
+		Assertions.assertEquals(expJson, gotJson);
 	}
 
 	@Test
@@ -571,10 +568,10 @@ public class PrettyPrinterTest {
 		PrettyPrinter printer = new PrettyPrinter();
 		
 		boolean gotAnswer = printer.checkForLoops(obj1);
-		assertFalse(gotAnswer);
+		Assertions.assertFalse(gotAnswer);
 		
 		gotAnswer = printer.checkForLoops(obj2);
-		assertFalse(gotAnswer);
+		Assertions.assertFalse(gotAnswer);
 		
 		// Assume we are done with printing obj2
 		printer.removeFromAlreadySeen(obj2);
@@ -582,7 +579,7 @@ public class PrettyPrinterTest {
 		// At this point, we shouldn't have a loop, even
 		// if we are re-printing obj2
 		gotAnswer = printer.checkForLoops(obj2);
-		assertFalse(gotAnswer);
+		Assertions.assertFalse(gotAnswer);
 		
 	}	
 	
@@ -594,14 +591,14 @@ public class PrettyPrinterTest {
 		PrettyPrinter printer = new PrettyPrinter();
 		
 		boolean gotAnswer = printer.checkForLoops(obj1);
-		assertFalse(gotAnswer);
+		Assertions.assertFalse(gotAnswer);
 		
 		gotAnswer = printer.checkForLoops(obj2);
-		assertFalse(gotAnswer);
+		Assertions.assertFalse(gotAnswer);
 
 		// This one should find a loop, because obj1 is repeated
 		gotAnswer = printer.checkForLoops(obj1);
-		assertTrue(gotAnswer);
+		Assertions.assertTrue(gotAnswer);
 	}
 	
 	@Test
@@ -639,12 +636,12 @@ public class PrettyPrinterTest {
 		
 		String errMess = "\nExp : "+String.join(", ", expFieldNames)+"\nGot : "+String.join(", ", gotFieldNames);
 		if (expFieldNames.length != gotFieldNames.size()) {
-			fail("The two lists of field names did not have the same length."+errMess);
+			Assertions.fail("The two lists of field names did not have the same length."+errMess);
 		}
 		for (int ii=0; ii < expFieldNames.length; ii++) {
-			assertEquals("Field name no "+ii+" differed."+errMess, expFieldNames[ii], gotFieldNames.get(ii));
+			Assertions.assertEquals(
+				expFieldNames[ii], gotFieldNames.get(ii),
+				"Field name no "+ii+" differed."+errMess);
 		}
 	}
-	
-	
 }

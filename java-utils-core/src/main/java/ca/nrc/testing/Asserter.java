@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.*;
 
 public class Asserter<T> {
 	protected String baseMessage = "";
@@ -27,16 +27,16 @@ public class Asserter<T> {
 	}
 
 	public Asserter<T> isNotNull() {
-		Assert.assertTrue(
-			baseMessage+"Should not have been null", 
-			gotObject != null);
+		Assertions.assertTrue(
+			gotObject != null,
+			baseMessage+"Should not have been null");
 		return this;
 	}
 
 	public Asserter<T> isNull() {
-		Assert.assertTrue(
-			baseMessage+"SHOULD have been null, but was: "+gotObject, 
-			gotObject == null);
+		Assertions.assertTrue(
+			gotObject == null,
+			baseMessage+"SHOULD have been null, but was: "+gotObject);
 		return this;
 	}
 	

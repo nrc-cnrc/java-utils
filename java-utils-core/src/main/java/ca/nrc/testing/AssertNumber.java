@@ -1,6 +1,6 @@
 package ca.nrc.testing;
 
-import org.junit.*;
+import org.junit.jupiter.api.*;
 
 public class AssertNumber {
 	
@@ -9,13 +9,13 @@ public class AssertNumber {
 	}
 
 	public static void isGreaterOrEqualTo(String mess, Number gotNum, Number minNum) {
-		Assert.assertTrue(mess+"\nNumber was not as large as expected.\n   Got : "+gotNum+"\n   Expected at least: "+minNum,
-				gotNum.floatValue() >= minNum.floatValue());
+		Assertions.assertTrue(gotNum.floatValue() >= minNum.floatValue(),
+		mess+"\nNumber was not as large as expected.\n   Got : "+gotNum+"\n   Expected at least: "+minNum);
 	}
 
 	public static void isGreaterOrEqualTo(String mess, Double gotNum, Double minNum) {
-		Assert.assertTrue(mess+"\nNumber was not as large as expected.\n   Got : "+gotNum+"\n   Expected at least: "+minNum,
-				gotNum.floatValue() >= minNum.floatValue());
+		Assertions.assertTrue(gotNum.floatValue() >= minNum.floatValue(),
+		mess+"\nNumber was not as large as expected.\n   Got : "+gotNum+"\n   Expected at least: "+minNum);
 	}
 
 	public static void isLessOrEqualTo(Long gotNum, Long maxNum) {
@@ -23,13 +23,13 @@ public class AssertNumber {
 	}
 	
 	public static void isLessOrEqualTo(String mess, Long gotNum, Long maxNum) {
-		Assert.assertTrue(mess+"\nNumber was larger than expected.\n   Got : "+gotNum+"\n   Expected at most: "+maxNum,
-				gotNum <= maxNum);
+		Assertions.assertTrue(gotNum <= maxNum,
+		mess+"\nNumber was larger than expected.\n   Got : "+gotNum+"\n   Expected at most: "+maxNum);
 	}
 
 	public static void isLessOrEqualTo(String mess, Double gotNum, Double maxNum) {
-		Assert.assertTrue(mess+"\nNumber was larger than expected.\n   Got : "+gotNum+"\n   Expected at most: "+maxNum,
-				gotNum  <= maxNum);
+		Assertions.assertTrue(gotNum  <= maxNum,
+		mess+"\nNumber was larger than expected.\n   Got : "+gotNum+"\n   Expected at most: "+maxNum);
 	}
 
 	public static void performanceHasNotChanged(String ofWhat, 
@@ -63,7 +63,7 @@ public class AssertNumber {
 					"Max tolerance   : "+tolerance;
 			
 					;
-			Assert.fail(mess);			
+			Assertions.fail(mess);			
 		}
 	}
 	
@@ -71,7 +71,7 @@ public class AssertNumber {
 			double tolerance) {
 		if (exp == null && got != null ||
 				got == null && exp != null) {
-			Assert.fail(
+			Assertions.fail(
 				mess+"\n"+
 				"One number was null but not the other\n"+
 				"  Exp : "+exp+"\n"+

@@ -3,7 +3,8 @@ package ca.nrc.testing;
 import ca.nrc.json.PrettyPrinter;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.Assert;
+
+import org.junit.jupiter.api.*;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -104,7 +105,7 @@ public class AssertObject {
 		}
 		
 		if (areEqual) {
-			Assert.fail(
+			Assertions.fail(
 				message+"\n" +
 				"The two objects should NOT have been equal but they were.\n"+
 			    "Objects were both: \n"+PrettyPrinter.print(gotObject));
