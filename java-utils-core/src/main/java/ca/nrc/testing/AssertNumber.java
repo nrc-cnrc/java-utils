@@ -53,7 +53,7 @@ public class AssertNumber {
 					"DECREASED.";
 			if ((delta > 0 && highIsGood) ||
 					delta < 0 && !highIsGood) {
-				mess = "Performance of "+ofWhat+" has significantly "+
+				mess = "Performance of '"+ofWhat+"' has significantly "+
 					"IMPROVED.\n\nYou might want to change the expectations for "+
 					"this test, so that you don't loose that gain.";
 			}

@@ -9,6 +9,10 @@ import org.junit.jupiter.api.*;
 public class AssertString {
 	
 	public static void assertStringEquals(String message, String expString, String gotString) {
+		if (expString == null && gotString == null) {
+			return;
+		}
+
 		message = message +
 				"The two strings differred. Location of the first difference is highlighted below with tag <FIRST_DIFF>.\n";
 		
