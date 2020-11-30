@@ -33,8 +33,8 @@ import org.junit.Test;
 
 import ca.nrc.data.harvesting.SearchEngine.Hit;
 import ca.nrc.file.ResourceGetter;
-import ca.nrc.testing.AssertHelpers;
 import de.l3s.boilerpipe.BoilerpipeProcessingException;
+import org.junit.jupiter.api.Assertions;
 
 public abstract class PageHarvesterTest {
 
@@ -68,13 +68,18 @@ public abstract class PageHarvesterTest {
 		// Get the HTML content
 		String html = harvester.getHtml();
 		
-		// Get the plain-text content of the page. 
-		// 
-		// Note: By default, the harvester tries to remove 'container' elements like navigation menus, banners, etc...
-		//   from plain-text. If you want to include those in the plain-text, you must set 'harvestFullText' option
-		//   to true, BEFORE invoking harvestSinglePage().
+		// Get the plain-text content of the page.
 		//
-		String plainText = harvester.getText();
+		// You can get the plain text of the COMPLETE web page, including
+		// things like banners, menus, advertisements, etc...
+		//
+		String plainText_whole = harvester.getText();
+
+		// 
+		// Alternatively, you can get the plain text for the "main" part of the
+		// page, i.e. excluding things like banners, menus, advertisements, etc..
+		//
+		String plainText_main = harvester.getMainText();
 				
 		// Get the title of the page
 		String title = harvester.getTitle();
@@ -114,56 +119,32 @@ public abstract class PageHarvesterTest {
 	 * VERIFICATION TESTS
 	 ********************************************************************************/	
 		
-	@Test @Ignore
+	@Test
 	public void test__harvestSinglePage__HappyPath__NEW() throws IOException, BoilerpipeProcessingException, PageHarvesterException {
 		String url = "http://en.wikipedia.org/";
 		harvester.harvestSinglePage(url);
 		
 		String expTitleHead = "Wikipedia, the free encyclopedia";
-		String expTitleText = "Welcome to Wikipedia";
+		String expTitleText = "Wikipedia, the free encyclopedia";
 
 		String html = harvester.getHtml();
 		AssertString.assertStringContains(html, "<title>"+expTitleHead+"</title>");
 		
 		// Plain-text should not contain any HTML code
 		String plainText = harvester.getText();
-		AssertHelpers.assertStringDoesNotContain(plainText, "<title>"); 
+		AssertString.assertStringDoesNotContain(plainText, "<title>");
 		AssertString.assertStringContains(plainText, expTitleText);
 		
-		// Main text should not contain HTML codes, nor side bars
-		String mainText = harvester.getText();
-		AssertHelpers.assertStringDoesNotContain(mainText, "<title>"); 
-		AssertHelpers.assertStringDoesNotContain(mainText, "About Wikipedia");
-		AssertString.assertStringContains(mainText, expTitleText);
-
-		String gotTitle = harvester.getTitle();
-		AssertHelpers.assertStringEquals(expTitleText, gotTitle);
-	}
-
-	@Test
-	public void test__harvestSinglePage__HappyPath() throws IOException, BoilerpipeProcessingException, PageHarvesterException {
-		String url = ResourceGetter.getResourceFileUrl("local_html_files/cbcNewsExample.html").toString();
-		harvester.harvestSinglePage(url);
-
-		String html = harvester.getHtml();
-		AssertString.assertStringContains(html, "<title>Wages, full-time work sliding for young Canadians, StatsCan says - Business - CBC News</title>");
-		
-		// Plain-text should not contain any HTML code
-		String plainText = harvester.getText();
-		AssertString.assertStringDoesNotContain(plainText, "<title>");
-		AssertString.assertStringContains(plainText, "Wages, full-time work sliding for young Canadians");
-		
-		// Main text should not contain HTML codes, nor side bars
-		String mainText = harvester.getText();
+		// Main text should NOT contain HTML codes, nor side bars
+		String mainText = harvester.getMainText();
+		Assertions.assertTrue(mainText != null && !mainText.isEmpty());
 		AssertString.assertStringDoesNotContain(mainText, "<title>");
-		AssertString.assertStringDoesNotContain(mainText, "Photo Galleries");
-		AssertString.assertStringContains(mainText, "Wages, full-time work sliding for young Canadians, StatsCan says - Business - CBC News");
+		AssertString.assertStringDoesNotContain(mainText, "About Wikipedia");
 
 		String gotTitle = harvester.getTitle();
-		String expTitle = "Wages, full-time work sliding for young Canadians, StatsCan says - Business - CBC News";
-		AssertString.assertStringEquals(expTitle, gotTitle);
+		AssertString.assertStringEquals(expTitleText, gotTitle);
 	}
-	
+
 	@Test(expected = PageHarvesterException.class)
 	public void test__harvestSinglePage__PageThatDoesNotExist__raisesPageHarvesterException() throws IOException, BoilerpipeProcessingException, PageHarvesterException {
 		String url = "http://www.fg3q45qfaret.23445rtwert/pageOnServerThatDoesNotExist.html";
@@ -276,7 +257,7 @@ public abstract class PageHarvesterTest {
 		List<String> vistedURL = new ArrayList<String>();
 
 		@Override
-		public void visitPage(String url, String htmlContent, String plainTextContent) {
+		public void visitPage(String url, String htmlContent, String mainText) {
 			vistedURL.add(url);
 			// TODO Should actually collect the URL into a list attribute
 		}

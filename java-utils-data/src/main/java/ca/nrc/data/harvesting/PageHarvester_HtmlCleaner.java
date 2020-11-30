@@ -46,7 +46,8 @@ public class PageHarvester_HtmlCleaner extends PageHarvester {
 	private HtmlCleaner cleaner;
 
 	private String html;
-	private String text;
+	private String wholeText;
+	private String mainText;
 	private URL currentURL;
 	private TagNode currentRoot;
 	
@@ -90,35 +91,33 @@ public class PageHarvester_HtmlCleaner extends PageHarvester {
 
 	@Override
 	public String getText() {
-		return text;
+		return wholeText;
+	}
+
+	@Override
+	public String getMainText() {
+		return mainText;
 	}
 
 	public String extractMainText(String html) throws PageHarvesterException {
 		
 		if (html != null) {
-			String mainText;
-			
 			try {
-				
-				text = KeepEverythingExtractor.INSTANCE.getText(html);
+				this.wholeText = KeepEverythingExtractor.INSTANCE.getText(html);
 				mainText = ArticleExtractor.INSTANCE.getText(html);
 			} catch (BoilerpipeProcessingException e) {
 				throw new PageHarvesterException(e, "Failed to get the main content of the article for url: "+this.currentURL.toString());
 			}
 
-			if (mainText != null && !mainText.isEmpty()) {
-				text = mainText;
-			}
-
 			// Make sure the main text includes the page's title
 			TagNode titleNode = getDOM().findElementByName("title", true);
 			String title = titleNode != null ? cleaner.getInnerHtml(titleNode) : "";
-			if (!title.isEmpty() && !text.contains(title)) {
-				text = title + "\n\n" + text;
+			if (!title.isEmpty() && !this.wholeText.contains(title)) {
+				this.wholeText = title + "\n\n" + this.wholeText;
 			}			
 		}
 		
-		return text;
+		return wholeText;
 	}
 
 	public TagNode getDOM() {
@@ -232,15 +231,15 @@ public class PageHarvester_HtmlCleaner extends PageHarvester {
 
 	@Override
 	protected void parseCurrentPageText() throws PageHarvesterException {
-		this.text  = null;
+		this.wholeText = null;
 		if (currentRoot != null) {
 			this.html = cleaner.getInnerHtml(currentRoot);
 
 			if (harvestFullText) {
 				//			this.text = currentRoot.getText().toString();
-				this.text = new Html2Plaintext().toPlaintext(this.html);
+				this.wholeText = new Html2Plaintext().toPlaintext(this.html);
 			} else {
-				this.text = extractMainText(this.html);
+				this.wholeText = extractMainText(this.html);
 			}
 		}
 	}

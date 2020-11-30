@@ -40,10 +40,15 @@ public abstract class PageHarvester {
 	 * @throws PageHarvesterException */
 	public abstract String getTitle() throws PageHarvesterException;
 	
-	/** Get plain text of last downloaded page 
+	/** Get COMPLETE plain text of last downloaded page
 	 * @throws PageHarvesterException */
 	public abstract String getText() throws PageHarvesterException;
-	
+
+	/** Get MAIN plain text of last downloaded page.
+	 *  This excludes things like banners, menus, advertisements, etc.
+	 * @throws PageHarvesterException */
+	public abstract String getMainText() throws PageHarvesterException;
+
 	/** Get ACTUAL URL of last downloaded page.
 	 *  This may be different from the URL that was provided to 
 	 *  the harvester (for example, if the original page contained an 
@@ -114,7 +119,7 @@ public abstract class PageHarvester {
 		setError(null);
 		getPage(url);
 		if (visitor != null) {
-			visitor.visitPage(url, getHtml(), getText());
+			visitor.visitPage(url, getHtml(), getMainText());
 		}
 	}
 
