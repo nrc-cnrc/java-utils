@@ -56,7 +56,7 @@ public class AssertNumber {
 		Double delta = gotPerf - oldPerf;
 		if (Math.abs(delta) > tolerance) {
 			mess += "\nPerformance of '"+ofWhat+"' has significantly "+
-					"DECREASED.";
+					"WORSENED.";
 			if ((delta > 0 && highIsGood) ||
 					delta < 0 && !highIsGood) {
 				mess = "Performance of '"+ofWhat+"' has significantly "+
