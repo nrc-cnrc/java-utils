@@ -120,7 +120,7 @@ public abstract class PageHarvesterTest {
 	 ********************************************************************************/	
 		
 	@Test
-	public void test__harvestSinglePage__HappyPath__NEW() throws IOException, BoilerpipeProcessingException, PageHarvesterException {
+	public void test__harvestSinglePage__HappyPath() throws IOException, BoilerpipeProcessingException, PageHarvesterException {
 		String url = "http://en.wikipedia.org/";
 		harvester.harvestSinglePage(url);
 		

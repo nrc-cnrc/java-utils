@@ -232,16 +232,16 @@ public class PageHarvester_HtmlCleaner extends PageHarvester {
 	@Override
 	protected void parseCurrentPageText() throws PageHarvesterException {
 		this.wholeText = null;
-		if (currentRoot != null) {
-			this.html = cleaner.getInnerHtml(currentRoot);
-
-			if (harvestFullText) {
-				//			this.text = currentRoot.getText().toString();
-				this.wholeText = new Html2Plaintext().toPlaintext(this.html);
-			} else {
-				this.wholeText = extractMainText(this.html);
+		this.mainText = null;
+		if (html != null) {
+			try {
+				this.wholeText = KeepEverythingExtractor.INSTANCE.getText(html);
+				this.mainText = ArticleExtractor.INSTANCE.getText(html);
+			} catch (BoilerpipeProcessingException e) {
+				throw new PageHarvesterException(e);
 			}
 		}
+		return;
 	}
 
 	@Override

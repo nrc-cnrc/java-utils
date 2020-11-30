@@ -29,6 +29,13 @@ public abstract class PageHarvester {
 	/** Downloads the page into the harvester */
 	protected abstract void loadPage(String url) throws PageHarvesterException;
 
+	/** Parse the HTML of the current page to identif the plain text
+	 * of the the COMPLETE page as well as its MAIN part (i.e. the
+	 * part that excludes things like banners, menus, advertisements, etc.)
+	 */
+	protected abstract void parseCurrentPageText() throws PageHarvesterException;
+
+
 	/** Get Html of last downloaded page 
 	 * @throws PageHarvesterException */
 	public abstract String getHtml() throws PageHarvesterException;
@@ -61,7 +68,9 @@ public abstract class PageHarvester {
 	public abstract void harvestHyperLinks(String url, final String linkAttrName, 
 			final String pageAttrName)
 			throws IOException, PageHarvesterException;
-	
+
+	public abstract void harvestSingleLink(String linkText) throws PageHarvesterException;
+
 	public abstract String crawlPage(URL url) throws IOException;
 	public abstract List<Hit> crawlHits(Query query, IHitVisitor hitVisitor) 
 			throws IOException, SearchEngineException, PageHarvesterException, 
@@ -193,11 +202,4 @@ public abstract class PageHarvester {
 
 		return;
 	}
-
-
-	protected void parseCurrentPageText() throws PageHarvesterException {
-
-	}
-
-	public abstract void harvestSingleLink(String linkText) throws PageHarvesterException;
 }
