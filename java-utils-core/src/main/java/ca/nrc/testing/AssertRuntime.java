@@ -17,14 +17,14 @@ import java.util.Map;
 public class AssertRuntime {
 
 
-	public static void assertRuntimeHasNotChanged(long gotTime,
+	public static void assertRuntimeHasNotChanged(double gotTime,
 		Double percTolerance, String ofWhat, TestInfo testInfo) throws IOException {
 		assertRuntimeHasNotChanged(gotTime, percTolerance, ofWhat, testInfo,
 			(Boolean)null);
 	}
 
 	public static void assertRuntimeHasNotChanged(
-		long gotTime, Double percTolerance,
+		double gotTime, Double percTolerance,
 		String ofWhat, TestInfo testInfo,
 		Boolean highIsBad) throws IOException {
 		if (highIsBad == null) {
@@ -32,7 +32,7 @@ public class AssertRuntime {
 			highIsBad = true;
 		}
 
-		Long expTime = expTimeFor(ofWhat, testInfo);
+		Double expTime = expTimeFor(ofWhat, testInfo);
 		if (expTime == null) {
 			// We didn't already have a time expectation for the current machine
 			// Store the current time so we can use it as a point of comparison
@@ -41,8 +41,17 @@ public class AssertRuntime {
 			setExpTimeFor(gotTime, ofWhat, testInfo);
 		} else {
 			double tolerance = percTolerance * gotTime;
+			String mess =
+				"Runtime for '"+ofWhat+"' has changed by more than "+
+				String.format("%.0f",percTolerance*100)+"%.\n\n"+
+				"This can happen intermittently if your computer was more/less busy than usual when you ran the test.\n"+
+				"If, on the other hand, the new runtime is the \"new normal\", you "+
+				"should change the expectation for that test by changing the '"+
+				ofWhat+"' attribute in file:\n\n"+
+				"   "+expTimesFPath(testInfo)+"\n"
+				;
 		AssertNumber.performanceHasNotChanged(ofWhat, 1.0*gotTime,
-			1.0*expTime, tolerance, !highIsBad);
+			1.0*expTime, tolerance, !highIsBad, mess);
 		}
 	}
 
@@ -53,7 +62,7 @@ public class AssertRuntime {
 	private static Path expTimesFPath(TestInfo testInfo) throws IOException {
 		Path fPath =
 			new TestDirs(testInfo)
-			.persistentResourcesPath(new File("expectedRuntimes.json"));
+			.persistentResourcesFile("expectedRuntimes.json");
 		File file = fPath.toFile();
 		if (!file.exists()) {
 			file.createNewFile();
@@ -72,26 +81,18 @@ public class AssertRuntime {
 	}
 
 	@JsonIgnore
-	private static void setExpTimeFor(Long time, String ofWhat,
+	private static void setExpTimeFor(Double time, String ofWhat,
 	 	TestInfo testInfo) throws IOException {
 		Map<String,Double> expTimes = expTimesHash(testInfo);
-		Double timeDbl = null;
-		if (time != null) {
-			timeDbl = new Double(time);
-		}
-		expTimes.put(ofWhat, timeDbl);
+		expTimes.put(ofWhat, time);
 		new ObjectMapper()
 			.writeValue(expTimesFPath(testInfo).toFile(), expTimes);
 	}
 
-	private static Long expTimeFor(String ofWhat, TestInfo testInfo)
+	private static Double expTimeFor(String ofWhat, TestInfo testInfo)
 		throws IOException {
 		Map<String,Double> expTimes = expTimesHash(testInfo);
-		Long expTime = null;
-		Double expTimeDbl = expTimes.get(ofWhat);
-		if (expTimeDbl != null) {
-			expTime = new Long(expTimeDbl.longValue());
-		}
+		Double expTime =  expTimes.get(ofWhat);
 		return expTime;
 	}
 }

@@ -36,20 +36,26 @@ public class AssertNumber {
 			Double gotPerf, Double oldPerf, Double tolerance) {
 		
 		performanceHasNotChanged(ofWhat, 
-				gotPerf, oldPerf, tolerance, null);
+				gotPerf, oldPerf, tolerance, (Boolean)null);
 	}
-	
-	
+
+	public static void performanceHasNotChanged(String ofWhat,
+		Double gotPerf, Double oldPerf, Double tolerance,
+		Boolean highIsGood) {
+		performanceHasNotChanged(ofWhat, gotPerf, oldPerf, tolerance,
+			highIsGood, (String)null);
+	}
+
 	public static void performanceHasNotChanged(String ofWhat, 
 		Double gotPerf, Double oldPerf, Double tolerance, 
-		Boolean highIsGood) {
+		Boolean highIsGood, String mess) {
 		if (highIsGood == null) {
 			highIsGood = true;
 		}
 		
 		Double delta = gotPerf - oldPerf;
 		if (Math.abs(delta) > tolerance) {
-			String mess = "Performance of "+ofWhat+" has significantly "+
+			mess += "\nPerformance of '"+ofWhat+"' has significantly "+
 					"DECREASED.";
 			if ((delta > 0 && highIsGood) ||
 					delta < 0 && !highIsGood) {
@@ -61,7 +67,6 @@ public class AssertNumber {
 					"Old performance : "+oldPerf+"\n"+
 					"Delta           : "+delta+"\n"+
 					"Max tolerance   : "+tolerance;
-			
 					;
 			Assertions.fail(mess);			
 		}
