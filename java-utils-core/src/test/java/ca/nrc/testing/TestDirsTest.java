@@ -23,7 +23,7 @@ public class TestDirsTest {
 		// The directory is guaranteed to be empty upon the
 		// start of the test.
 		//
-		Path inputsPath = testDirs.inputsPath();
+		Path inputsPath = testDirs.inputsDir();
 
 		// This a temporary directory where the test can output
 		// some files.
@@ -31,7 +31,7 @@ public class TestDirsTest {
 		// The directory is guaranteed to be empty upon the
 		// start of the test.
 		//
-		Path outputsPath = testDirs.outputsPath();
+		Path outputsPath = testDirs.outputsDir();
 
 		// This is a directory where you can put "persistent" resources, i.e.
 		// files that will not be cleared by the test harness..
@@ -41,8 +41,27 @@ public class TestDirsTest {
 		// cannot be coded in the test, because speed will vary from machine
 		// to machine)
 		//
-		Path resourcesPath = testDirs.persistentResourcesPath();
+		Path resourcesPath = testDirs.persistentResourcesDir();
 
+		// The inputsDir(), outputsDir() and persistentResourcesDir() methods
+		// allow you to provide a path that is relative to the base directory
+		//
+		// In all those cases, the subdirectories will be created if they
+		// don't already exist.
+		//
+		Path inputSubdir =
+			testDirs.inputsDir("some", "input", "subdir");
+		Path outputSubdir =
+			testDirs.outputsDir("some", "output", "subdir");
+		Path persistentSubdir =
+			testDirs.persistentResourcesDir("some", "persistent", "subdir");
+
+		// You can also get path to specific files.
+		// The path leading to the file will be created if it does not already
+		// exist, but the file itself will NOT be created.
+		//
+		Path outputFile =
+			testDirs.outputsFile("some", "path", "hello.txt");
 	}
 
 	//////////////////////////////////////////////
@@ -50,11 +69,59 @@ public class TestDirsTest {
 	//////////////////////////////////////////////
 
 	@Test
-	public void test__path__HappyPath(TestInfo testInfo) throws Exception {
-		Path dir = new TestDirs(testInfo).basePath();
-		AssertString.assertStringEndsWith(
-		"TestDirsTest/test__path__HappyPath", dir.toString());
+	public void test__baseDir__HappyPath(TestInfo testInfo) throws Exception {
+		Path dir = new TestDirs(testInfo).baseDir();
+		new AssertPath(dir)
+			.isDir()
+			.endsWith("target/test-dirs/ca/nrc/testing/TestDirsTest/test__baseDir__HappyPath")
+			;
 		return;
+	}
+
+	@Test
+	public void test__outputsDir__HappyPath(TestInfo testInfo) throws IOException {
+		Path dir = new TestDirs(testInfo).outputsDir("output", "subdir");
+		new AssertPath(dir)
+			.isDir()
+			.endsWith("target/test-dirs/ca/nrc/testing/TestDirsTest/test__outputsDir__HappyPath/outputs/output/subdir")
+		;
+	}
+
+	@Test
+	public void test__outputsFile__HappyPath(TestInfo testInfo) throws IOException {
+		Path dir = new TestDirs(testInfo).outputsFile("subdir", "file.txt");
+		new AssertPath(dir)
+			.isFile()
+			.endsWith("target/test-dirs/ca/nrc/testing/TestDirsTest/test__outputsFile__HappyPath/outputs/subdir/file.txt")
+		;
+	}
+
+	@Test
+	public void test__inputsDir__HappyPath(TestInfo testInfo) throws IOException {
+		Path dir = new TestDirs(testInfo).inputsDir("input", "subdir");
+		new AssertPath(dir)
+			.isDir()
+			.endsWith("target/test-dirs/ca/nrc/testing/TestDirsTest/test__inputsDir__HappyPath/inputs/input/subdir")
+		;
+	}
+
+	@Test
+	public void test__inputsFile__HappyPath(TestInfo testInfo) throws IOException {
+		Path dir = new TestDirs(testInfo).inputsFile("subdir", "file.txt");
+		new AssertPath(dir)
+		.isFile()
+		.endsWith("target/test-dirs/ca/nrc/testing/TestDirsTest/test__inputsFile__HappyPath/inputs/subdir/file.txt")
+		;
+	}
+
+
+	@Test
+	public void test__persistentResourcesDir__HappyPath(TestInfo testInfo) throws IOException {
+		Path dir = new TestDirs(testInfo).persistentResourcesDir("persistent", "subdir");
+		new AssertPath(dir)
+			.isDir()
+			.endsWith("target/test-dirs/ca/nrc/testing/TestDirsTest/test__persistentResourcesDir__HappyPath/persistent_resources/persistent/subdir")
+		;
 	}
 
 }
