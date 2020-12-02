@@ -72,11 +72,13 @@ public class AssertNumber {
 		if (changeType != PerfChange.SAME) {
 			String chanteTypeStr = null;
 			if (changeType == PerfChange.WORSENED) {
-				if (delta > tolerances.getLeft()) {
+				Double absTolerance = tolerances.getLeft();
+				if (absTolerance != null && delta > absTolerance) {
 					chanteTypeStr = "WORSENED";
 				}
 			} else {
-				if (delta > tolerances.getRight()) {
+				Double absTolerance = tolerances.getRight();
+				if (absTolerance != null && delta > absTolerance) {
 					chanteTypeStr = "IMPROVED";
 				}
 			}
