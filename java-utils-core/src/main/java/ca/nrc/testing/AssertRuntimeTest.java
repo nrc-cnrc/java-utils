@@ -269,6 +269,25 @@ public class AssertRuntimeTest {
 		});
 	}
 
+	@Test
+	public void test__performanceHasNotChanged__NullImprTolerance()
+		throws Exception {
+		Pair<Double,Double> tolerances = Pair.of(null, 0.05);
+		doRuntimeHasNotChanged(
+		"The fact that we are passing a null impr. tolerance should not cause a crash",
+		10.0, 10.001, tolerances);
+	}
+
+	@Test
+	public void test__performanceHasNotChanged__NullWorsenedTolerance()
+		throws Exception {
+		Pair<Double,Double> tolerances = Pair.of(0.05, null);
+		doRuntimeHasNotChanged(
+			"The fact that we are passing a null impr. tolerance should not cause a crash",
+			10.0, 10.001, tolerances);
+	}
+
+
 	//////////////////////////////////////
 	// TEST HELPERS
 	//////////////////////////////////////

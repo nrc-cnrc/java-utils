@@ -65,7 +65,6 @@ public class AssertNumberTest {
 
 	@Test
 	public void test__performanceHasNotChanged__SingleTolerance() {
-
 		Double currentPerformance;
 		Double baselinePerformance;
 		Double tolerance;
@@ -201,6 +200,22 @@ public class AssertNumberTest {
 				"Should fail because of significant WORSENING",
 				currPerformance, basePerformance, tol, false);
 		});
+	}
+
+	@Test
+	public void test__performanceHasNotChanged__NullImprTolerance() {
+		Pair<Double,Double> tolerances = Pair.of(null, 0.05);
+		doPerformanceHasNotChanged(
+		"The fact that we are passing a null impr. tolerance should not cause a crash",
+		10.0, 10.001, tolerances);
+	}
+
+	@Test
+	public void test__performanceHasNotChanged__NullWorsenedTolerance() {
+		Pair<Double,Double> tolerances = Pair.of(0.05, null);
+		doPerformanceHasNotChanged(
+		"The fact that we are passing a null impr. tolerance should not cause a crash",
+		10.0, 10.001, tolerances);
 	}
 
 	//////////////////////////////////////

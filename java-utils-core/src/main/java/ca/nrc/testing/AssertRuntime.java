@@ -62,17 +62,33 @@ public class AssertRuntime {
 			//
 			setExpTimeFor(gotTime, ofWhat, testInfo);
 		} else {
-			double toleranceWorsened = percToleranceWorsened * expTime;
-			double toleranceImpr = percToleranceImpro * expTime;
+			Double toleranceWorsened =
+				(null == percToleranceWorsened ? null:
+					percToleranceWorsened * expTime);
+			Double toleranceImpr =
+				(null == percToleranceImpro? null:
+					percToleranceImpro * expTime);
 			Pair<Double,Double> absTolerances =
 				Pair.of(toleranceWorsened,toleranceImpr);
 			String asPercentage = "%.1f";
+
+			String tolWorsenedAsStr = null;
+			if (percToleranceWorsened != null) {
+				tolWorsenedAsStr =
+					String.format(asPercentage, percToleranceWorsened*100)+"%";
+			}
+
+			String tolImprAsStr = null;
+			if (percToleranceImpro != null) {
+				tolImprAsStr =
+					String.format(asPercentage, percToleranceImpro*100)+"%";
+			}
+
 			mess +=
 				"\nRuntime for '"+ofWhat+
 				"' has changed by more than the expected tolerances (impr. < "+
-				String.format(asPercentage, toleranceImpr*100)+
-				"%, worsening < " +
-				String.format(asPercentage, toleranceWorsened*100)+"%).\n\n"+
+				tolImprAsStr+
+				", worsening < " + tolWorsenedAsStr + ").\n\n"+
 				"This can happen intermittently if your computer was more/less busy than usual when you ran the test.\n"+
 				"If, on the other hand, the new runtime is the \"new normal\", you "+
 				"should change the expectation for that test by changing the '"+
