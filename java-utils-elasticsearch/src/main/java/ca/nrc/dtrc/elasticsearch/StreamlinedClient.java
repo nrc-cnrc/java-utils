@@ -4,6 +4,7 @@ import ca.nrc.config.ConfigException;
 import ca.nrc.data.file.ObjectStreamReader;
 import ca.nrc.data.file.ObjectStreamReaderException;
 import ca.nrc.datastructure.Pair;
+import ca.nrc.debug.Debug;
 import ca.nrc.dtrc.elasticsearch.request.Highlight;
 import ca.nrc.dtrc.elasticsearch.request.JsonString;
 import ca.nrc.dtrc.elasticsearch.request.Query;
@@ -313,10 +314,10 @@ public class StreamlinedClient {
 			throw new ElasticSearchException(e);
 		}
 		String jsonResp = putDocument(type, docID, jsonDoc);
-		
+
 		return jsonResp;
 	}
-		
+
 	public String putDocument(String type, String docID, String jsonDoc) throws ElasticSearchException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.putDocument");
 		URL url =
@@ -332,6 +333,7 @@ public class StreamlinedClient {
 		getIndex().clearFieldTypesCache(type);		
 		
 		sleep();
+
 		return jsonResponse;
 	}	
 	
@@ -450,7 +452,11 @@ public class StreamlinedClient {
 	public String post(URL url, String json) throws ElasticSearchException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.post");
 		tLogger.trace("posting url="+url+", with json="+json);
-		
+
+		for (StreamlinedClientObserver obs: observers) {
+			obs.observeBeforePOST(url, json);
+		}
+
 		if (json == null) json = "";
 	    RequestBody body = RequestBody.create(JSON, json);
 	    
@@ -474,11 +480,20 @@ public class StreamlinedClient {
 
 	    checkForESErrorResponse(jsonResponse);
 
+		for (StreamlinedClientObserver obs: observers) {
+			obs.observeAfterPOST(url, json);
+		}
+
 	    return jsonResponse;
 	  }
 	
 	protected String get(URL url) throws ElasticSearchException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.get");
+
+		for (StreamlinedClientObserver obs: observers) {
+			obs.observeBeforeGET(url);
+		}
+
 		Request request = requestBuilder.get()
 		      .url(url)
 		      .build();
@@ -498,7 +513,12 @@ public class StreamlinedClient {
 		
 		  
 		checkForESErrorResponse(jsonResponse);
-		  
+
+		for (StreamlinedClientObserver obs: observers) {
+			obs.observeAfterGET(url);
+		}
+
+
 		tLogger.trace("returning: "+jsonResponse);
 		  
 		return jsonResponse;		
@@ -507,6 +527,10 @@ public class StreamlinedClient {
 	public String put(URL url, String json) throws ElasticSearchException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.put");
 		tLogger.trace("putting url="+url+", with json=\n"+json);
+
+		for (StreamlinedClientObserver obs: observers) {
+			obs.observeBeforePUT(url, json);
+		}
 		
 		if (json == null) json = "";
 	    RequestBody body = RequestBody.create(JSON, json);
@@ -527,6 +551,11 @@ public class StreamlinedClient {
 		}
 
 	    checkForESErrorResponse(jsonResponse);
+
+		for (StreamlinedClientObserver obs: observers) {
+			obs.observeAfterPUT(url, json);
+		}
+
 	    
 	    return jsonResponse;
 	  }	
@@ -539,6 +568,11 @@ public class StreamlinedClient {
 	public void delete(URL url, String jsonBody) throws ElasticSearchException{
 		@SuppressWarnings("unused")
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.delete");
+
+		for (StreamlinedClientObserver obs: observers) {
+			obs.observeBeforeDELETE(url, jsonBody);
+		}
+
 		if (jsonBody == null) jsonBody = "";
 		Request request = requestBuilder
 				.delete()
@@ -556,6 +590,10 @@ public class StreamlinedClient {
 		}
 
 		checkForESErrorResponse(jsonResponse);
+
+		for (StreamlinedClientObserver obs: observers) {
+			obs.observeAfterDELETE(url, jsonBody);
+		}
 	}
 	
 	public static void checkForESErrorResponse(String jsonResponse) throws ElasticSearchException {
@@ -1239,7 +1277,7 @@ public class StreamlinedClient {
 					
 					if (currBatchSize > batchSize) {
 						for (StreamlinedClientObserver obs: observers) {
-							obs.onBulkIndex(batchStart, batchStart+currBatchSize, indexName, currDocTypeName);
+							obs.observeBulkIndex(batchStart, batchStart+currBatchSize, indexName, currDocTypeName);
 						}
 						bulk(jsonBatch, defDocTypeName);
 						batchStart += currBatchSize;
@@ -1305,7 +1343,7 @@ public class StreamlinedClient {
 			
 			if (currBatchSize > batchSize) {
 				for (StreamlinedClientObserver obs: observers) {
-					obs.onBulkIndex(batchStart, batchStart+currBatchSize, indexName, docTypeName);
+					obs.observeBulkIndex(batchStart, batchStart+currBatchSize, indexName, docTypeName);
 				}
 				bulk(jsonBatch, docTypeName);
 				batchStart += currBatchSize;
@@ -1524,7 +1562,12 @@ public class StreamlinedClient {
 	}
 	
 	public void attachObserver(StreamlinedClientObserver _obs) {
+			_obs.setObservedIndex(this.getIndexName());
 		observers.add(_obs);
+	}
+
+	public void detachObservers() {
+		observers = new ArrayList<StreamlinedClientObserver>();
 	}
 
 	public String clearDocType(String docType) throws ElasticSearchException {
