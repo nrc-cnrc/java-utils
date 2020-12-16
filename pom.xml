@@ -6,7 +6,7 @@
  	<artifactId>java-utils</artifactId>
 	<packaging>pom</packaging>
  
-	<version>1.0.26-SNAPSHOT</version>
+	<version>1.0.26</version>
 
 	<modules>
 	   <!-- Note: Order of modules is important.
