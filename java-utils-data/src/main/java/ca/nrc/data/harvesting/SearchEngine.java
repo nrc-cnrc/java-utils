@@ -1,6 +1,5 @@
 package ca.nrc.data.harvesting;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +11,7 @@ import ca.nrc.json.PrettyPrinter;
 
 public abstract class SearchEngine {
 
-protected abstract SearchResults searchRaw(Query query) throws SearchEngineException;
+	protected abstract SearchResults searchRaw(Query query) throws SearchEngineException;
 	
 	private boolean checkHitLanguage = false;
 		public boolean shouldCheckHitLanguage()  { return checkHitLanguage; }

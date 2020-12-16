@@ -1,15 +1,24 @@
 package ca.nrc.data.harvesting;
 
 import ca.nrc.data.harvesting.SearchEngine.Query;
+import org.junit.Before;
 import org.junit.Test;
 
 public class SearchEngineMultiQueryTest {
+
+	private String bingTestKey;
+
+	@Before
+	public void setUp() throws Exception {
+		bingTestKey = SearchEngine_BingTest.assumeTestBingKeyIsDefined();
+		return;
+	}
 
 	///////////////////////
 	// DOCUMENTATION TESTS
 	///////////////////////
 	
-	@Test
+	@Test(timeout = 10000)
 	public void test__SearchEngineMultiQuery__Synopsis() throws Exception {
 		// Some search engines (Bing in particular) have trouble processing queries 
 		// that have a long list of ORed terms.
@@ -17,9 +26,9 @@ public class SearchEngineMultiQueryTest {
 		// This class is designed to address that by issuing separate queries for
 		// each term, and merging the results
 		//
-		String[] terms = new String[] {"hello", "world"};
-		Query query = new Query(terms);
-		SearchResults results = new SearchEngineMultiQuery().search(query);
+			String[] terms = new String[]{"hello", "world"};
+			Query query = new Query(terms);
+			SearchResults results = new SearchEngineMultiQuery(bingTestKey).search(query);
 	}
 
 	///////////////////////
@@ -30,8 +39,8 @@ public class SearchEngineMultiQueryTest {
 	public void test__search__HappyPath() throws Exception {
 		String[] terms = new String[] {"hello", "world"};
 		Query query = new Query(terms).setMaxHits(50);
-		SearchResults results = 
-				new SearchEngineMultiQuery()
+		SearchResults results =
+				new SearchEngineMultiQuery(this.bingTestKey)
 					.setCheckHitSummary(true)
 					.search(query);
 		
@@ -59,7 +68,7 @@ public class SearchEngineMultiQueryTest {
 				"ᓄᓇᕗ", "ᓄᓇᕗᒻᒥ", "ᓄᓇᕘᒥ", "ᓄᓇᕘᑉ", "ᓄᓇᕗᒻᒥᐅᑦ", "ᓄᓇᕗᑦ"};
 		Query query = new Query(terms).setMaxHits(50).setLang("iu");
 		SearchResults results = 
-				new SearchEngineMultiQuery()
+				new SearchEngineMultiQuery(bingTestKey)
 					.setCheckHitSummary(true)
 					.search(query);
 		
@@ -82,7 +91,7 @@ public class SearchEngineMultiQueryTest {
 		Query query = new Query(terms).setMaxHits(50).setLang("iu");
 		
 		SearchResults results = 
-					new SearchEngineMultiQuery()
+					new SearchEngineMultiQuery(bingTestKey)
 						.setCheckHitSummary(true)
 						.search(query);
 		

@@ -50,25 +50,15 @@ public class SearchEngineMultiQuery  {
 	
 	SearchEngineWorker[] workers = new SearchEngineWorker[0];
 	
-	public SearchEngineMultiQuery() throws IOException, SearchEngineException {
-		initializeSearchEngineMultiQuery();
+	public SearchEngineMultiQuery(String _bingKey) throws IOException, SearchEngineException {
+		initializeSearchEngineMultiQuery(_bingKey);
 	}
 
-	public SearchEngineMultiQuery(SearchEngine engineProto) throws IOException, SearchEngineException {
-		initializeSearchEngineMultiQuery(engineProto);
-	}
-
-	private void initializeSearchEngineMultiQuery() throws IOException, SearchEngineException {
-		initializeSearchEngineMultiQuery(null);
-	}
-
-	private void initializeSearchEngineMultiQuery(SearchEngine proto) throws IOException, SearchEngineException {
-		if (proto == null) {
-			proto = new BingSearchEngine();
-		}
-		engineProto = proto;
+	private void initializeSearchEngineMultiQuery(String _bingKey) throws IOException, SearchEngineException {
+		engineProto = new BingSearchEngine(_bingKey);
 		foundURLs = new HashSet<String>();
 		estTotalHits = 0;
+		return;
 	}
 
 	public SearchResults search(Query query) throws SearchEngineException, IOException {
@@ -80,8 +70,6 @@ public class SearchEngineMultiQuery  {
 		}
 		
 		
-		initializeSearchEngineMultiQuery();
-
 		// Create one worker per term then wait for them to
 		// finish.
 		createAndStartWorkers(query);

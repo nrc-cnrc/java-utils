@@ -27,29 +27,32 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import ca.nrc.config.ConfigException;
-import ca.nrc.data.JavaUtilsDataConfig;
-import ca.nrc.data.harvesting.SearchEngine.Query;
-import ca.nrc.data.harvesting.SearchEngine.SearchEngineException;
 import ca.nrc.datastructure.Pair;
-
 
 public class BingSearchEngine extends SearchEngine {
 	
 	private static final String bingSearchUrl = "https://api.cognitive.microsoft.com/bing/v7.0/search";
 
-	final Map<Object, Object> parameters = new HashMap<Object, Object>();
+	public Map<Object, Object> parameters = new HashMap<Object, Object>();
 
-	public BingSearchEngine() throws IOException, SearchEngineException {
-		init();
+	// Bing Web Search API key obtained from Microsof Azure:
+	//
+	//    https://www.microsoft.com/en-us/bing/apis/bing-web-search-api
+	//
+	private String bingKey;
+
+	public BingSearchEngine() throws SearchEngineException {
+		init_BingSearchEngine((String)null);
 	}
 
-	private void init() throws IOException, SearchEngineException {
-		try {
-			parameters.put("subscription-key", JavaUtilsDataConfig.getBingKey());
-		} catch (ConfigException exc) {
-			throw new SearchEngineException("Could not determine the Bing subscription key.", exc);
-		}
+	public BingSearchEngine(String _bingKey) throws SearchEngineException {
+		super();
+		init_BingSearchEngine(_bingKey);
+	}
+
+	private void init_BingSearchEngine(String _bingKey) throws SearchEngineException {
+		this.bingKey = _bingKey;
+		parameters.put("subscription-key", _bingKey);
 		parameters.put("count",  10);
 		parameters.put("offset", 0);
 		parameters.put("mkt", "en-us");
@@ -57,6 +60,7 @@ public class BingSearchEngine extends SearchEngine {
 		parameters.put("safesearch", "Moderate");
 		parameters.put("Accept", "application/json");
 
+		return;
 	}
 	
 	@Override
@@ -317,7 +321,7 @@ public class BingSearchEngine extends SearchEngine {
 			} catch (UnsupportedEncodingException e) {
 				throw new SearchEngineException("Could not encode search parameter to UTF8: "+parameterKey, e);
 			}
-			
+
 			String parameterValue = parameter.getValue().toString();
 			String encodedValue;
 			try {

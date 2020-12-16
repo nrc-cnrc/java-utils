@@ -37,7 +37,6 @@ public abstract class SearchEngineTest {
 	 * @throws IOException 
 	 *************************/
 	
-	@SuppressWarnings("unused")
 	@Test
 	public void test__SearchEngine__Synopsis() throws SearchEngine.SearchEngineException, IOException {
 		

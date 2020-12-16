@@ -43,6 +43,7 @@ public class PageHarvester_HtmlCleaner extends PageHarvester {
 	
 	private static final Logger logger = LogManager.getLogger(PageHarvester_HtmlCleaner.class);
 
+	private String bingSearchAPIKey = null;
 	private HtmlCleaner cleaner;
 
 	private String html;
@@ -51,15 +52,22 @@ public class PageHarvester_HtmlCleaner extends PageHarvester {
 	private URL currentURL;
 	private TagNode currentRoot;
 	
-//	private boolean harvestFullText = false;
-//		public void setHarvestFullText(boolean _fullText) {this.harvestFullText = _fullText;}
-	
-
 	// 0 --> last page harvest went OK
 	//       otherwise, equals the error status returned by the server
 	public int failureStatus = 0;
 
 	public PageHarvester_HtmlCleaner() {
+		super();
+		init_PageHarvester_HtmlCleaner((String)null);
+	}
+
+	public PageHarvester_HtmlCleaner(String _bingSearchAPIKey) {
+		super();
+		init_PageHarvester_HtmlCleaner(_bingSearchAPIKey);
+	}
+
+	private void init_PageHarvester_HtmlCleaner(String _bingSearchAPIKey) {
+		this.bingSearchAPIKey = _bingSearchAPIKey;
 		cleaner = makeCleaner();
 	}
 
@@ -133,7 +141,10 @@ public class PageHarvester_HtmlCleaner extends PageHarvester {
 	@Override
 	public List<SearchEngine.Hit> crawlHits(SearchEngine.Query query, SearchEngine.IHitVisitor hitVisitor)
 			throws IOException, SearchEngineException, PageHarvesterException, ConfigException {
-		SearchEngine engine = new BingSearchEngine();
+		if (bingSearchAPIKey == null) {
+			throw new PageHarvesterException("Crawling hits requires that acquire a Bing Web Search API from Azure, and pass it to the PageHarvester.\nYou can obtain a key from:\n\n   https://www.microsoft.com/en-us/bing/apis/bing-web-search-api");
+		}
+		SearchEngine engine = new BingSearchEngine(bingSearchAPIKey);
 		List<SearchEngine.Hit> hits = engine.search(query).retrievedHits;
 		for (SearchEngine.Hit aHit : hits) {
 			try {

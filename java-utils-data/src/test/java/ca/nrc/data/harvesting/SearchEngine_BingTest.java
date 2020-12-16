@@ -5,19 +5,30 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.List;
 
-import ca.nrc.config.ConfigException;
-import ca.nrc.data.JavaUtilsDataConfig;
+import ca.nrc.config.Config;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.After;
 import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 
-import ca.nrc.data.harvesting.BingSearchEngine;
-import ca.nrc.data.harvesting.SearchEngine;
 import ca.nrc.data.harvesting.SearchEngine.SearchEngineException;
 import ca.nrc.testing.AssertString;
 
 public class SearchEngine_BingTest extends SearchEngineTest {
+
+	private static final String bingTestKeyPropName = "ca.nrc.data.harvesting.bingTestAPIKey";
+	private String bingTestAPIKey = null;
+
+	protected static String assumeTestBingKeyIsDefined() throws Exception {
+		String key = Config.getConfigProperty(bingTestKeyPropName, false);
+		Assume.assumeTrue(
+			"No bing key defined. Skipping all tests in SearchEngine_BingTest." +
+			"To run those tests, obtain a Bing key from Microsoft Azure and setup a config property "+bingTestKeyPropName+" with that value.",
+			key != null);
+
+		return key;
+	}
 
 	@Before
 	public void setUp() throws Exception {
@@ -25,21 +36,7 @@ public class SearchEngine_BingTest extends SearchEngineTest {
 
 		// Don't run the tests unless a Bing key has been defined.
 		//
-		boolean keyIsDefined = bingKeyIsDefined();
-		Assume.assumeTrue(
-			"No bing key defined. Skipping all tests in SearchEngine_BingTest." +
-			"To run those tests, obtain a Bing key from Microsoft Azure and setup a config property ca.nrc.javautils.bingKey with that value",
-			bingKeyIsDefined());
-	}
-
-	private boolean bingKeyIsDefined() {
-		boolean keyDefined = true;
-		try {
-			JavaUtilsDataConfig.getBingKey();
-		} catch (ConfigException e) {
-			keyDefined = false;
-		}
-		return keyDefined;
+		this.bingTestAPIKey = assumeTestBingKeyIsDefined();
 	}
 
 	@After
@@ -55,10 +52,23 @@ public class SearchEngine_BingTest extends SearchEngineTest {
 
 	@Override
 	protected SearchEngine makeSearchEngine() throws IOException, SearchEngineException {
-		return new BingSearchEngine();
+		return new BingSearchEngine(bingTestAPIKey);
 	}
 
 	@Test
+	public void test__BingSearchEngine__Constructor() throws Exception {
+		// To create a BingSearchEngine, you must first get a Bing Web Search API key
+		// from Microsof Azure:
+		//
+		//    https://www.microsoft.com/en-us/bing/apis/bing-web-search-api
+		//
+		// This test assumes that such a key has been retrieved from a props
+		// file.
+		BingSearchEngine searchEngine = new BingSearchEngine(bingTestAPIKey);
+	}
+
+
+		@Test
 	public void test__getHitDirectURL__HappyPath() throws MalformedURLException, IOException, URISyntaxException, SearchEngineException {
 		String bingURL = "https://www.bing.com/cr?IG=4F40DA1845D24932A9D0F66DC4FC14EA&CID=2B66391AD87368C00D4B30F1D9426911&rd=1&h=8If1ewpZIAj-EF57E375KJmLrrKvbvJmfeNbDiXXQwE&v=1&r=https%3a%2f%2fwww.vesselfinder.com%2fvessels%2fARCTIC-IMO-9315173-MMSI-636014506&p=DevEx,5098.1";
 		String gotDirectURL = new BingSearchEngine().getHitDirectURL(bingURL);
@@ -133,6 +143,13 @@ public class SearchEngine_BingTest extends SearchEngineTest {
 		String gotQueryString = searchEngine.makeBingQueryString(query);
 		String expQueryString = "ᐅᑉᐱᕐᓂᕐᒥᒃ AND -(\"the\")";
 		AssertString.assertStringEquals(expQueryString, gotQueryString);
+	}
+
+	@Test
+	public void test__BingSearchEngine__Clone() throws Exception {
+		BingSearchEngine searchEngine = new BingSearchEngine();
+		ObjectMapper mapper = new ObjectMapper();
+		mapper.writeValueAsString(searchEngine);
 	}
 	
 	/////////////////////////////////

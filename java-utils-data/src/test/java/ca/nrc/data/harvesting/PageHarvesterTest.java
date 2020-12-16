@@ -39,9 +39,11 @@ import org.junit.jupiter.api.Assertions;
 public abstract class PageHarvesterTest {
 
 	private PageHarvester harvester = null;
+	private String bingTestKey;
 
 	@Before
-	public void setUp() throws Exception {	
+	public void setUp() throws Exception {
+		this.bingTestKey = SearchEngine_BingTest.assumeTestBingKeyIsDefined();
 		harvester = makeHarvesterToTest();
 	}
 	
@@ -86,8 +88,15 @@ public abstract class PageHarvesterTest {
 		
 		//
 		// You can also use a harvester to visit all the hits returned by 
-		// a search engine query
-		// 
+		// a search engine query.
+		//
+		// This can only be done if you have provided a Bing Web Search API
+		// key to the harvester. This test assumes that the key is provided
+		// in a config prop file.
+		//
+		harvester = new PageHarvester_HtmlCleaner(bingTestKey);
+
+		//
 		// First, you need to define a class of IHitVisitor. For the purpose
 		// of this test, the visitor only collects the hit urls.
 		//
@@ -95,15 +104,15 @@ public abstract class PageHarvesterTest {
 			public List<URL> hitURLs = new ArrayList<URL>();
 			@Override
 			public void visitHit(Hit hit) {
-				hitURLs.add(hit.url);				
+				hitURLs.add(hit.url);
 			}
 		}
 		TestVisitor visitor = new TestVisitor();
-		
+
 		//
-		// Then you invoke the crawlHits method, passing it the 
+		// Then you invoke the crawlHits method, passing it the
 		// visitor and a SearchEngine.Query.
-		// 
+		//
 		// The visitor will be invoked on each of the hits found.
 		//
 		harvester.crawlHits(new SearchEngine.Query("donald trump"), visitor);

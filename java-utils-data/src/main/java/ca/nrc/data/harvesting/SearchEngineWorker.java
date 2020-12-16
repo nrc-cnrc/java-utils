@@ -55,7 +55,11 @@ public class SearchEngineWorker implements Runnable {
 		
 	public SearchEngineWorker(String _term, Query _query, String _threadName, 
 			SearchEngine engineProto, SearchResultsCollector collector) throws SearchEngineException {
-		Class<? extends SearchEngine> clazz = engineProto.getClass();		
+		try {
+			searchEngine = Cloner.clone(engineProto);
+		} catch (ClonerException e) {
+			throw new SearchEngineException("Could not clone search engine prototype of class "+engineProto.getClass());
+		}
 		{
 			try {
 				this.query = Cloner.clone(_query);
@@ -67,15 +71,7 @@ public class SearchEngineWorker implements Runnable {
 			this.query.hitsPageNum = 0;
 			this.resultsCollector = collector;
 			
-			try {
-				this.searchEngine = clazz.getConstructor().newInstance().setCheckHitLanguage(true);
-				this.searchEngine.setCheckHitSummary(shouldCheckHitSummary());
-			} catch (NoSuchMethodException | SecurityException | InstantiationException 
-					| IllegalAccessException | IllegalArgumentException 
-					| InvocationTargetException e) {
-				throw new SearchEngineException("Cannot create a search engine of type: "+clazz.getName(), e);
-			}
-			
+			this.searchEngine.setCheckHitSummary(shouldCheckHitSummary());
 		}
 		this.thrName = _threadName;
 	}
