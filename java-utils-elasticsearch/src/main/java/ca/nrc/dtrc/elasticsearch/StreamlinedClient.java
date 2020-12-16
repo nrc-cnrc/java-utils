@@ -596,7 +596,7 @@ public class StreamlinedClient {
 		}
 	}
 	
-	public static void checkForESErrorResponse(String jsonResponse) throws ElasticSearchException {
+	public void checkForESErrorResponse(String jsonResponse) throws ElasticSearchException {
 		ElasticSearchException exception = null;
 		
 		ObjectMapper mapper = new ObjectMapper();
@@ -610,7 +610,7 @@ public class StreamlinedClient {
 			// issued by ElasticSearch
 			Map<String,Object> excDetails = new HashMap<String,Object>();
 			excDetails.put("error", jsonResponse);
-			exception =  new ElasticSearchException(excDetails);
+			exception =  new ElasticSearchException(excDetails, this.indexName);
 		}
 		
 		if (exception == null && responseObj.containsKey("error")) {

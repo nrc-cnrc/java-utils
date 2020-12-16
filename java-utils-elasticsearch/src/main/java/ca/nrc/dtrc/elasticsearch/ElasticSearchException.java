@@ -11,40 +11,57 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class ElasticSearchException extends Exception {
 	
 	private Map<String,Object> details = new HashMap<String,Object>();
-	
+	private String indexName = null;
+
 	public ElasticSearchException(Exception exc) {
 		super(exc);
 	}	
 
 	public ElasticSearchException(String message, Exception exc) {
 		super(message, exc);
-	}	
+		init_ElasticSearchException(message, null, exc, (String)null);
+	}
 
 	public ElasticSearchException(Map<String,Object> _details) {
+		init_ElasticSearchException(
+			(String)null, _details, (Exception)null, (String)null);
+	}
+
+	public ElasticSearchException(Map<String,Object> _details, String _indexName) {
 		super("Elastic Search operation return an error JSON response");
-		details = _details;
+		init_ElasticSearchException(
+			(String)null, details, (Exception)null, (String)null);
 	}
 
 	public ElasticSearchException(String errorMessage) {
 		super("Elastic Search operation return an error JSON response");
-		
-		errorMessage = errorMessage.replaceAll("\"", "\\\"");
-		String jsonDetails = 
-				  "{\"error\":\n"
-				+ "  {\"root_cause\":\n"
-				+ "    {\n"
-				+ "      \"type\": null,\n"
-				+ "      \"reason\": \""+errorMessage+"\"\n"
-				+ "    }\n"
-				+ "  }\n"
-				+ "}"
-				;
-		
-		
-		try {
-			details = new ObjectMapper().readValue(jsonDetails, details.getClass());
-		} catch (IOException e) {
-			e.printStackTrace();
+		init_ElasticSearchException(
+			errorMessage, (Map)null, (Exception)null, (String)null);
+	}
+
+	private void init_ElasticSearchException(
+		String errorMessage, Map<String, Object> _details, Exception exc, String _indexName) {
+		this.details = _details;
+		this.indexName = _indexName;
+
+		if (details == null && errorMessage != null) {
+			errorMessage = errorMessage.replaceAll("\"", "\\\"");
+			String jsonDetails =
+			"{\"error\":\n"
+			+ "  {\"root_cause\":\n"
+			+ "    {\n"
+			+ "      \"type\": null,\n"
+			+ "      \"reason\": \""+errorMessage+"\"\n"
+			+ "    }\n"
+			+ "  }\n"
+			+ "}"
+			;
+			try {
+				details =
+					new ObjectMapper().readValue(jsonDetails, Map.class);
+			} catch (IOException e2) {
+				e2.printStackTrace();
+			}
 		}
 	}
 
