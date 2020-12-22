@@ -19,7 +19,7 @@ public class ResultsMergerTest {
 	SearchResults<Document> mltHits = null;
 	SearchResults<Document> bQueryHits = null;
 	@Before
-	public void setUp() {
+	public void setUp() throws Exception {
 		merger = new ResultsMerger<Document>();		
 		mltHits = new SearchResults<Document>();
 		{
@@ -40,7 +40,7 @@ public class ResultsMergerTest {
 	 ******************************************************************/
 	
 	@Test
-	public void test__Synopsis() {
+	public void test__Synopsis() throws Exception {
 		//
 		// Use ResultsMerger to merge two sets of SearchResults. 
 		//

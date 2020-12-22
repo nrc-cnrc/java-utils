@@ -1,8 +1,6 @@
 package ca.nrc.dtrc.elasticsearch;
 
-import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -11,89 +9,72 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class ElasticSearchException extends Exception {
 	
 	private Map<String,Object> details = new HashMap<String,Object>();
-	private String indexName = null;
 
 	public ElasticSearchException(Exception exc) {
 		super(exc);
-	}	
-
-	public ElasticSearchException(String message, Exception exc) {
-		super(message, exc);
-		init_ElasticSearchException(message, null, exc, (String)null);
 	}
 
-	public ElasticSearchException(Map<String,Object> _details) {
-		init_ElasticSearchException(
-			(String)null, _details, (Exception)null, (String)null);
+	public ElasticSearchException(Map<String,Object> esResponse) {
+		super(message(esResponse));
 	}
 
-	public ElasticSearchException(Map<String,Object> _details, String _indexName) {
-		super("Elastic Search operation return an error JSON response");
-		init_ElasticSearchException(
-			(String)null, details, (Exception)null, (String)null);
+	public ElasticSearchException(String errMessage, Exception exc) {
+		super(ElasticSearchException.message(errMessage), exc);
+	}
+
+	public ElasticSearchException(String errMess, Exception exc,
+		String indexName) {
+		super(ElasticSearchException.message(errMess, indexName), exc);
+	}
+
+	public ElasticSearchException(Map<String,Object> esResponse, String indexName) {
+		super(message(esResponse, indexName));
+	}
+
+	public ElasticSearchException (String errorMessage,
+ 		Exception e, Map<String, Object> esResponse, String indexName) {
+		super(message(errorMessage, esResponse, indexName), e);
 	}
 
 	public ElasticSearchException(String errorMessage) {
-		super("Elastic Search operation return an error JSON response");
-		init_ElasticSearchException(
-			errorMessage, (Map)null, (Exception)null, (String)null);
+		super(message(errorMessage));
 	}
 
-	private void init_ElasticSearchException(
-		String errorMessage, Map<String, Object> _details, Exception exc, String _indexName) {
-		this.details = _details;
-		this.indexName = _indexName;
+	private static String message(String errorMessage) {
+		return message(errorMessage, (Map)null, (String)null);
+	}
 
-		if (details == null && errorMessage != null) {
-			errorMessage = errorMessage.replaceAll("\"", "\\\"");
-			String jsonDetails =
-			"{\"error\":\n"
-			+ "  {\"root_cause\":\n"
-			+ "    {\n"
-			+ "      \"type\": null,\n"
-			+ "      \"reason\": \""+errorMessage+"\"\n"
-			+ "    }\n"
-			+ "  }\n"
-			+ "}"
-			;
+	private static String message(String errorMessage, String indexName) {
+		return message(errorMessage, (Map)null, indexName);
+	}
+
+	private static String message(Map<String, Object> esResponse) {
+		return message((String)null, esResponse, (String)null);
+	}
+
+	private static String message(Map<String, Object> esResponse, String indexName) {
+		return message((String)null, esResponse, indexName);
+	}
+
+	private static String message(String errorMessage, Map<String, Object> esResponse,
+		String indexName) {
+		String mess = "Exception Details:\n";
+		if (errorMessage != null) {
+			mess += errorMessage;
+		}
+		if (indexName != null) {
+			mess += "\n Index: "+indexName;
+		}
+		if (esResponse != null) {
 			try {
-				details =
-					new ObjectMapper().readValue(jsonDetails, Map.class);
-			} catch (IOException e2) {
-				e2.printStackTrace();
+				mess += "\nES response; " +
+					new ObjectMapper().writeValueAsString(esResponse)+"\n";
+			} catch (JsonProcessingException e) {
+				throw new RuntimeException(e);
 			}
 		}
-	}
 
-	public String getRootReason() {
-		String jsonRootReason = null;
-		Map<String,Object> details_error = (Map<String, Object>) details.get("error");
-		List<Map<String,Object>> details_error_rootcause = 
-				(List<Map<String,Object>>) details_error.get("root_cause");
-		Map<String,Object> details_error_rootcause_firstElt = details_error_rootcause.get(0);
-		Object rootReasonObject = details_error_rootcause_firstElt.get("reason");
-		
-		try {
-			jsonRootReason = new ObjectMapper().writeValueAsString(rootReasonObject);
-		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-		}
-		
-		return jsonRootReason;
-	}
-	
-	@Override
-	public String getMessage() {
-		String mess = super.getMessage();
-
-		try {
-			mess += "\nDetails; "+new ObjectMapper().writeValueAsString(this.details);
-		} catch (JsonProcessingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		
+		mess += "END OF Exception Details\n";
 		return mess;
 	}
 

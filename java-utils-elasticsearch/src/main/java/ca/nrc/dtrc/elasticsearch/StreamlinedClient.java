@@ -4,7 +4,6 @@ import ca.nrc.config.ConfigException;
 import ca.nrc.data.file.ObjectStreamReader;
 import ca.nrc.data.file.ObjectStreamReaderException;
 import ca.nrc.datastructure.Pair;
-import ca.nrc.debug.Debug;
 import ca.nrc.dtrc.elasticsearch.request.Highlight;
 import ca.nrc.dtrc.elasticsearch.request.JsonString;
 import ca.nrc.dtrc.elasticsearch.request.Query;
@@ -234,6 +233,25 @@ public class StreamlinedClient {
 		return _indexExists;
 	}
 
+	public boolean indexExists_NEW() {
+		if (_indexExists == null) {
+			URL url = null;
+			_indexExists = true;
+			try {
+				url = esUrlBuilder().forEndPoint("_search").build();
+			} catch (ElasticSearchException e) {
+				throw new RuntimeException(e);
+			}
+			try {
+				get(url);
+			} catch (ElasticSearchException e) {
+				_indexExists = false;
+			}
+		}
+
+		return _indexExists;
+	}
+
 	public void defineFieldTypes(Map<String,String> typeDefs) throws ElasticSearchException {
 		Map<String,Map<String,String>> mappingsDict = new HashMap<String,Map<String,String>>();
 		for (String typeName: typeDefs.keySet()) {
@@ -342,6 +360,7 @@ public class StreamlinedClient {
 	}
 	
 	public void deleteDocumentWithID(String docID, String esDocType) throws ElasticSearchException {
+		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.deleteDocumentWithID");
 		URL url =
 			esUrlBuilder()
 			.forDocType(esDocType)
@@ -712,7 +731,8 @@ public class StreamlinedClient {
 		tLogger.trace("url="+url+", jsonQuery="+jsonQuery);
 		String jsonResponse = post(url, jsonQuery.toString());
 
-		SearchResults<T> results = new SearchResults<T>(jsonResponse, docPrototype, this);
+		SearchResults<T> results =
+			new SearchResults<T>(jsonResponse, docPrototype, this, url);
 
 		tLogger.trace("returning results with #hits="+results.getTotalHits());
 
@@ -825,6 +845,7 @@ public class StreamlinedClient {
 	}	
 
 	public <T extends Document> List<T> scroll(String scrollID, T docPrototype) throws ElasticSearchException {
+		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.scroll");
 		List<Hit<T>> scoredHits = scrollScoredHits(scrollID, docPrototype);
 		List<T> unscoredHits = new ArrayList<T>();
 		for (Hit<T> aScoredHit: scoredHits) {
@@ -873,8 +894,10 @@ public class StreamlinedClient {
 				
 				scoredDocuments.add(new Hit<T>(hitObject, hitScore, hitsArrNode.get(ii).get("highlight")));
 			}
-		} catch (IOException e) {
-			throw new ElasticSearchException(e);
+		} catch (Exception e) {
+			throw new ElasticSearchException(
+				"Error parsing ES search response:\n"+jsonSearchResponse,
+				e, this.indexName);
 		}			
 		
 		return Pair.of(Pair.of(totalHits, scrollID), scoredDocuments);
@@ -1216,6 +1239,7 @@ public class StreamlinedClient {
 	}
 
 	public Document bulkIndex(String dataFPath, String defDocTypeName, int batchSize, Boolean verbose, Boolean force) throws ElasticSearchException {
+		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.bulkIndex");
 		if (verbose == null) {
 			verbose = false;
 		}
@@ -1376,13 +1400,16 @@ public class StreamlinedClient {
 		return getDocumentWithID(docID, docClass, null);
 	}
 	
-	public Document getDocumentWithID(String docID, Class<?extends Document> docClass, String esDocType) throws ElasticSearchException {
+	public Document getDocumentWithID(String docID,
+		Class<?extends Document> docClass, String esDocType)
+		throws ElasticSearchException {
+		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.StreamliendClient.getDocumentWithID");
+		tLogger.trace("** NEW FUCKING VERSION!!!");
 		if (esDocType == null) {
 			esDocType = docClass.getName();
 		}
 		Document doc = null;
 		
-		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.getDocumentWithID");
 		URL url = esUrlBuilder().forDocType(esDocType).forDocID(docID).build();
 		tLogger.trace("url="+url);
 		
@@ -1397,7 +1424,16 @@ public class StreamlinedClient {
 				doc = mapper.treeToValue(sourceNode, docClass);
 			}
 		} catch (IOException exc) {
-			throw new ElasticSearchException(exc);
+			Map<String,Object> esRespMap = null;
+			try {
+				esRespMap= mapper.readValue(jsonResp, Map.class);
+			} catch (IOException e) {
+				throw new ElasticSearchException(e);
+			}
+			throw new ElasticSearchException(
+				"Problem getting document with ID: "+docID+
+				"\nES Type: "+esDocType+"\n",
+				exc, esRespMap, indexName);
 		}
 
 		return doc;
@@ -1430,6 +1466,7 @@ public class StreamlinedClient {
 	}
 
 	public void updateDocument(String esDocType, String docID, Map<String, Object> partialDoc) throws ElasticSearchException {
+		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.updateDocument");
 		URL url =
 			esUrlBuilder()
 			.forDocType(esDocType)
@@ -1615,7 +1652,8 @@ public class StreamlinedClient {
 	}
 	
 	private static ElasticSearchException makeElasticSearchException(Map<String, Object> responseObj) {
-		ElasticSearchException exc = new ElasticSearchException(responseObj);
+		ElasticSearchException exc =
+			new ElasticSearchException(responseObj);
 		
 		if (responseObj.containsKey("error")) {
 			Map<String,Object> error = (Map<String, Object>) responseObj.get("error");

@@ -10,6 +10,7 @@ import org.apache.commons.lang3.tuple.Triple;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.*;
 
 public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
@@ -25,7 +26,15 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 	protected HitFilter filter = new HitFilter();
 	
 	private Long totalHits = new Long(0);
-		public Long getTotalHits() {return totalHits;}
+	private URL searchURL = null;
+
+	public SearchResults(String jsonResponse, T docPrototype,
+		StreamlinedClient _esClient) throws ElasticSearchException {
+		init_Searchresults(jsonResponse, (T)null, (StreamlinedClient)null,
+		(URL)null);
+	}
+
+	public Long getTotalHits() {return totalHits;}
 		public void setTotalHits(Long _totalHits) {this.totalHits = _totalHits;}
 		
 	private  List<Hit<T>> scoredHitsBatch = new ArrayList<>();	
@@ -54,25 +63,20 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 	@JsonIgnore
 	StreamlinedClient esClient = null;
 
-	public SearchResults() {
-		
+	public SearchResults() throws ElasticSearchException {
+		init_Searchresults((String)null, (T)null, (StreamlinedClient)null,
+			(URL)null);
 	}
 
-	public SearchResults(List<Hit<T>> firstResultsBatch, String _scrollID, Long _totalHits, T _docPrototype, StreamlinedClient _esClient) throws ElasticSearchException {
-		initialize(firstResultsBatch, _scrollID, _totalHits, null, _docPrototype, _esClient);
+	public SearchResults(List<Hit<T>> firstResultsBatch, String _scrollID,
+		Long _totalHits, T _docPrototype, StreamlinedClient _esClient) throws ElasticSearchException {
+		init_Searchresults(firstResultsBatch, _scrollID, _totalHits,
+			(Map)null, _docPrototype, _esClient, (URL)null);
 	}	
 	
-	public SearchResults(String jsonResponse, T _docPrototype, StreamlinedClient _esClient) throws ElasticSearchException {
-		Pair<Pair<Long, String>, List<Hit<T>>> parsedResults = parseJsonSearchResponse(jsonResponse, _docPrototype);
-		Triple<Pair<Long, String>, List<Hit<T>>, Map<String,Object>> parsedResults3
-			= parseJsonSearchResponse3(jsonResponse, _docPrototype);
-
-		Long _totalHits = parsedResults3.getLeft().getLeft();
-		String scrollID = parsedResults3.getLeft().getRight();
-		List<Hit<T>> firstBatch = parsedResults3.getMiddle();
-		Map<String,Object> _aggregations = parsedResults3.getRight();
-
-		initialize(firstBatch, scrollID, _totalHits, _aggregations, _docPrototype, _esClient);
+	public SearchResults(String jsonResponse, T _docPrototype,
+		StreamlinedClient _esClient, URL url) throws ElasticSearchException {
+		init_Searchresults(jsonResponse, _docPrototype, _esClient, url);
 	}
 
 	private Triple<Pair<Long, String>, List<Hit<T>>, Map<String, Object>>
@@ -89,11 +93,14 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 		Long totalHits;
 		try {
 			jsonRespNode = (ObjectNode) mapper.readTree(jsonSearchResponse);
-			scrollID = jsonRespNode.get("_scroll_id").asText();
-			JsonNode aggrNode = jsonRespNode.get("aggregations");
-			String aggrJson = mapper.writeValueAsString(aggrNode);
-			aggregations = mapper.readValue(aggrJson, aggregations.getClass());
-//			aggregations = new ObjectMapper().readValue(aggrJson, aggregations.getClass());
+			if (jsonRespNode.has("_scroll_id")) {
+				scrollID = jsonRespNode.get("_scroll_id").asText();
+			}
+			if (jsonRespNode.has("aggregations")) {
+				JsonNode aggrNode = jsonRespNode.get("aggregations");
+				String aggrJson = mapper.writeValueAsString(aggrNode);
+				aggregations = mapper.readValue(aggrJson, aggregations.getClass());
+			}
 
 			ObjectNode hitsCollectionNode = (ObjectNode) jsonRespNode.get("hits");
 			totalHits = hitsCollectionNode.get("total").asLong();
@@ -111,7 +118,7 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 
 				scoredDocuments.add(new Hit<T>(hitObject, hitScore, hitsArrNode.get(ii).get("highlight")));
 			}
-		} catch (IOException | BadDocProtoException e) {
+		} catch (IOException | RuntimeException e) {
 			throw new ElasticSearchException(e);
 		}
 
@@ -123,54 +130,42 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 			);
 	}
 
-	public void initialize(List<Hit<T>> firstResultsBatch, String _scrollID,
-	   Long _totalHits, Map<String,Object> _aggregations, T _docPrototype, StreamlinedClient _esClient) {
+	public void init_Searchresults(String jsonResponse, T _docPrototype,
+		StreamlinedClient _esClient, URL _searchURL)
+		throws ElasticSearchException{
+
+		Long _totalHits = new Long(0);
+		String scrollID = null;
+		List<Hit<T>> firstBatch = new ArrayList<Hit<T>>();
+		Map<String,Object> _aggregations = new HashMap<String,Object>();
+		if (jsonResponse != null) {
+			Triple<Pair<Long, String>, List<Hit<T>>, Map<String, Object>>
+			parsedResults3 =
+			parseJsonSearchResponse3(jsonResponse, _docPrototype);
+			_totalHits = parsedResults3.getLeft().getLeft();
+			scrollID = parsedResults3.getLeft().getRight();
+			firstBatch = parsedResults3.getMiddle();
+			_aggregations = parsedResults3.getRight();
+		}
+
+		init_Searchresults(firstBatch, scrollID, _totalHits, _aggregations,
+		_docPrototype, _esClient, (URL)null);
+	}
+
+	public void init_Searchresults(List<Hit<T>> firstResultsBatch,
+		String _scrollID, Long _totalHits, Map<String,Object> _aggregations,
+ 		T _docPrototype, StreamlinedClient _esClient, URL _searchURL) {
 		this.scoredHitsBatch = firstResultsBatch;
 		this.scrollID = _scrollID;
 		this.docPrototype = _docPrototype;
 		this.esClient = _esClient;
 		this.totalHits = _totalHits;
+		this.searchURL = _searchURL;
 		if (_aggregations != null) {
 			this.aggregations = _aggregations;
 		}
 	}
 	
-	private Pair<Pair<Long,String>,List<Hit<T>>> parseJsonSearchResponse(String jsonSearchResponse, T docPrototype) throws ElasticSearchException {
-		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults.parseJsonSearchResponse");
-		if (tLogger.isTraceEnabled()) {
-			tLogger.trace("invoked with docPrototype="+docPrototype+", jsonSearchResponse="+jsonSearchResponse);
-		}
-		List<Hit<T>> scoredDocuments = new ArrayList<>();
-		String scrollID = null;
-		ObjectMapper mapper = new ObjectMapper();
-		ObjectNode jsonRespNode;
-		Long totalHits;
-		try {
-			jsonRespNode = (ObjectNode) mapper.readTree(jsonSearchResponse);	
-			scrollID = jsonRespNode.get("_scroll_id").asText();
-			ObjectNode hitsCollectionNode = (ObjectNode) jsonRespNode.get("hits");
-			totalHits = hitsCollectionNode.get("total").asLong();
-			ArrayNode hitsArrNode = (ArrayNode) hitsCollectionNode.get("hits");
-			String hitJson = null;
-			for (int ii=0; ii < hitsArrNode.size(); ii++) {
-				hitJson = hitsArrNode.get(ii).get("_source").toString();
-				T hitObject = null;
-				try {
-					hitObject = (T) mapper.readValue(hitJson, docPrototype.getClass());
-				} catch (Exception e) {
-					throw new BadDocProtoException(e);
-				}
-				Double hitScore = hitsArrNode.get(ii).get("_score").asDouble();
-				
-				scoredDocuments.add(new Hit<T>(hitObject, hitScore, hitsArrNode.get(ii).get("highlight")));
-			}
-		} catch (IOException e) {
-			throw new ElasticSearchException(e);
-		}			
-		
-		return Pair.of(Pair.of(totalHits, scrollID), scoredDocuments);
-	}	
-
 	@Override
 	public Iterator<Hit<T>> iterator() {
 		ScoredHitsIterator<T> iter = null;

@@ -138,45 +138,18 @@ public class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> 
 		
 		return (boolean) answer;
 	}
-	
-//	private void retrieveNewBatch() throws ElasticSearchException, SearchResultsException {
-//		
-//		if (scrollID == null) {
-//			// Note: scrollID == null may happen when we are creating 
-//			//   dummy list of hits for testing purposes.
-//			documentsBatch = null;
-//		} else {
-//			int unsuccessfulBatchesCountdown = 10;
-//			while(true) {
-//				documentsBatch = null;
-//				List<Hit<T>> nextBatch = esClient.scrollScoredHits(scrollID, docPrototype);
-//				
-//				// No more hits to be retrieved from ElasticSearch
-//				if (nextBatch == null) break;
-//				
-//				filterDocumentsBatch();
-//				
-//				if (documentsBatch.size() > 0) {
-//					break;
-//				} else {
-//					// The batch retrieved from ElasticSearch did not contain any
-//					// hit that passed the filter
-//					// Try again unless we have reached the maximum number of
-//					// consecutive unsuccessful batches
-//					//
-//					unsuccessfulBatchesCountdown--;
-//					if (unsuccessfulBatchesCountdown == 0) break; 
-//				}
-//				
-//			}
-//		}
-//		batchCursor = 0;
-//	}
+
 	
 	@Override
 	public Hit<T> next() {
 		Hit<T> nextItem = null;
-		if (hasNext()) {
+		if (!hasNext()) {
+			String errMess = "There were no more in the list of ElasticSearch hits.";
+			if (docPrototype != null) {
+				errMess += "\nDoc prototype: "+docPrototype.getClass().getName();
+			}
+			throw new RuntimeException(errMess);
+		} else {
 			// Get next item in current batch.
 			//
 			// Note: we can assume that the current batch will be non-null and that
