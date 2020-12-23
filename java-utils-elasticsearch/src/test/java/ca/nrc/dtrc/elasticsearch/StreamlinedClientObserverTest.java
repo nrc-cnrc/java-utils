@@ -56,6 +56,16 @@ public class StreamlinedClientObserverTest {
 			}
 		}
 
+		@Override
+		public void observeBeforeHEAD(URL url, String json) throws ElasticSearchException {
+
+		}
+
+		@Override
+		public void observeAfterHEAD(URL url, String json) throws ElasticSearchException {
+
+		}
+
 	}
 
 	@BeforeEach

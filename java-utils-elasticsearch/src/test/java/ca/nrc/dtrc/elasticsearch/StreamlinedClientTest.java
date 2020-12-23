@@ -1069,6 +1069,23 @@ public class StreamlinedClientTest {
 		SearchResults<PlayLine> result =  client.listAll(collection, badProto);
 	}
 
+	@Test
+	public void test__indexExists__HappyPath() throws Exception {
+		String indexName = "es-test";
+		StreamlinedClient client = new StreamlinedClient(indexName);
+		client.deleteIndex();
+		Assert.assertFalse(
+			"Index "+indexName+" should NOT have existed at the start of test",
+			client.indexExists());
+
+		Person homer = new Person("Homer", "Simpson");
+		String jsonResponse = client.putDocument(homer);
+		Assert.assertTrue(
+			"Index "+indexName+" SHOULD have existed after we added a document to it.",
+			client.indexExists());
+
+	}
+
 	/*************************
 	 * TEST HELPERS
 	 *************************/

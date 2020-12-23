@@ -52,8 +52,6 @@ public class StreamlinedClient {
 	private String serverName = "localhost";
 	private int port = 9200;
 
-	Boolean _indexExists = null;
-	
 	private UserIO userIO = null;
 		public void setUserIO(UserIO _userIO) {this.userIO = _userIO;}
 		public UserIO getUserIO() {return this.userIO;}
@@ -128,8 +126,7 @@ public class StreamlinedClient {
 
 	public StreamlinedClient setIndexName(String _indexName) {
 		this.indexName = canonicalIndexName(_indexName);
-		this._indexExists = null;
-		
+
 		return this;
 	}
 	
@@ -214,42 +211,8 @@ public class StreamlinedClient {
 		return settings;
 	}
 
-	public boolean indexExists() {
-		if (_indexExists == null) {
-			URL url = null;
-			_indexExists = true;
-			try {
-				url = esUrlBuilder().forEndPoint("_search").build();
-			} catch (ElasticSearchException e) {
-				throw new RuntimeException(e);
-			}
-			try {
-				get(url);
-			} catch (ElasticSearchException e) {
-				_indexExists = false;
-			}
-		}
-
-		return _indexExists;
-	}
-
-	public boolean indexExists_NEW() {
-		if (_indexExists == null) {
-			URL url = null;
-			_indexExists = true;
-			try {
-				url = esUrlBuilder().forEndPoint("_search").build();
-			} catch (ElasticSearchException e) {
-				throw new RuntimeException(e);
-			}
-			try {
-				get(url);
-			} catch (ElasticSearchException e) {
-				_indexExists = false;
-			}
-		}
-
-		return _indexExists;
+	public boolean indexExists() throws ElasticSearchException {
+		return new Index(indexName).exists_NEW();
 	}
 
 	public void defineFieldTypes(Map<String,String> typeDefs) throws ElasticSearchException {
@@ -462,7 +425,47 @@ public class StreamlinedClient {
 		Iterator<T> iterator = new ESDocumentIterator<>(results);
 		
 		return iterator;
-	}		
+	}
+
+	public int head(URL url) throws ElasticSearchException {
+		return head(url, (String)null);
+	}
+
+	public int head(URL url, String json) throws ElasticSearchException {
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.head");
+
+		String requestDetails = "   url="+url+"\n   json="+json+"]";
+		tLogger.trace("invoking request:\n"+requestDetails);
+
+		for (StreamlinedClientObserver obs: observers) {
+			obs.observeBeforeHEAD(url, json);
+		}
+
+		if (json == null) json = "";
+		RequestBody body = RequestBody.create(JSON, json);
+
+		Request request = requestBuilder
+			.url(url)
+			.head()
+			.build();
+
+		Response response;
+		try {
+			response = httpClient.newCall(request).execute();
+		} catch (IOException e) {
+			throw new ElasticSearchException(
+				"Could not execute ElasticSearch request.\n"+requestDetails, e);
+		}
+
+		int status = response.code();
+
+		for (StreamlinedClientObserver obs: observers) {
+			obs.observeAfterHEAD(url, json);
+		}
+
+		return status;
+	}
+
 
 	public String post(URL url) throws IOException, ElasticSearchException, InterruptedException {
 		return post(url, null);
@@ -582,7 +585,6 @@ public class StreamlinedClient {
 	public void delete(URL url) throws ElasticSearchException {
 		delete(url, "");
 	}
-
 	
 	public void delete(URL url, String jsonBody) throws ElasticSearchException{
 		@SuppressWarnings("unused")
@@ -1404,7 +1406,6 @@ public class StreamlinedClient {
 		Class<?extends Document> docClass, String esDocType)
 		throws ElasticSearchException {
 		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.StreamliendClient.getDocumentWithID");
-		tLogger.trace("** NEW FUCKING VERSION!!!");
 		if (esDocType == null) {
 			esDocType = docClass.getName();
 		}

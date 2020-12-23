@@ -14,10 +14,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 public class Index extends StreamlinedClient {
-	
+
 	// Stores the types of the various fields for a given document type
 	private static Map<String,Map<String,String>> fieldTypesCache = null;	
-		
+
+	private Boolean _exists = null;
+
 	public Index() throws ElasticSearchException {
 		super();
 	}
@@ -25,7 +27,43 @@ public class Index extends StreamlinedClient {
 	public Index(String _indexName) throws ElasticSearchException {
 		super(_indexName);
 	}
-	
+
+	public boolean exists() throws ElasticSearchException {
+		if (_exists == null) {
+			URL url = null;
+			_exists = true;
+			try {
+				url = esUrlBuilder().forEndPoint("_search").build();
+			} catch (ElasticSearchException e) {
+				throw new RuntimeException(e);
+			}
+			try {
+				get(url);
+			} catch (ElasticSearchException e) {
+				_exists = false;
+			}
+		}
+
+		return _exists;
+	}
+
+	public boolean exists_NEW() throws ElasticSearchException {
+		if (_exists == null) {
+			URL url = null;
+			try {
+				url = esUrlBuilder().build();
+			} catch (ElasticSearchException e) {
+				throw new RuntimeException(e);
+			}
+
+			int status = head(url);
+			_exists = (200 == status);
+
+		}
+
+		return _exists;
+	}
+
 	@JsonIgnore
 	public IndexDef getDefinition() throws ElasticSearchException, IndexDefException {
 		

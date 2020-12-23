@@ -49,6 +49,12 @@ public abstract class StreamlinedClientObserver {
 	protected abstract void afterDELETE(URL url, String json)
 		throws ElasticSearchException;
 
+	public abstract void observeBeforeHEAD(URL url, String json)
+		throws ElasticSearchException;
+
+	public abstract void observeAfterHEAD(URL url, String json)
+		throws ElasticSearchException;
+
 	private Set<String> typesToObserve = null;
 
 	public StreamlinedClientObserver(String... types) {
@@ -140,5 +146,4 @@ public abstract class StreamlinedClientObserver {
 		}
 		return type;
 	}
-
 }
