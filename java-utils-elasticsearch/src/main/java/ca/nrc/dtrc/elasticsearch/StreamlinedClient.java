@@ -212,7 +212,7 @@ public class StreamlinedClient {
 	}
 
 	public boolean indexExists() throws ElasticSearchException {
-		return new Index(indexName).exists_NEW();
+		return new Index(indexName).exists();
 	}
 
 	public void defineFieldTypes(Map<String,String> typeDefs) throws ElasticSearchException {

@@ -31,25 +31,6 @@ public class Index extends StreamlinedClient {
 	public boolean exists() throws ElasticSearchException {
 		if (_exists == null) {
 			URL url = null;
-			_exists = true;
-			try {
-				url = esUrlBuilder().forEndPoint("_search").build();
-			} catch (ElasticSearchException e) {
-				throw new RuntimeException(e);
-			}
-			try {
-				get(url);
-			} catch (ElasticSearchException e) {
-				_exists = false;
-			}
-		}
-
-		return _exists;
-	}
-
-	public boolean exists_NEW() throws ElasticSearchException {
-		if (_exists == null) {
-			URL url = null;
 			try {
 				url = esUrlBuilder().build();
 			} catch (ElasticSearchException e) {
