@@ -38,11 +38,11 @@ public class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> 
 	StreamlinedClient esClient = null;	
 	
 	public ScoredHitsIterator(List<Hit<T>> firstResultsBatch, String _scrollID, T _docPrototype, StreamlinedClient _esClient, HitFilter _filter) throws ElasticSearchException, SearchResultsException {
-			this.scrollID = _scrollID;
-			this.docPrototype = _docPrototype;
-			this.esClient = _esClient;		
-			this.filter = _filter;
-			this.retrieveAndFilterUntilNonEmptyBatch(firstResultsBatch);
+		this.scrollID = _scrollID;
+		this.docPrototype = _docPrototype;
+		this.esClient = _esClient;
+		this.filter = _filter;
+		this.retrieveAndFilterUntilNonEmptyBatch(firstResultsBatch);
 	}
 	
 	private void retrieveAndFilterUntilNonEmptyBatch() throws ElasticSearchException, SearchResultsException {
@@ -51,7 +51,10 @@ public class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> 
 
 	
 	private void retrieveAndFilterUntilNonEmptyBatch(List<Hit<T>> initialBatch) throws ElasticSearchException, SearchResultsException {
-		
+		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.ScoredHitsIterator.retrieveAndFilterUntilNonEmptyBatch");
+		if (tLogger.isTraceEnabled()) {
+			tLogger.trace("scrollID="+scrollID+", initialBatch="+PrettyPrinter.print(initialBatch));
+		}
 		if (initialBatch != null) { 
 			documentsBatch = initialBatch; 
 		} else {
@@ -83,6 +86,10 @@ public class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> 
 			}
 		}
 		batchCursor = 0;
+
+		if (tLogger.isTraceEnabled()) {
+			tLogger.trace("Upon exit, batchCursor="+batchCursor+", scrollID="+scrollID+", documentsBatch="+PrettyPrinter.print(documentsBatch));
+		}
 	}		
 		
 

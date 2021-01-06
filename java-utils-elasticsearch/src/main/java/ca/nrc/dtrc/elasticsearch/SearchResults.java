@@ -1,5 +1,6 @@
 package ca.nrc.dtrc.elasticsearch;
 
+import ca.nrc.json.PrettyPrinter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,8 +31,12 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 
 	public SearchResults(String jsonResponse, T docPrototype,
 		StreamlinedClient _esClient) throws ElasticSearchException {
+		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults");
+		if (tLogger.isTraceEnabled()) {
+			tLogger.trace("Constructing results of type "+docPrototype.getClass().getName()+" from jsonResponse="+jsonResponse);
+		}
 		init_Searchresults(jsonResponse, (T)null, (StreamlinedClient)null,
-		(URL)null);
+			(URL)null);
 	}
 
 	public Long getTotalHits() {return totalHits;}
@@ -64,26 +69,37 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 	StreamlinedClient esClient = null;
 
 	public SearchResults() throws ElasticSearchException {
+		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults");
+		tLogger.trace("Empty constructor");
 		init_Searchresults((String)null, (T)null, (StreamlinedClient)null,
 			(URL)null);
 	}
 
 	public SearchResults(List<Hit<T>> firstResultsBatch, String _scrollID,
 		Long _totalHits, T _docPrototype, StreamlinedClient _esClient) throws ElasticSearchException {
+		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults");
+		if (tLogger.isTraceEnabled()) {
+			tLogger.trace("Constructing results from _scrollID="+_scrollID+" and \n   firstResultsBatch="+PrettyPrinter.print(firstResultsBatch));
+		}
+
 		init_Searchresults(firstResultsBatch, _scrollID, _totalHits,
 			(Map)null, _docPrototype, _esClient, (URL)null);
 	}	
 	
 	public SearchResults(String jsonResponse, T _docPrototype,
 		StreamlinedClient _esClient, URL url) throws ElasticSearchException {
+		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults");
+		if (tLogger.isTraceEnabled()) {
+			tLogger.trace("Constructing results from jsonResponse="+jsonResponse);
+		}
 		init_Searchresults(jsonResponse, _docPrototype, _esClient, url);
 	}
 
 	private Triple<Pair<Long, String>, List<Hit<T>>, Map<String, Object>>
-		parseJsonSearchResponse3(String jsonSearchResponse, T docPrototype) throws ElasticSearchException {
+		parseJsonSearchResponse(String jsonSearchResponse, T docPrototype) throws ElasticSearchException {
 		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults.parseJsonSearchResponse");
 		if (tLogger.isTraceEnabled()) {
-			tLogger.trace("invoked with docPrototype="+docPrototype+", jsonSearchResponse="+jsonSearchResponse);
+			tLogger.trace("invoked with docPrototype="+docPrototype.getClass().getName()+", jsonSearchResponse="+jsonSearchResponse);
 		}
 		List<Hit<T>> scoredDocuments = new ArrayList<>();
 		Map<String,Object> aggregations = new HashMap<String,Object>();
@@ -105,15 +121,23 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 			ObjectNode hitsCollectionNode = (ObjectNode) jsonRespNode.get("hits");
 			totalHits = hitsCollectionNode.get("total").asLong();
 			ArrayNode hitsArrNode = (ArrayNode) hitsCollectionNode.get("hits");
-			String hitJson = null;
+			String hitSource = null;
 			for (int ii=0; ii < hitsArrNode.size(); ii++) {
-				hitJson = hitsArrNode.get(ii).get("_source").toString();
 				T hitObject = null;
+				String hitID = null;
 				try {
-					hitObject = (T) mapper.readValue(hitJson, docPrototype.getClass());
+					hitSource = hitsArrNode.get(ii).get("_source").toString();
+					hitID =
+						mapper.readValue(
+							hitsArrNode.get(ii).get("_id").toString(), String.class);
+					if (tLogger.isTraceEnabled()) {
+						tLogger.trace("Parsing hit #"+ii+": "+hitSource+" with _id="+hitID);
+					}
+					hitObject = (T) mapper.readValue(hitSource, docPrototype.getClass());
 				} catch (Exception e) {
 					throw new BadDocProtoException(e);
 				}
+				hitObject.id = hitID;
 				Double hitScore = hitsArrNode.get(ii).get("_score").asDouble();
 
 				scoredDocuments.add(new Hit<T>(hitObject, hitScore, hitsArrNode.get(ii).get("highlight")));
@@ -122,12 +146,19 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 			throw new ElasticSearchException(e);
 		}
 
-		return
+		Triple<Pair<Long, String>, List<Hit<T>>, Map<String, Object>> results =
 			Triple.of(
 				Pair.of(totalHits, scrollID),
 				scoredDocuments,
 				aggregations
 			);
+
+		if (tLogger.isTraceEnabled()) {
+			tLogger.trace("Returning results="+ PrettyPrinter.print(results));
+		}
+
+
+		return results;
 	}
 
 	public void init_Searchresults(String jsonResponse, T _docPrototype,
@@ -140,12 +171,11 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 		Map<String,Object> _aggregations = new HashMap<String,Object>();
 		if (jsonResponse != null) {
 			Triple<Pair<Long, String>, List<Hit<T>>, Map<String, Object>>
-			parsedResults3 =
-			parseJsonSearchResponse3(jsonResponse, _docPrototype);
-			_totalHits = parsedResults3.getLeft().getLeft();
-			scrollID = parsedResults3.getLeft().getRight();
-			firstBatch = parsedResults3.getMiddle();
-			_aggregations = parsedResults3.getRight();
+			parsedResults = parseJsonSearchResponse(jsonResponse, _docPrototype);
+			_totalHits = parsedResults.getLeft().getLeft();
+			scrollID = parsedResults.getLeft().getRight();
+			firstBatch = parsedResults.getMiddle();
+			_aggregations = parsedResults.getRight();
 		}
 
 		init_Searchresults(firstBatch, scrollID, _totalHits, _aggregations,

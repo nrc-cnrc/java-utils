@@ -722,16 +722,20 @@ public class StreamlinedClient {
 
 	private <T extends Document> SearchResults<T> search(JsonString jsonQuery,
 	 	String docTypeName, T docPrototype) throws ElasticSearchException {
+
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.search");
+
 		if (docTypeName == null) {
 			docTypeName = docPrototype.getClass().getName();
 		}
 
-		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.search");
 		URL url = esUrlBuilder()
 				.forDocType(docTypeName).forEndPoint("_search")
 				.scroll().build();
 		tLogger.trace("url="+url+", jsonQuery="+jsonQuery);
 		String jsonResponse = post(url, jsonQuery.toString());
+
+		tLogger.trace("post returned jsonResponse="+jsonResponse);
 
 		SearchResults<T> results =
 			new SearchResults<T>(jsonResponse, docPrototype, this, url);
@@ -1440,7 +1444,7 @@ public class StreamlinedClient {
 		return doc;
 	}
 	
-	private String canonicalIndexName(String origIndexName) {
+	public static String canonicalIndexName(String origIndexName) {
 		String canonical = origIndexName;
 		canonical = canonical.toLowerCase();
 		
