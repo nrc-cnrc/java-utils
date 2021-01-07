@@ -50,6 +50,22 @@ public class StreamlinedClient {
 
 	protected String indexName;
 
+	public static class HttpResponse {
+		public String bodyJson = "{}";
+		public int status = 100;
+
+		public HttpResponse(Response response) {
+			try {
+				this.bodyJson = response.body().string();
+			} catch (Exception e) {
+			}
+			try {
+				this.status = response.code();
+			} catch (Exception e) {
+			}
+		}
+	}
+
 	public String getIndexName() {
 		return indexName;
 	}
@@ -458,9 +474,9 @@ public class StreamlinedClient {
 		if (json == null) json = "";
 		RequestBody body = RequestBody.create(JSON, json);
 
-		Response response = httpCall(HttpMethod.HEAD, url, json, tLogger);
+		HttpResponse response = httpCall(HttpMethod.HEAD, url, json, tLogger);
 
-		int status = response.code();
+		int status = response.status;
 
 		for (StreamlinedClientObserver obs : observers) {
 			obs.observeAfterHEAD(url, json);
@@ -483,13 +499,8 @@ public class StreamlinedClient {
 		}
 
 		if (json == null) json = "";
-		Response response = httpCall(HttpMethod.POST, url, json, tLogger);
-		String jsonResponse;
-		try {
-			jsonResponse = response.body().string();
-		} catch (IOException e) {
-			throw new ElasticSearchException("Could not retrieve response for ElasticSearch request", e);
-		}
+		HttpResponse response = httpCall(HttpMethod.POST, url, json, tLogger);
+		String jsonResponse = response.bodyJson;
 
 		checkForESErrorResponse(jsonResponse);
 
@@ -507,19 +518,9 @@ public class StreamlinedClient {
 			obs.observeBeforeGET(url);
 		}
 
-		Response response = httpCall(HttpMethod.GET, url, (String)null, tLogger);
+		HttpResponse response = httpCall(HttpMethod.GET, url, (String)null, tLogger);
 
-		String jsonResponse;
-		try {
-			jsonResponse = response.body().string();
-		} catch (IOException exc) {
-			String message = exc.getMessage();
-			if (message.startsWith("Failed to connect to ")) {
-				message = "Failed to connect to ElasticSearch server at url=" + url;
-			}
-			throw new ElasticSearchException(message, exc);
-		}
-
+		String jsonResponse = response.bodyJson;
 
 		checkForESErrorResponse(jsonResponse);
 
@@ -542,14 +543,9 @@ public class StreamlinedClient {
 		}
 
 		if (json == null) json = "";
-		Response response = httpCall(HttpMethod.PUT, url, json, tLogger);
+		HttpResponse response = httpCall(HttpMethod.PUT, url, json, tLogger);
 
-		String jsonResponse;
-		try {
-			jsonResponse = response.body().string();
-		} catch (IOException exc) {
-			throw new ElasticSearchException(exc);
-		}
+		String jsonResponse = response.bodyJson;
 
 		checkForESErrorResponse(jsonResponse);
 
@@ -574,13 +570,8 @@ public class StreamlinedClient {
 		}
 
 		if (jsonBody == null) jsonBody = "";
-		Response response = httpCall(HttpMethod.DELETE, url, jsonBody, tLogger);
-		String jsonResponse = null;
-		try {
-			jsonResponse = response.body().string();
-		} catch (IOException e) {
-			throw new ElasticSearchException("Cannot execute ElasticSearch HTTP request " + url.toString());
-		}
+		HttpResponse response = httpCall(HttpMethod.DELETE, url, jsonBody, tLogger);
+		String jsonResponse = response.bodyJson;
 
 		checkForESErrorResponse(jsonResponse);
 
@@ -1660,12 +1651,14 @@ public class StreamlinedClient {
 		return exc;
 	}
 
-	private Response httpCall(HttpMethod method, URL url, String bodyJson,
+	private HttpResponse httpCall(HttpMethod method, URL url, String bodyJson,
   		Logger tLogger) throws ElasticSearchException {
 
 		String callDetails =
-		"   " + method.name() + " " + url + "\n" +
-		"   " + bodyJson + "\n";
+			"   " + method.name() + " " + url + "\n" +
+			"   " + bodyJson + "\n";
+
+		HttpResponse httpResponse = null;
 
 		Builder reqBuilder = requestBuilder.url(url);
 		RequestBody body = null;
@@ -1687,22 +1680,26 @@ public class StreamlinedClient {
 		Request request = reqBuilder.build();
 
 		Response response = null;
+		String respJson = null;
 		try {
 			response = httpClient.newCall(request).execute();
+			httpResponse =
+				new HttpResponse(response);
+
 			if (tLogger != null && tLogger.isTraceEnabled()) {
 				tLogger.trace(
-				"returning from http call:\n"+
-				callDetails+"\n"+
-				"   response code : "+response.code()+"\n"+
-				"   response body : "+response.body().string()
-				);
+					"returning from http call:\n"+
+					callDetails+"\n"+
+					"   response code : "+httpResponse.status+"\n"+
+					"   response body : "+httpResponse.bodyJson
+					);
 			}
+
 		} catch (IOException e) {
 			throw new ElasticSearchException(
 				"Error carrying out http call:\n"+callDetails, e);
 		}
 
-		return response;
+		return httpResponse;
 	}
-
 }
