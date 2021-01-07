@@ -39,6 +39,8 @@ public class StreamlinedClient {
 
 	public static enum ESOptions {CREATE_IF_NOT_EXISTS, UPDATES_WAIT_FOR_REFRESH};
 
+	public static enum HttpMethod {DELETE, GET, HEAD, POST, PUT}
+
 	public boolean updatesWaitForRefresh = false;
 
 	// Whenever the client issues a transaction that modifies the DB,
@@ -486,14 +488,7 @@ public class StreamlinedClient {
 		}
 
 		if (json == null) json = "";
-		RequestBody body = RequestBody.create(JSON, json);
-
-		Request request = requestBuilder
-		.url(url)
-		.post(body)
-		.build();
-
-		Response response = httpCall(tLogger, request);
+		Response response = httpCall(HttpMethod.POST, url, json, tLogger);
 		String jsonResponse;
 		try {
 			jsonResponse = response.body().string();
@@ -522,6 +517,7 @@ public class StreamlinedClient {
 		.build();
 
 		Response response = httpCall(tLogger, request);
+
 		String jsonResponse;
 		try {
 			jsonResponse = response.body().string();
@@ -555,15 +551,8 @@ public class StreamlinedClient {
 		}
 
 		if (json == null) json = "";
-		RequestBody body = RequestBody.create(JSON, json);
+		Response response = httpCall(HttpMethod.PUT, url, json, tLogger);
 
-
-		Request request = requestBuilder
-		.url(url.toString())
-		.put(body)
-		.build();
-
-		Response response = httpCall(tLogger, request);
 		String jsonResponse;
 		try {
 			jsonResponse = response.body().string();
@@ -1708,4 +1697,45 @@ public class StreamlinedClient {
 
 		return response;
 	}
+
+	private Response httpCall(HttpMethod method, URL url, String bodyJson,
+  		Logger tLogger) throws ElasticSearchException {
+		String callDetails =
+		"   " + method.name() + " " + url + "\n" +
+		"   " + bodyJson + "\n";
+
+		Builder reqBuilder = requestBuilder.url(url);
+		RequestBody body = RequestBody.create(JSON, bodyJson);
+
+
+		if (method == HttpMethod.GET) {
+			reqBuilder = reqBuilder.get();
+		} else if (method == HttpMethod.HEAD) {
+			reqBuilder = reqBuilder.head();
+		} else if (method == HttpMethod.POST) {
+			reqBuilder = reqBuilder.post(body);
+		} else if (method == HttpMethod.PUT) {
+			reqBuilder = reqBuilder.put(body);
+		}
+		Request request = reqBuilder.build();
+
+		Response response = null;
+		try {
+			response = httpClient.newCall(request).execute();
+			if (tLogger != null && tLogger.isTraceEnabled()) {
+				tLogger.trace(
+				"returning from http call:\n"+
+				callDetails+"\n"+
+				"   response code : "+response.code()+"\n"+
+				"   response body : "+response.body().string()
+				);
+			}
+		} catch (IOException e) {
+			throw new ElasticSearchException(
+				"Error carrying out http call:\n"+callDetails, e);
+		}
+
+		return response;
+	}
+
 }
