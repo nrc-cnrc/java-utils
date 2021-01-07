@@ -507,10 +507,6 @@ public class StreamlinedClient {
 			obs.observeBeforeGET(url);
 		}
 
-		Request request = requestBuilder.get()
-		.url(url)
-		.build();
-
 		Response response = httpCall(HttpMethod.GET, url, (String)null, tLogger);
 
 		String jsonResponse;
@@ -578,13 +574,7 @@ public class StreamlinedClient {
 		}
 
 		if (jsonBody == null) jsonBody = "";
-		Request request = requestBuilder
-		.delete()
-		.url(url)
-		.build();
-
-
-		Response response = httpCall(tLogger, request);
+		Response response = httpCall(HttpMethod.DELETE, url, jsonBody, tLogger);
 		String jsonResponse = null;
 		try {
 			jsonResponse = response.body().string();
@@ -1670,35 +1660,12 @@ public class StreamlinedClient {
 		return exc;
 	}
 
-	protected Response httpCall(Logger tLogger, Request request) throws ElasticSearchException {
-		String callDetails =
-			"   "+request.method()+" "+request.url()+"\n"+
-			"   "+request.body()+"\n";
-		Response response = null;
-		try {
-			response = httpClient.newCall(request).execute();
-			if (tLogger.isTraceEnabled()) {
-				tLogger.trace(
-					"returning from http call:\n"+
-					callDetails+"\n"+
-					"   response code : "+response.code()+"\n"+
-					"   response body : "+response.body().string()
-				);
-			}
-		} catch (IOException e) {
-			throw new ElasticSearchException(
-				"Error carrying out http call:\n"+callDetails, e);
-		}
-
-		return response;
-	}
-
 	private Response httpCall(HttpMethod method, URL url, String bodyJson,
   		Logger tLogger) throws ElasticSearchException {
 
 		String callDetails =
-			"   " + method.name() + " " + url + "\n" +
-			"   " + bodyJson + "\n";
+		"   " + method.name() + " " + url + "\n" +
+		"   " + bodyJson + "\n";
 
 		Builder reqBuilder = requestBuilder.url(url);
 		RequestBody body = null;
@@ -1706,7 +1673,9 @@ public class StreamlinedClient {
 			body = RequestBody.create(JSON, bodyJson);
 		}
 
-		if (method == HttpMethod.GET) {
+		if (method == HttpMethod.DELETE) {
+			reqBuilder = reqBuilder.delete();
+		} else if (method == HttpMethod.GET) {
 			reqBuilder = reqBuilder.get();
 		} else if (method == HttpMethod.HEAD) {
 			reqBuilder = reqBuilder.head();
