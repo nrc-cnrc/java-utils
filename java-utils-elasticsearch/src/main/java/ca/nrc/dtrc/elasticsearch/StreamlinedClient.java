@@ -511,7 +511,7 @@ public class StreamlinedClient {
 		.url(url)
 		.build();
 
-		Response response = httpCall(tLogger, request);
+		Response response = httpCall(HttpMethod.GET, url, (String)null, tLogger);
 
 		String jsonResponse;
 		try {
@@ -1701,7 +1701,10 @@ public class StreamlinedClient {
 			"   " + bodyJson + "\n";
 
 		Builder reqBuilder = requestBuilder.url(url);
-		RequestBody body = RequestBody.create(JSON, bodyJson);
+		RequestBody body = null;
+		if (bodyJson != null) {
+			body = RequestBody.create(JSON, bodyJson);
+		}
 
 		if (method == HttpMethod.GET) {
 			reqBuilder = reqBuilder.get();
