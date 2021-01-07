@@ -458,12 +458,7 @@ public class StreamlinedClient {
 		if (json == null) json = "";
 		RequestBody body = RequestBody.create(JSON, json);
 
-		Request request = requestBuilder
-		.url(url)
-		.head()
-		.build();
-
-		Response response = httpCall(tLogger, request);
+		Response response = httpCall(HttpMethod.HEAD, url, json, tLogger);
 
 		int status = response.code();
 
@@ -1700,13 +1695,13 @@ public class StreamlinedClient {
 
 	private Response httpCall(HttpMethod method, URL url, String bodyJson,
   		Logger tLogger) throws ElasticSearchException {
+
 		String callDetails =
-		"   " + method.name() + " " + url + "\n" +
-		"   " + bodyJson + "\n";
+			"   " + method.name() + " " + url + "\n" +
+			"   " + bodyJson + "\n";
 
 		Builder reqBuilder = requestBuilder.url(url);
 		RequestBody body = RequestBody.create(JSON, bodyJson);
-
 
 		if (method == HttpMethod.GET) {
 			reqBuilder = reqBuilder.get();
