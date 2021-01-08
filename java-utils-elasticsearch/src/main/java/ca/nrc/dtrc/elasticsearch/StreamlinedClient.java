@@ -11,6 +11,9 @@ import ca.nrc.dtrc.elasticsearch.request.RequestBodyElement;
 import ca.nrc.introspection.Introspection;
 import ca.nrc.introspection.IntrospectionException;
 import ca.nrc.ui.commandline.UserIO;
+import ca.nrc.web.Http;
+import ca.nrc.web.HttpException;
+import ca.nrc.web.HttpResponse;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -39,8 +42,6 @@ public class StreamlinedClient {
 
 	public static enum ESOptions {CREATE_IF_NOT_EXISTS, UPDATES_WAIT_FOR_REFRESH};
 
-	public static enum HttpMethod {DELETE, GET, HEAD, POST, PUT}
-
 	public boolean updatesWaitForRefresh = false;
 
 	// Whenever the client issues a transaction that modifies the DB,
@@ -49,22 +50,6 @@ public class StreamlinedClient {
 	private double sleepSecs = 0.0;
 
 	protected String indexName;
-
-	public static class HttpResponse {
-		public String bodyJson = "{}";
-		public int status = 100;
-
-		public HttpResponse(Response response) {
-			try {
-				this.bodyJson = response.body().string();
-			} catch (Exception e) {
-			}
-			try {
-				this.status = response.code();
-			} catch (Exception e) {
-			}
-		}
-	}
 
 	public String getIndexName() {
 		return indexName;
@@ -479,9 +464,9 @@ public class StreamlinedClient {
 		if (json == null) json = "";
 		RequestBody body = RequestBody.create(JSON, json);
 
-		HttpResponse response = httpCall(HttpMethod.HEAD, url, json, tLogger);
+		HttpResponse response = httpCall(Http.Method.HEAD, url, json, tLogger);
 
-		int status = response.status;
+		int status = response.code;
 
 		for (StreamlinedClientObserver obs : observers) {
 			obs.observeAfterHEAD(url, json);
@@ -504,8 +489,8 @@ public class StreamlinedClient {
 		}
 
 		if (json == null) json = "";
-		HttpResponse response = httpCall(HttpMethod.POST, url, json, tLogger);
-		String jsonResponse = response.bodyJson;
+		HttpResponse response = httpCall(Http.Method.POST, url, json, tLogger);
+		String jsonResponse = response.body;
 
 		checkForESErrorResponse(jsonResponse);
 
@@ -523,9 +508,9 @@ public class StreamlinedClient {
 			obs.observeBeforeGET(url);
 		}
 
-		HttpResponse response = httpCall(HttpMethod.GET, url, (String)null, tLogger);
+		HttpResponse response = httpCall(Http.Method.GET, url, (String)null, tLogger);
 
-		String jsonResponse = response.bodyJson;
+		String jsonResponse = response.body;
 
 		checkForESErrorResponse(jsonResponse);
 
@@ -548,9 +533,9 @@ public class StreamlinedClient {
 		}
 
 		if (json == null) json = "";
-		HttpResponse response = httpCall(HttpMethod.PUT, url, json, tLogger);
+		HttpResponse response = httpCall(Http.Method.PUT, url, json, tLogger);
 
-		String jsonResponse = response.bodyJson;
+		String jsonResponse = response.body;
 
 		checkForESErrorResponse(jsonResponse);
 
@@ -575,8 +560,8 @@ public class StreamlinedClient {
 		}
 
 		if (jsonBody == null) jsonBody = "";
-		HttpResponse response = httpCall(HttpMethod.DELETE, url, jsonBody, tLogger);
-		String jsonResponse = response.bodyJson;
+		HttpResponse response = httpCall(Http.Method.DELETE, url, jsonBody, tLogger);
+		String jsonResponse = response.body;
 
 		checkForESErrorResponse(jsonResponse);
 
@@ -1662,53 +1647,39 @@ public class StreamlinedClient {
 	//   of the index when multiple concurrent requests are issued.
 	//
 	private synchronized HttpResponse httpCall(
-		HttpMethod method, URL url, String bodyJson, Logger tLogger)
+		Http.Method method, URL url, String bodyJson, Logger tLogger)
 		throws ElasticSearchException {
 
 		String callDetails =
 			"   " + method.name() + " " + url + "\n" +
 			"   " + bodyJson + "\n";
 
+
 		HttpResponse httpResponse = null;
 
-		Builder reqBuilder = requestBuilder.url(url);
-		RequestBody body = null;
-		if (bodyJson != null) {
-			body = RequestBody.create(JSON, bodyJson);
-		}
-
-		if (method == HttpMethod.DELETE) {
-			reqBuilder = reqBuilder.delete();
-		} else if (method == HttpMethod.GET) {
-			reqBuilder = reqBuilder.get();
-		} else if (method == HttpMethod.HEAD) {
-			reqBuilder = reqBuilder.head();
-		} else if (method == HttpMethod.POST) {
-			reqBuilder = reqBuilder.post(body);
-		} else if (method == HttpMethod.PUT) {
-			reqBuilder = reqBuilder.put(body);
-		}
-		Request request = reqBuilder.build();
-
-		Response response = null;
-		String respJson = null;
 		try {
-			response = httpClient.newCall(request).execute();
-			httpResponse =
-				new HttpResponse(response);
-
-			if (tLogger != null && tLogger.isTraceEnabled()) {
-				tLogger.trace(
-					"returning from http call:\n"+
-					callDetails+"\n"+
-					"   response code : "+httpResponse.status+"\n"+
-					"   response body : "+httpResponse.bodyJson
-					);
+			if (method == Http.Method.DELETE) {
+				httpResponse = Http.delete(url);
+			} else if (method == Http.Method.GET) {
+				httpResponse = Http.get(url);
+			} else if (method == Http.Method.HEAD) {
+				httpResponse = Http.head(url);
+			} else if (method == Http.Method.POST) {
+				httpResponse = Http.post(url, bodyJson);
+			} else if (method == Http.Method.PUT) {
+				httpResponse = Http.put(url, bodyJson);
 			}
+		} catch (HttpException e) {
+			throw new ElasticSearchException(e);
+		}
 
-		} catch (IOException e) {
-			throw new ElasticSearchException(
-				"Error carrying out http call:\n"+callDetails, e);
+		if (tLogger != null && tLogger.isTraceEnabled()) {
+			tLogger.trace(
+				"returning from http call:\n" +
+				callDetails + "\n" +
+				"   response code : " + httpResponse.code + "\n" +
+				"   response body : " + httpResponse.body
+			);
 		}
 
 		return httpResponse;
