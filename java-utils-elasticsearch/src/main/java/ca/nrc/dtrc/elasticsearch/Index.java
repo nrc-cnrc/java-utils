@@ -12,13 +12,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.json.JSONObject;
 
 public class Index extends StreamlinedClient {
 
 	// Stores the types of the various fields for a given document type
 	private static Map<String,Map<String,String>> fieldTypesCache = null;	
 
-	private Boolean _exists = null;
+	private static  Map<String,Boolean> indexExistsCache =
+		new HashMap<String,Boolean>();
 
 	public Index() throws ElasticSearchException {
 		super();
@@ -29,7 +31,8 @@ public class Index extends StreamlinedClient {
 	}
 
 	public boolean exists() throws ElasticSearchException {
-		if (_exists == null) {
+		Boolean exists = uncacheIndexExists(indexName);
+		if (exists == null) {
 			URL url = null;
 			try {
 				url = esUrlBuilder().build();
@@ -38,11 +41,49 @@ public class Index extends StreamlinedClient {
 			}
 
 			int status = head(url);
-			_exists = (200 == status);
-
+			exists = (200 == status);
+			cacheIndexExists(indexName, exists);
 		}
 
-		return _exists;
+		return exists;
+	}
+
+	private static synchronized Boolean uncacheIndexExists(String indexName) {
+		Boolean exists = indexExistsCache.get(indexName);
+		return exists;
+	}
+
+	public static synchronized void cacheIndexExists(String indexName, Boolean exists) {
+		indexExistsCache.put(indexName, exists);
+	}
+
+	public boolean isEmpty() throws ElasticSearchException {
+		Boolean empty = null;
+
+		URL url = null;
+		try {
+			url = esUrlBuilder().forEndPoint("_mappings").build();
+		} catch (ElasticSearchException e) {
+			throw new RuntimeException(e);
+		}
+
+		String jsonResp = null;
+		try {
+			jsonResp = get(url);
+		} catch (NoSuchIndexException e1) {
+			empty = true;
+		}
+
+		if (empty == null) {
+			// Index exists. Does it include some types?
+			JSONObject mappings = new JSONObject(jsonResp)
+				.getJSONObject(indexName)
+				.getJSONObject("mappings");
+
+			empty = (0 == mappings.keySet().size());
+		}
+
+		return empty;
 	}
 
 	@JsonIgnore
@@ -159,7 +200,9 @@ public class Index extends StreamlinedClient {
 		} catch (InterruptedException e) {
 			// Nevermind
 		}
-		
+
+		cacheIndexExists(indexName, true);
+
 		return;
 	}
 	
@@ -175,7 +218,7 @@ public class Index extends StreamlinedClient {
 			// OK... we tried to delete an index that did not exist
 			// All other exception types must be passed along 
 		}
-		
+		cacheIndexExists(indexName, (Boolean)null);
 	}
 	
 	private static Map<String,String> uncacheFieldTypes(String docClassName) {

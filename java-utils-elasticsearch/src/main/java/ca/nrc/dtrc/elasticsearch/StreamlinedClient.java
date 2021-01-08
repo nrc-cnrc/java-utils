@@ -302,7 +302,13 @@ public class StreamlinedClient {
 		String docID = doc.getId();
 		String jsonResponse = putDocument(docType, docID, jsonDoc);
 
+		cacheIndexExists(true);
+
 		return jsonResponse;
+	}
+
+	private void cacheIndexExists(Boolean exists) {
+		Index.cacheIndexExists(indexName, exists);
 	}
 
 	public String putDocument(String type, Document dynDoc) throws ElasticSearchException {
@@ -431,13 +437,12 @@ public class StreamlinedClient {
 
 		Query query = new Query();
 		query
-		.openAttr("exists")
-		.openAttr("field")
-		.setOpenedAttr("id")
-		;
+			.openAttr("exists")
+			.openAttr("field")
+			.setOpenedAttr("id")
+			;
 
-		SearchResults<T> results =
-		search(query, esDocTypeName, docPrototype, options);
+		SearchResults<T> results = search(query, esDocTypeName, docPrototype, options);
 
 		return results;
 	}
@@ -1242,8 +1247,8 @@ public class StreamlinedClient {
 				if (obj instanceof IndexDef) {
 					if (firstDocumentWasRead) {
 						String errMess =
-						"\nIndexDef object did not precede the first Document object in the json file: " + dataFPath + "\n" +
-						"Error was found at line " + reader.lineCount + " of json data file.\n";
+							"\nIndexDef object did not precede the first Document object in the json file: " + dataFPath + "\n" +
+							"Error was found at line " + reader.lineCount + " of json data file.\n";
 						System.err.println(errMess);
 						throw new ElasticSearchException(errMess);
 					} else {
@@ -1267,8 +1272,8 @@ public class StreamlinedClient {
 					}
 					jsonLine = mapper.writeValueAsString(doc);
 					jsonBatch +=
-					"\n{\"index\": {\"_index\": \"" + indexName + "\", \"_type\" : \"" + currDocTypeName + "\", \"_id\": \"" + id + "\"}}" +
-					"\n" + jsonLine;
+						"\n{\"index\": {\"_index\": \"" + indexName + "\", \"_type\" : \"" + currDocTypeName + "\", \"_id\": \"" + id + "\"}}" +
+						"\n" + jsonLine;
 
 					if (currBatchSize > batchSize) {
 						for (StreamlinedClientObserver obs : observers) {
@@ -1651,8 +1656,14 @@ public class StreamlinedClient {
 		return exc;
 	}
 
-	private HttpResponse httpCall(HttpMethod method, URL url, String bodyJson,
-  		Logger tLogger) throws ElasticSearchException {
+
+
+	// Note: We make this method synchronized in an attempt to prevent corruption
+	//   of the index when multiple concurrent requests are issued.
+	//
+	private synchronized HttpResponse httpCall(
+		HttpMethod method, URL url, String bodyJson, Logger tLogger)
+		throws ElasticSearchException {
 
 		String callDetails =
 			"   " + method.name() + " " + url + "\n" +

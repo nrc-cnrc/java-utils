@@ -12,6 +12,15 @@ import org.junit.Test;
 import ca.nrc.testing.AssertHelpers;
 
 public class IndexTest {
+
+	public static class Person extends Document {
+		public String name = null;
+		public Person() {}
+		public Person(String _name) {
+			this.name = _name;
+			this.id = _name;
+		}
+	}
 	
 	public String indexName = null;
 	
@@ -54,8 +63,12 @@ public class IndexTest {
 		//
 		boolean force = true;
 		index.setDefinition(iDef, force);
-		
-		
+
+		// Check if an index exists
+		boolean exists = index.exists();
+
+		// Check if an index is empty
+		boolean isEmpty = index.isEmpty();
 	}
 	
 	/////////////////////////////////////
@@ -144,5 +157,17 @@ public class IndexTest {
 		AssertHelpers.assertDeepEquals("Converted settings not as expected", 
 				expSettings, gotSettings);
 	}
-	
+
+	@Test
+	public void test__isEmpty__HappyPath() throws Exception {
+		ESTestHelpers.deleteTestIndex();
+		Index index = new Index(indexName);
+
+		Assert.assertTrue("Index should have started out empty", index.isEmpty());
+
+		Person homer = new Person("Homer Simpson");
+		new StreamlinedClient(indexName).putDocument(homer);
+		Assert.assertFalse(
+		"Index should NOT have been empty after we put a document into it.", index.isEmpty());
+	}
 }

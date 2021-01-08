@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ca.nrc.json.JSONUtils;
 import ca.nrc.testing.AssertHelpers;
-import ca.nrc.datastructure.Pair;
 import ca.nrc.file.ResourceGetter;
 
 public class ESTestHelpers {
@@ -114,14 +113,20 @@ public class ESTestHelpers {
 	}
 	
 	public static StreamlinedClient makeEmptyTestClient() throws IOException, ElasticSearchException, InterruptedException {
+		StreamlinedClient client = deleteTestIndex();
+		client.createIndex(emptyTestIndex);
+		return client;
+	}
+
+	public static StreamlinedClient deleteTestIndex() throws IOException, ElasticSearchException, InterruptedException {
 		// Put a one second delay after each transaction, to give ES time to synchronize all the nodes.
 		double sleepSecs = 1.0;
 		StreamlinedClient client = new StreamlinedClient(emptyTestIndex, sleepSecs);
 		client.deleteIndex();
-		client.createIndex(emptyTestIndex);
-		
+
 		return client;
 	}
+
 
 	public static StreamlinedClient makeHamletTestClient() throws IOException, ElasticSearchException, InterruptedException {
 		return makeHamletTestClient(null);
