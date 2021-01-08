@@ -25,12 +25,24 @@ public class Http {
 	public static enum ResponseType {STRING, MAP, JSON_NODE};
 	
 	// As recommended in the OkHttp documentation, we use a single
-	// OkHttpClient instance for all our needs.
-	private static OkHttpClient httpClient = new OkHttpClient.Builder()
-			.connectTimeout(60, TimeUnit.SECONDS)
-			.readTimeout(60,  TimeUnit.SECONDS)
-			.writeTimeout(60, TimeUnit.SECONDS)
-			.build();
+	// OkHttpClient instance per thread.\
+	//
+	private static Map<Thread,OkHttpClient> httpClients =
+		new HashMap<Thread,OkHttpClient>();
+
+	private static synchronized OkHttpClient httpClient() {
+		Thread thr = Thread.currentThread();
+		OkHttpClient client = httpClients.get(thr);
+		if (client == null) {
+			client = new OkHttpClient.Builder()
+				.connectTimeout(60, TimeUnit.SECONDS)
+				.readTimeout(60,  TimeUnit.SECONDS)
+				.writeTimeout(60, TimeUnit.SECONDS)
+				.build();
+			httpClients.put(thr, client);
+		}
+		return client;
+	}
 
 	public static Object post(String url, Map<String,Object> json, ResponseType respType) throws IOException {
 		String jsonStr = new ObjectMapper().writeValueAsString(json);
@@ -67,7 +79,7 @@ public class Http {
 	        .post(body)
 	        .build();
 
-	    Response response = httpClient.newCall(request).execute();
+	    Response response = httpClient().newCall(request).execute();
 	    String jsonResponse = response.body().string();
 
 	    return jsonResponse;
@@ -81,7 +93,7 @@ public class Http {
 
 		Response response = null;
 		try {
-			response = httpClient.newCall(request).execute();
+			response = httpClient().newCall(request).execute();
 		} catch (IOException e) {
 			throw new HttpException("Error invoking GET "+url, e);
 		}
@@ -105,7 +117,7 @@ public class Http {
 
 		Response response = null;
 		try {
-			response = httpClient.newCall(request).execute();
+			response = httpClient().newCall(request).execute();
 		} catch (IOException e) {
 			throw new HttpException("Error invoking POST "+url+"\n"+bodyStr, e);
 		}
@@ -128,7 +140,7 @@ public class Http {
 
 		Response response = null;
 		try {
-			response = httpClient.newCall(request).execute();
+			response = httpClient().newCall(request).execute();
 		} catch (IOException e) {
 			throw new HttpException("Error invoking PUT "+url+"\n"+bodyStr, e);
 		}
@@ -144,7 +156,7 @@ public class Http {
 
 		Response response = null;
 		try {
-			response = httpClient.newCall(request).execute();
+			response = httpClient().newCall(request).execute();
 		} catch (IOException e) {
 			throw new HttpException("Error invoking DELETE "+url, e);
 		}
@@ -161,7 +173,7 @@ public class Http {
 
 		Response response = null;
 		try {
-			response = httpClient.newCall(request).execute();
+			response = httpClient().newCall(request).execute();
 		} catch (IOException e) {
 			throw new HttpException("Error invoking HEAD "+url, e);
 		}
@@ -169,5 +181,4 @@ public class Http {
 
 		return httpResp;
 	}
-
 }
