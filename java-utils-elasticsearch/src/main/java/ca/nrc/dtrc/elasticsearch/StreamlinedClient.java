@@ -72,20 +72,24 @@ public class StreamlinedClient {
 		if (this.userIO != null) userIO.echo(message, level);
 	}
 
-	// Stores the types of the various fields for a given document type
-//	private static Map<String,Map<String,String>> fieldTypesCache = null;
-
 	private static Builder requestBuilder = new Request.Builder();
 
-	// As recommended in the OkHttp documentation, we use a single
-	// OkHttpClient instance for all our needs.
-	private static OkHttpClient httpClient = new OkHttpClient.Builder()
-	.connectTimeout(60, TimeUnit.SECONDS)
-	.readTimeout(60, TimeUnit.SECONDS)
-	.writeTimeout(60, TimeUnit.SECONDS)
-	.build();
-
 	private List<StreamlinedClientObserver> observers = new ArrayList<StreamlinedClientObserver>();
+
+	/**
+	 * Note: As of 2020-01, we have noticed that when several StreamlinedClient
+	 * 	are used concurrently in different threads, it ends up creating
+	 *    documents whose JSON structure does not correspond to the structure
+	 *    of a document.
+	 *
+	 *    If you find that to be the case, then configure your StreamlinedClients
+	 *    with syncHttpCalls = true. Note that this may significantly slow down
+	 *    the operation of the various StreamlinedClients.
+	 *
+	 *    This will cause the client to invoke the Http client throug the
+	 *    synchronized method httpCall_sync below.
+	 */
+	public boolean synchedHttpCalls = true;
 
 	public StreamlinedClient() throws ElasticSearchException {
 		initialize(null, null, null);
@@ -1641,12 +1645,39 @@ public class StreamlinedClient {
 		return exc;
 	}
 
+	// Note: As of 2020-01, we have noticed that when several StreamlinedClient
+	//    are used concurrently in different threads, it ends up creating
+	//    documents whose JSON structure does not correspond to the structure
+	//    of a document.
+	//
+	//    If you find that to be the case, then configure your StreamlinedClients
+	//    with syncHttpCalls = true.
+	//
+	//    This will cause the client to invoke the Http client throug the
+	//    synchronized method httpCall_sync below.
+	private HttpResponse httpCall(
+		Http.Method method, URL url, String bodyJson, Logger tLogger)
+		throws ElasticSearchException {
+		HttpResponse resp = null;
+		if (synchedHttpCalls) {
+			resp = httpCall_sync(method, url, bodyJson, tLogger);
+		} else {
+			resp = httpCall_async(method, url, bodyJson, tLogger);
+		}
+		return resp;
+	}
 
 
 	// Note: We make this method synchronized in an attempt to prevent corruption
 	//   of the index when multiple concurrent requests are issued.
 	//
-	private synchronized HttpResponse httpCall(
+	private synchronized HttpResponse httpCall_sync(
+		Http.Method method, URL url, String bodyJson, Logger tLogger)
+		throws ElasticSearchException {
+		return httpCall_async(method, url, bodyJson, tLogger);
+	}
+
+	private HttpResponse httpCall_async(
 		Http.Method method, URL url, String bodyJson, Logger tLogger)
 		throws ElasticSearchException {
 
