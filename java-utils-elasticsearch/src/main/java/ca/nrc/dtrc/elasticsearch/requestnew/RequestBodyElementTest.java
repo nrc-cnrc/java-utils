@@ -1,13 +1,9 @@
 package ca.nrc.dtrc.elasticsearch.requestnew;
 
-import ca.nrc.testing.AssertJson;
-import ca.nrc.testing.AssertObject;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.Map;
 
 public class RequestBodyElementTest {
 
@@ -15,110 +11,56 @@ public class RequestBodyElementTest {
     // DOCUMENTATION TESTS
     ///////////////////////////////////////////
 
-//    @Test
-//    public void test__RequestBodyElement__Synopsis() throws Exception {
-//        // Use RequestBodyElement to create and manipulate parts of an
-//        // ElasticSearch request body.
-//        //
-//        // This is more practical than manipulating a JSON string or a
-//        // JsonNode.
-//        //
-//
-//        // Create a "query" body element using a generic RequestBodyElement.
-//        //
-//        ca.nrc.dtrc.elasticsearch.requestnew.RequestBodyElement queryElt =
-//            new ca.nrc.dtrc.elasticsearch.requestnew.RequestBodyElement("query")
-//                .openAttr("bool")
-//                    .openAttr("must")
-//                        .openAttr("exists")
-//                            .openAttr("field")
-//                                .setOpenedAttr("userName")
-//                            .closeAttr()
-//                        .closeAttr()
-//                    .closeAttr()
-//                .closeAttr();
-//
-//        // Create a "aggs" body element using a generic RequestBodyElement.
-//        //
-//        ca.nrc.dtrc.elasticsearch.requestnew.RequestBodyElement aggsElt =
-//            new ca.nrc.dtrc.elasticsearch.requestnew.RequestBodyElement("query")
-//                .openAttr("sum")
-//                    .openAttr("field")
-//                        .setOpenedAttr("age")
-//
-//            // Bring the "cursor" back to the top level of the element.
-//            .closeAll();
-//
-//        // After you have created a body element, you can obtain its JsonString
-//        // as follows:
-//        //
-//        ca.nrc.dtrc.elasticsearch.requestnew.JsonString queryJson = queryElt.jsonString();
-//
-//        // You can also merge several body elements into a single
-//        // Map<String,Object> that can then be serialized and fed to
-//        // Elastic Search
-//        //
-//        Map<String,Object> requestMap = ca.nrc.dtrc.elasticsearch.requestnew.RequestBodyElement.merge(queryElt, aggsElt);
-//
-//        // You can also obtain the
-//        // "Generic" RequestBodyElement provide the flexibility of constructing
-//        // any part of any ES request body, but they can be a bit awkward to use.
-//        //
-//        // So most of the time, you will want to used a "typed" subclass that is
-//        // designed specifically to represent a particular type of ES request
-//        // body element
-//        //
-//        // For example, to build a "sort" element, you could do this:
-//        //
-//        ca.nrc.dtrc.elasticsearch.requestnew.Sort sort = new ca.nrc.dtrc.elasticsearch.requestnew.Sort()
-//            .sortBy("age", ca.nrc.dtrc.elasticsearch.requestnew.Sort.Order.desc)
-//            .sortBy("revenue", ca.nrc.dtrc.elasticsearch.requestnew.Sort.Order.asc);
-//
-//        // The above is equivalent to doing this:
-//        //
-//        List<Map<String,String>> sortCriteria =
-//            new ArrayList<Map<String,String>>();
-//        Map<String,String> criterion = new HashMap<String,String>();
-//        criterion.put("age", "desc");
-//        sortCriteria.add(criterion);
-//        criterion = new HashMap<String,String>();
-//        criterion.put("revenue", "asc");
-//        sortCriteria.add(criterion);
-//        sort = new Sort();
-//        sort.setOpenedAttr(sortCriteria);
-//    }
-//
-//    ///////////////////////////////////////////
-//    // VERIFICATION TESTS
-//    ///////////////////////////////////////////
-//
-//    @Test
-//    public void test__RequestBodyElement__HappyPath() throws Exception {
-//        ca.nrc.dtrc.elasticsearch.requestnew.RequestBodyElement queryElt =
-//            new ca.nrc.dtrc.elasticsearch.requestnew.RequestBodyElement("query")
-//                .openAttr("bool")
-//                    .openAttr("must")
-//                        .openAttr("exists")
-//                            .openAttr("field")
-//                                .setOpenedAttr("userName");
-//
-//        String expJson =
-//                "{\n"+
-//                        "  \"query\": {\n"+
-//                        "    \"bool\": {\n"+
-//                        "      \"must\": {\n"+
-//                        "        \"exists\": {\n"+
-//                        "          \"field\": \"userName\"\n"+
-//                        "          }\n"+
-//                        "        }\n"+
-//                        "      }\n"+
-//                        "    }\n"+
-//                        "  }\n"+
-//                        "}"
-//                ;
-//        assertJsonEquals(expJson, queryElt);
-//    }
-//
+    @Test
+    public void test__RequestBodyElement__Synopsis() throws Exception {
+        // Use RequestBodyElement to create and manipulate parts of an
+        // ElasticSearch request body.
+        //
+        // This is more practical than manipulating a JSON string or a
+        // JsonNode.
+        //
+        // For example, you can compose a generic element, feeding it
+        // any kind of nested fields (even ones that are not valid ES fields).
+        //
+        RequestElementGeneric genericElt =
+            new RequestElementGeneric(new JSONObject()
+                .put("eltname", new JSONObject()
+                    .put("subfield", new JSONObject()
+                        .put("sub_subfield", new JSONObject()
+                            .put("attr1", "value1")
+                            .put("attr2", new JSONArray())
+                        )
+                    )
+                )
+            );
+
+        // There are however more  suclasses of element which are
+        // designed to facilitate the creation of the most commonly used
+        // ES elements.
+        //
+        // For example:
+        //
+        Aggs aggsElt =
+            new Aggs()
+            .aggregate("avg_age", "avg", "age")
+            .aggregate("avg_salaray", "avg", "salary");
+
+        // Given a request element, you can obtain its content in the form of
+        // either a json String or object
+        //
+        JSONObject aggsJsonObject = aggsElt.jsonObject();
+        JsonString aggsJsonString = aggsElt.jsonString();
+
+
+        // You can also merge several elements into a single one
+        RequestBodyElement mergedElt =
+            RequestBodyElement.mergeElements(genericElt, aggsElt);
+    }
+
+    ///////////////////////////////////////////
+    // VERIFICATION TESTS
+    ///////////////////////////////////////////
+
     @Test
     public void test__merge__HappyPath() throws Exception {
         JSONObject jObj = new JSONObject()
@@ -165,26 +107,5 @@ public class RequestBodyElementTest {
     /////////////////////////////////////
     // HELPER METHODS
     /////////////////////////////////////
-
-    private void assertJsonEquals(String expJson, RequestBodyElement gotBodyElt)
-        throws Exception {
-        assertJsonEquals(expJson, gotBodyElt.jsonString());
-    }
-    private void assertJsonEquals(String expJson, JsonString gotJsonString)
-        throws Exception {
-        AssertJson.assertJsonStringsAreEquivalent(
-            "JsonString was not as expected string was not as expected",
-            expJson, gotJsonString.toString());
-    }
-
-    private void assertJsonEquals(String expJson, Map<String,Object> gotMap)
-            throws Exception {
-
-        Map<String,Object> expMap = new HashMap<String,Object>();
-        expMap = new ObjectMapper().readValue(expJson, expMap.getClass());
-        AssertObject.assertDeepEquals(
-            "Map was not as expected string was not as expected",
-            expMap, gotMap);
-    }
 
 }
