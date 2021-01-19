@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.log4j.Logger;
+import org.json.JSONObject;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -14,6 +15,8 @@ import java.util.Stack;
  * Class that represents parts of the body of an ElasticSearch request
  */
 public class RequestBodyElement {
+
+    JSONObject jsonObject = null;
 
     private String name = null;
 
@@ -41,6 +44,10 @@ public class RequestBodyElement {
         fieldsStack.push(name);
 
         return;
+    }
+
+    public RequestBodyElement(JSONObject _jsonObject) {
+        this.jsonObject = _jsonObject;
     }
 
     public String getName() {
@@ -155,13 +162,17 @@ public class RequestBodyElement {
 
     public JsonString jsonString() throws ElasticSearchException {
         String json = null;
-        try {
-            Map<String,Object> eltMap = new HashMap<String,Object>();
-            String name = getName();
-            eltMap.put(name, getValue().get(name));
-            json = new ObjectMapper().writeValueAsString(eltMap);
-        } catch (JsonProcessingException e) {
-            throw new ElasticSearchException(e);
+        if (jsonObject != null) {
+            json = jsonObject.toString();
+        } else {
+            try {
+                Map<String, Object> eltMap = new HashMap<String, Object>();
+                String name = getName();
+                eltMap.put(name, getValue().get(name));
+                json = new ObjectMapper().writeValueAsString(eltMap);
+            } catch (JsonProcessingException e) {
+                throw new ElasticSearchException(e);
+            }
         }
         return new JsonString(json);
     }
