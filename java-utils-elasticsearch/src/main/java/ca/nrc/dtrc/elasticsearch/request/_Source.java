@@ -1,10 +1,7 @@
-package ca.nrc.dtrc.elasticsearch.requestnew;
+package ca.nrc.dtrc.elasticsearch.request;
 
-import ca.nrc.dtrc.elasticsearch.requestnew.RequestBodyElement;
 import org.json.JSONArray;
 import org.json.JSONObject;
-
-import java.util.Map;
 
 public class _Source extends RequestBodyElement {
 

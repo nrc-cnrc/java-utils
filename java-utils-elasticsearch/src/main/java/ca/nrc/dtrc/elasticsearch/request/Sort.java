@@ -1,14 +1,11 @@
-package ca.nrc.dtrc.elasticsearch.requestnew;
+package ca.nrc.dtrc.elasticsearch.request;
 
 import ca.nrc.datastructure.Pair;
-import net.arnx.jsonic.JSON;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class Sort extends RequestBodyElement {
 

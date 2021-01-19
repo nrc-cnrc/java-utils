@@ -1,4 +1,4 @@
-package ca.nrc.dtrc.elasticsearch.requestnew;
+package ca.nrc.dtrc.elasticsearch.request;
 
 /**
  * Class that wraps a string that is a JSON serialisation of some object

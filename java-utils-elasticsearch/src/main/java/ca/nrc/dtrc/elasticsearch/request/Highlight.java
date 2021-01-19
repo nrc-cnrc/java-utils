@@ -1,7 +1,5 @@
-package ca.nrc.dtrc.elasticsearch.requestnew;
+package ca.nrc.dtrc.elasticsearch.request;
 
-import ca.nrc.dtrc.elasticsearch.requestnew.RequestBodyElement;
-import net.arnx.jsonic.JSON;
 import org.json.JSONObject;
 
 import java.util.*;

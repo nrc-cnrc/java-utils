@@ -1,9 +1,9 @@
 package ca.nrc.dtrc.elasticsearch;
 
 import ca.nrc.dtrc.elasticsearch.ESTestHelpers.PlayLine;
-import ca.nrc.dtrc.elasticsearch.requestnew.Aggs;
-import ca.nrc.dtrc.elasticsearch.requestnew.Query;
-import ca.nrc.dtrc.elasticsearch.requestnew.Sort;
+import ca.nrc.dtrc.elasticsearch.request.Aggs;
+import ca.nrc.dtrc.elasticsearch.request.Query;
+import ca.nrc.dtrc.elasticsearch.request.Sort;
 import ca.nrc.file.ResourceGetter;
 import ca.nrc.introspection.Introspection;
 import ca.nrc.testing.AssertHelpers;

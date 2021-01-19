@@ -1,4 +1,4 @@
-package ca.nrc.dtrc.elasticsearch.requestnew;
+package ca.nrc.dtrc.elasticsearch.request;
 
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;

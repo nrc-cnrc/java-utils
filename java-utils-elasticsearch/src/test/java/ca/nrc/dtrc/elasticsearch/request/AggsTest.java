@@ -1,6 +1,5 @@
-package ca.nrc.dtrc.elasticsearch.requestnew;
+package ca.nrc.dtrc.elasticsearch.request;
 
-import ca.nrc.dtrc.elasticsearch.requestnew.AssertRequestBodyElement;
 import org.junit.Test;
 
 public class AggsTest {
