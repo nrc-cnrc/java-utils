@@ -51,4 +51,9 @@ public abstract class RequestBodyElement {
 		String jString = jsonObject().toString();
 		return new JsonString(jString);
 	}
+
+	public  boolean containsKey(String key) {
+		boolean answer = jsonObject().keySet().contains(key);
+		return answer;
+	}
 }

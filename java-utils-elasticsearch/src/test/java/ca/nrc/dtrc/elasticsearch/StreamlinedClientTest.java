@@ -1,13 +1,14 @@
 package ca.nrc.dtrc.elasticsearch;
 
 import ca.nrc.dtrc.elasticsearch.ESTestHelpers.PlayLine;
-import ca.nrc.dtrc.elasticsearch.request.Aggs;
-import ca.nrc.dtrc.elasticsearch.request.Query;
-import ca.nrc.dtrc.elasticsearch.request.Sort;
+import ca.nrc.dtrc.elasticsearch.requestnew.Aggs;
+import ca.nrc.dtrc.elasticsearch.requestnew.Query;
+import ca.nrc.dtrc.elasticsearch.requestnew.Sort;
 import ca.nrc.file.ResourceGetter;
 import ca.nrc.introspection.Introspection;
 import ca.nrc.testing.AssertHelpers;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -190,14 +191,16 @@ public class StreamlinedClientTest {
 		// structured query using the QueryBuilder. For example:
 		//
 		//
-		Query queryBody = new Query();
-		queryBody
-			.openAttr("bool")
-				.openAttr("must")
-					.openAttr("match")
-						.openAttr("surname")
-							.setOpenedAttr("simpson");
-
+		Query queryBody = new Query(
+			new JSONObject()
+				.put("bool", new JSONObject()
+					.put("must", new JSONObject()
+						.put("match", new JSONObject()
+							.put("surname", "simpson")
+						)
+					)
+				)
+		);
 		hits = client.search(queryBody, personPrototype);
 
 
@@ -207,20 +210,19 @@ public class StreamlinedClientTest {
 		// For example, will compute the average age of people whose surname is
 		// simpson
 		//
-		queryBody = new Query();
-		queryBody
-			.openAttr("bool")
-				.openAttr("must")
-					.openAttr("match")
-						.openAttr("surname")
-							.setOpenedAttr("simpson");
-
-		Aggs aggsBody = new Aggs();
-		aggsBody
-			.openAttr("avgAge")
-				.openAttr("avg")
-					.openAttr("field")
-						.setOpenedAttr("age");
+		queryBody = new Query(
+			new JSONObject()
+			.put("bool", new JSONObject()
+				.put("must", new JSONObject()
+					.put("match", new JSONObject()
+						.put("surname", "simpson")
+					)
+				)
+			)
+		);
+		Aggs aggsBody =
+			new Aggs()
+			.aggregate("avgAge", "avg", "age");
 
 		hits = client.search(queryBody, personPrototype, aggsBody);
 		Double averageAge = (Double) hits.aggrResult("avgAge");
@@ -251,11 +253,12 @@ public class StreamlinedClientTest {
 
 		Thread.sleep(2*1000);
 
-		Query queryBody = new Query();
-		queryBody
-			.openAttr("query_string")
-				.openAttr("query")
-					.setOpenedAttr("surname:Simpson");
+		Query queryBody = new Query(
+			new JSONObject()
+			.put("query_string", new JSONObject()
+				.put("query", "surname:Simpson")
+			)
+		);
 
 		Aggs aggsBody = new Aggs();
 		aggsBody.aggregate("totalAge", "sum", "age");

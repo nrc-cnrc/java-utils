@@ -4,10 +4,10 @@ import ca.nrc.config.ConfigException;
 import ca.nrc.data.file.ObjectStreamReader;
 import ca.nrc.data.file.ObjectStreamReaderException;
 import ca.nrc.datastructure.Pair;
-import ca.nrc.dtrc.elasticsearch.request.Highlight;
-import ca.nrc.dtrc.elasticsearch.request.JsonString;
-import ca.nrc.dtrc.elasticsearch.request.Query;
-import ca.nrc.dtrc.elasticsearch.request.RequestBodyElement;
+import ca.nrc.dtrc.elasticsearch.requestnew.JsonString;
+import ca.nrc.dtrc.elasticsearch.requestnew.Query;
+import ca.nrc.dtrc.elasticsearch.requestnew.RequestBodyElement;
+import ca.nrc.dtrc.elasticsearch.requestnew.Highlight;
 import ca.nrc.introspection.Introspection;
 import ca.nrc.introspection.IntrospectionException;
 import ca.nrc.ui.commandline.UserIO;
@@ -26,6 +26,7 @@ import okhttp3.Request.Builder;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.json.JSONObject;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
@@ -406,13 +407,12 @@ public class StreamlinedClient {
 		String type = docClass.getName();
 		tLogger.trace("searching for all type=" + type);
 
-//		String query = "";
-		Query query = new Query();
-		query
-		.openAttr("exists")
-		.openAttr("field")
-		.setOpenedAttr("id")
-		;
+		Query query = new Query(
+			new JSONObject()
+				.put("exists", new JSONObject()
+					.put("field", "id")
+				)
+			);
 
 		SearchResults<T> results = search(query, type, docPrototype);
 		return results;
@@ -424,12 +424,12 @@ public class StreamlinedClient {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.listAll");
 		tLogger.trace("searching for all type=" + esDocTypeName);
 
-		Query query = new Query();
-		query
-			.openAttr("exists")
-			.openAttr("field")
-			.setOpenedAttr("id")
-			;
+		Query query = new Query(
+			new JSONObject()
+				.put("exists", new JSONObject()
+					.put("field", "id")
+				)
+		);
 
 		SearchResults<T> results = search(query, esDocTypeName, docPrototype, options);
 
@@ -600,8 +600,9 @@ public class StreamlinedClient {
 	}
 
 	public <T extends Document> SearchResults<T> search(
-	String freeformQuery, String docTypeName,
-	T docPrototype) throws ElasticSearchException {
+		String freeformQuery, String docTypeName,
+		T docPrototype) throws ElasticSearchException {
+
 		return search(freeformQuery, docTypeName, docPrototype,
 		new RequestBodyElement[0]);
 	}
@@ -621,12 +622,12 @@ public class StreamlinedClient {
 
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.searchFreeform");
 
-		Query queryBody = new Query();
-		queryBody
-		.openAttr("query_string")
-		.openAttr("query")
-		.setOpenedAttr(freeformQuery)
-		;
+		Query queryBody = new Query(
+			new JSONObject()
+				.put("query_string", new JSONObject()
+					.put("query", freeformQuery)
+				)
+		);
 
 		SearchResults<T> hits = search(queryBody, docTypeName, docPrototype,
 		additionalSearchSpecs);
@@ -661,24 +662,19 @@ public class StreamlinedClient {
 		for (int ii = 1; ii < bodyElements.length; ii++) {
 			bodyElements[ii] = additionalBodyElts[ii - 1];
 		}
-		Map<String, Object> reqMap = RequestBodyElement.merge(bodyElements);
-		if (!reqMap.containsKey("highlight")) {
+		RequestBodyElement mergedElt = RequestBodyElement.mergeElements(bodyElements);
+		if (!mergedElt.containsKey("highlight")) {
 			Highlight highlight = new Highlight().hihglightField("longDescription");
-			RequestBodyElement.mergeIntoMap(reqMap, highlight);
+			mergedElt = RequestBodyElement.mergeElements(mergedElt, highlight);
 		}
 
-		String reqJson = null;
-		try {
-			reqJson = new ObjectMapper().writeValueAsString(reqMap);
-		} catch (JsonProcessingException e) {
-			throw new ElasticSearchException(e);
-		}
+		String reqJson = mergedElt.jsonString().toString();
 		return search(new JsonString(reqJson), docTypeName, docPrototype);
 	}
 
 
 	private <T extends Document> SearchResults<T> search(JsonString jsonQuery,
-																		  String docTypeName, T docPrototype) throws ElasticSearchException {
+		String docTypeName, T docPrototype) throws ElasticSearchException {
 
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.search");
 
