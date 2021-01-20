@@ -99,7 +99,7 @@ public class SearchEngineMultiQueryTest {
 		SearchEngineTest.assertResultsFitTheQuery(results, query, maxBadHits);
 		
 		Long expMinRetrieved = new Long(5);
-		Long expMaxRetrieved = new Long(30);
+		Long expMaxRetrieved = new Long(32);
 		Long expMinTotalEstimate = new Long(5);
 		Long expMaxTotalEstimate = new Long(30);
 		
