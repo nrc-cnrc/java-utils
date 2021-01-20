@@ -24,6 +24,9 @@ public class Debug {
 
 	public static String printCallStack(Exception e, Long sleepMsecs) {
 		if (!on) return "Callstack printing is DISABLED!";
+		if (e == null) {
+			e = new Exception();
+		}
 		StringBuilder output = new StringBuilder();
 		if (e != null) {
 			output.append(e.getMessage());
@@ -32,7 +35,7 @@ public class Debug {
 		String outString = "Could not print callstack.";
 		try {
 			capture = new CapturedPrintWriter(output);
-			new Exception().printStackTrace(capture);
+			e.printStackTrace(capture);
 			outString = output.toString();
 			
 			// Reformat the captured output
