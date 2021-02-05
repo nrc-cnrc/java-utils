@@ -615,9 +615,9 @@ public class StreamlinedClient {
 
 
 	public <T extends Document> SearchResults<T> search(
-	String freeformQuery, String docTypeName, T docPrototype,
-	RequestBodyElement... additionalSearchSpecs)
-	throws ElasticSearchException {
+		String freeformQuery, String docTypeName, T docPrototype,
+		RequestBodyElement... additionalSearchSpecs)
+		throws ElasticSearchException {
 
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.searchFreeform");
 
@@ -641,19 +641,19 @@ public class StreamlinedClient {
 	}
 
 	public <T extends Document> SearchResults<T> search(
-	Query query, String docTypeName, T docPrototype) throws ElasticSearchException {
+		Query query, String docTypeName, T docPrototype) throws ElasticSearchException {
 		return search(query, docTypeName, docPrototype, new RequestBodyElement[0]);
 	}
 
 	public <T extends Document> SearchResults<T> search(
-	Query query, T docPrototype, RequestBodyElement... additionalSearchSpecs)
-	throws ElasticSearchException {
+		Query query, T docPrototype, RequestBodyElement... additionalSearchSpecs)
+		throws ElasticSearchException {
 		return search(query, null, docPrototype, additionalSearchSpecs);
 	}
 
 	public <T extends Document> SearchResults<T> search(
-	Query query, String docTypeName, T docPrototype,
-	RequestBodyElement... additionalBodyElts) throws ElasticSearchException {
+		Query query, String docTypeName, T docPrototype,
+		RequestBodyElement... additionalBodyElts) throws ElasticSearchException {
 
 		RequestBodyElement[] bodyElements =
 		new RequestBodyElement[additionalBodyElts.length + 1];
@@ -672,7 +672,8 @@ public class StreamlinedClient {
 	}
 
 
-	private <T extends Document> SearchResults<T> search(JsonString jsonQuery,
+	private <T extends Document> SearchResults<T> search(
+		JsonString jsonQuery,
 		String docTypeName, T docPrototype) throws ElasticSearchException {
 
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.search");

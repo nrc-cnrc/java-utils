@@ -1,0 +1,27 @@
+bodyEndMarker=BLANK_LINE
+class=ca.nrc.data.json.Person
+
+{
+  "name": "homer",
+  "gender": "male"
+}
+
+{
+  "name": "marge",
+  "gender": "female"
+}
+
+{
+  "name": "lisa",
+  "gender": "female"
+}
+
+{
+  "name": "bart",
+  "gender": "male"
+}
+
+{
+  "name": "maggie",
+  "gender": "female"
+}

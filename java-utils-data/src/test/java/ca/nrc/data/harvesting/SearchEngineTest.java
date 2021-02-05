@@ -6,6 +6,7 @@ import ca.nrc.data.harvesting.SearchEngine.SearchEngineException;
 import ca.nrc.json.PrettyPrinter;
 import ca.nrc.testing.AssertHelpers;
 import ca.nrc.testing.AssertNumber;
+import org.apache.commons.lang3.tuple.Pair;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -253,11 +254,23 @@ public abstract class SearchEngineTest {
 		// So for this test, activate the post-processing language filter
 		//
 		SearchEngine engine = makeSearchEngine().setCheckHitLanguage(true);
-		
-		// Search for the word 'nunavut'
-		SearchEngine.Query query = new SearchEngine.Query("ᓄᓇᕗ");
-		List<SearchEngine.Hit> results = engine.search(query).retrievedHits; 
-		assertResultsFitTheQuery(results, query, 3);
+
+		Pair<String,Integer>[] wordCases = new Pair[] {
+			Pair.of("ᓄᓇᕗ",3) // nunavut
+//			Pair.of("ᐃᓂᓕᐅᕆᓂᕐᒥᒃ",10)
+		};
+
+		for (Pair<String,Integer> wordCase: wordCases) {
+			String word = wordCase.getLeft();
+			Integer maxNoFit = wordCase.getRight();
+			SearchEngine.Query query =
+				new SearchEngine.Query(word)
+				.setLang("iu")
+				;
+			List<SearchEngine.Hit> results = engine.search(query).retrievedHits;
+			assertResultsFitTheQuery(results, query, maxNoFit);
+
+		}
 	}
 	
 	/*************************
@@ -274,7 +287,8 @@ public abstract class SearchEngineTest {
 	}
 	
 	public static void assertResultsFitTheQuery(List<SearchEngine.Hit> results, SearchEngine.Query query, int maxNoFit) throws PageHarvesterException {
-		
+
+
 		Map<Hit, String> hitValidity = new HashMap<Hit,String>();
 		for (SearchEngine.Hit hit: results) {
 			hitValidity.put(hit, "OK");
@@ -284,6 +298,11 @@ public abstract class SearchEngineTest {
 		// Checking max number of hits
 		int expNumHits = query.maxHits;
 		int gotNumHits = results.size();
+
+		AssertNumber.isGreaterOrEqualTo(
+			"Query should have produced at least one hit.",
+			gotNumHits, 1);
+
 		
 		AssertNumber.isLessOrEqualTo("Too many results were produced", 
 				new Long(gotNumHits), new Long(expNumHits));

@@ -44,6 +44,24 @@ public class Http {
 		return client;
 	}
 
+	public static HttpResponse doRequest(Method method, URL url, String jsonBody)
+		throws HttpException {
+
+		HttpResponse resp = null;
+		if (method == Method.DELETE) {
+			resp = delete(url);
+		} else if (method == Method.GET) {
+			resp = get(url);
+		} else if (method == Method.HEAD) {
+			resp = head(url);
+		} else if (method == Method.POST) {
+			resp = post(url, jsonBody);
+		} else if (method == Method.PUT) {
+			resp = put(url, jsonBody);
+		}
+		return resp;
+	}
+
 	public static Object post(String url, Map<String,Object> json, ResponseType respType) throws IOException {
 		String jsonStr = new ObjectMapper().writeValueAsString(json);
 		Object jsonResp = post(url, jsonStr, respType);

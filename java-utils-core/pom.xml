@@ -71,13 +71,13 @@
 	</repositories>
 
 	<dependencies>	
-	
+
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
 			<version>1.2.14</version>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
@@ -129,9 +129,7 @@
 		    <groupId>com.squareup.okhttp3</groupId>
 		    <artifactId>okhttp</artifactId>
 		    <version>3.4.1</version>
-		</dependency>		
-		
-		
-						
+		</dependency>
+
 	</dependencies>
 </project>

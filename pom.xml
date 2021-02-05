@@ -17,7 +17,7 @@
 	 	<module>java-utils-ui</module>
 	 	<module>java-utils-elasticsearch</module>
 	 	<module>java-utils-string</module>
-        <module>java-utils-json</module>
+<!--        <module>java-utils-json</module> -->
     </modules>
 
 	<properties>

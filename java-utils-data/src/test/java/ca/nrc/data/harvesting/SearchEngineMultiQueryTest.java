@@ -2,6 +2,7 @@ package ca.nrc.data.harvesting;
 
 import ca.nrc.data.harvesting.SearchEngine.Query;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class SearchEngineMultiQueryTest {
@@ -85,7 +86,7 @@ public class SearchEngineMultiQueryTest {
 		SearchEngineTest.assertSufficientHitsFound(Math.round(100), results);
 	}
 	
-	@Test
+	@Test @Ignore
 	public void test__search__TermThatProduceLessThanMaxHits() throws Exception {
 		String [] terms = new String[] {"ᐅᖃᖅᑐᖅ"};
 		Query query = new Query(terms).setMaxHits(50).setLang("iu");

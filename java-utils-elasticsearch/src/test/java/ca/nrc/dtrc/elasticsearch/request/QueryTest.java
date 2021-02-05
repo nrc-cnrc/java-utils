@@ -20,5 +20,4 @@ public class QueryTest {
 		new AssertRequestBodyElement(query)
 			.jsonEquals(expJson);
 	}
-
 }

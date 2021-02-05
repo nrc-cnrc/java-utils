@@ -27,5 +27,9 @@ public class HttpTest {
 		resp = Http.put(url, jsonBody);
 		resp = Http.delete(url);
 
+		// You can also invoke the various methods using the doRequest() method
+		//
+		resp = Http.doRequest(Http.Method.POST, url, jsonBody);
+
 	}
 }
