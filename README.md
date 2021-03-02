@@ -1,7 +1,7 @@
 # The java-utils project
 
 ## Description
-
+  
 _java-utils_ is a collection of java utility classes used in various project at 
 the National Research Council of Canada.
 
