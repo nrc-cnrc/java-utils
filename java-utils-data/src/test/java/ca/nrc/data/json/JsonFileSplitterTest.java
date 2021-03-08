@@ -2,14 +2,15 @@ package ca.nrc.data.json;
 
 import ca.nrc.file.ResourceGetter;
 import ca.nrc.testing.TestDirs;
-import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+@Disabled
 public class JsonFileSplitterTest {
 
 	TestDirs testDirs = null;
@@ -54,7 +55,7 @@ public class JsonFileSplitterTest {
 	// VERIFICATION TESTS
 	/////////////////////////
 
-	@Test @Ignore
+	@Test
 	public void test__split__HappyPath() throws Exception {
 		JsonFileSplitter splitter = new JsonFileSplitter(jsonFile);
 		AssertJsonFileSplitter asserter = new AssertJsonFileSplitter(splitter);
