@@ -143,11 +143,13 @@ public class TestDirs {
 		// Note: This method is 'synchronized' in case we run tests in parallel.
 		// The method requires access to a static member 'clearedDirs'.
 		//
-		final File[] files = dir.toFile().listFiles();
-		for (File aFile: files) {
-			aFile.delete();
+		if (!clearedDirs.contains(dir)) {
+			final File[] files = dir.toFile().listFiles();
+			for (File aFile : files) {
+				aFile.delete();
+			}
+			clearedDirs.add(dir);
 		}
-		clearedDirs.add(dir);
 	}
 
 	private Path targetDir() {
