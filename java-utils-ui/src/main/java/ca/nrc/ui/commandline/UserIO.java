@@ -105,7 +105,6 @@ public class UserIO {
 		if (verbosityLevelIsMet(messageLevel)) {
 			String indentPadding = indentation.get(currentIndentation);
 
-//			tLogger.trace("** currentIndentation="+currentIndentation+", indentPadding='"+indentPadding+"'");
 			message = message.replaceAll("\n", "\n"+indentPadding);
 			
 			message = indentPadding + message;
