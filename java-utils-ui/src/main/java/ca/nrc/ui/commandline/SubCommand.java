@@ -174,17 +174,17 @@ public abstract class SubCommand {
 		getUserIO().echo(message, level);
 	}
 	
-	public  void echo(String message, int indentLevelChange) {
-		getUserIO().echo(message, indentLevelChange);
-	}
-
-	public void echo(String message, int indentLevelChange, UserIO.Verbosity level) {
-		getUserIO().echo(message, indentLevelChange, level);
-	}
-	
-	public void echo(String message, int indentLevelChange, UserIO.Verbosity level, Boolean newline) {
-		getUserIO().echo(message, indentLevelChange, level, newline);
-	}
+//	public  void echo(String message, int indentLevelChange) {
+//		getUserIO().echo(message, indentLevelChange);
+//	}
+//
+//	public void echo(String message, int indentLevelChange, UserIO.Verbosity level) {
+//		getUserIO().echo(message, indentLevelChange, level);
+//	}
+//
+//	public void echo(String message, int indentLevelChange, UserIO.Verbosity level, Boolean newline) {
+//		getUserIO().echo(message, indentLevelChange, level, newline);
+//	}
 	
 	protected boolean verbosityLevelIsMet(UserIO.Verbosity minLevel) {
 		return getUserIO().verbosityLevelIsMet(minLevel);

@@ -1,5 +1,7 @@
 package ca.nrc.ui.commandline;
 
+import org.apache.log4j.Logger;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -22,20 +24,26 @@ public class UserIO {
 		Levelnull, Level0, Level1, Level2, Level3, Level4, Level5,
 		LevelMax
 	};
+
+	// By default, only printe messages whose level is lower than Level1
 	protected Verbosity verbosity = Verbosity.Level1;
 	
 	
-	public UserIO() { initialize(Verbosity.Levelnull); }
+	public UserIO() {
+		initialize(null);
+	}
 	
 	
-	public UserIO(Verbosity _verbosity) { initialize(_verbosity); }
+	public UserIO(Verbosity _verbosity) {
+		initialize(_verbosity);
+	}
 
 	public void initialize(Verbosity _verbosity) {
-		if (_verbosity == null) _verbosity = Verbosity.Levelnull;
-		this.verbosity = _verbosity;
+		if (_verbosity != null) {
+			this.verbosity = _verbosity;
+		}
 	}
-			
-	
+
 	private static int currentIndentation = 0;
 	public static final Map<Integer,String> indentation = new HashMap<Integer,String>();
 	{
@@ -49,8 +57,7 @@ public class UserIO {
 		indentation.put(7, "                ");		
 		indentation.put(8, "                  ");
 		indentation.put(9, "                    ");		
-		indentation.put(10, "                      ");		
-		
+		indentation.put(10, "                      ");
 	}	
 
 	public void echo() {
@@ -58,65 +65,72 @@ public class UserIO {
 	}
 
 	public void echo(int indentLevelChange) {
-		if (indentLevelChange > 0) currentIndentation += 2;
-		if (currentIndentation > 10) currentIndentation = 10;
-		if (indentLevelChange < 0) currentIndentation -= 2;
-		if (currentIndentation < 0) currentIndentation = 0;
+		if (indentLevelChange > 0) currentIndentation++;
+		if (indentLevelChange < 0) currentIndentation--;
+		if (currentIndentation < 0) {
+			currentIndentation = 0;
+		}
+		if (currentIndentation > 5) {
+			currentIndentation = 5;
+		}
 	}
 	
-	public void echo(String message, boolean newline) {
-		echo(message, 0, Verbosity.Level0, newline);
+	public void echo(String message, Boolean newline) {
+		echo(message, (Verbosity)null, newline);
 	}
 	
-	public void echo(String message, Verbosity level, boolean newline) {
-		echo(message, 0, level, newline);
-	}
+//	public void echo(String message, Verbosity level, Boolean newline) {
+//		echo(message, 0, level, newline);
+//	}
 
 	
 	public void echo(String message) {
-		echo(message, 0, Verbosity.Level0);
+		echo(message, Verbosity.Level0, (Boolean)null);
 	}
 	
 	public void echo(String message, Verbosity level) {
-		echo(message, 0, level);
-	}
-	
-	public void echo(String message, int indentLevelChange) {
-		echo(message, indentLevelChange, Verbosity.Level0);
+		echo(message, level, (Boolean)null);
 	}
 
-	public void echo(String message, int indentLevelChange, Verbosity level) {
-		echo(message, indentLevelChange, level, null);
-	}
-	
-	public void echo(String message, int indentLevelChange, Verbosity level, Boolean newline) {
+	public void echo(String message, Verbosity messageLevel,
+		Boolean newline) {
+
+		Logger tLogger = Logger.getLogger("ca.nrc.ui.commandline.UserIO.echo");
+
+		if (messageLevel == null) {
+			messageLevel = Verbosity.Level0;
+		}
+
 		if (newline == null) newline = true;
-		if (verbosityLevelIsMet(level)) {
-			
+		if (verbosityLevelIsMet(messageLevel)) {
 			String indentPadding = indentation.get(currentIndentation);
-		
-			if (indentLevelChange > 0) currentIndentation += 1;
-			if (currentIndentation > 10) currentIndentation = 10;
-			
+
+//			tLogger.trace("** currentIndentation="+currentIndentation+", indentPadding='"+indentPadding+"'");
 			message = message.replaceAll("\n", "\n"+indentPadding);
 			
 			message = indentPadding + message;
+			tLogger.trace("Printing the message");
 			System.out.print(message);
 			
 			if (newline) {
 				System.out.println();
-				if (indentLevelChange < 0) currentIndentation -= 1;
-				if (currentIndentation < 0) currentIndentation = 0;
 			}
-	
 		}
 	}
 	
-	public boolean verbosityLevelIsMet(Verbosity minLevel) {
+	public boolean verbosityLevelIsMet(Verbosity messageLevel) {
+		Logger tLogger =
+			Logger.getLogger("ca.nrc.ui.commandline.UserIO.verbosityLevelIsMet");
+		tLogger.trace("messageLevel="+messageLevel+", verbosity="+verbosity);
 		boolean answer = false;
-		Integer minLevelInt = verbosityToInt(minLevel);
+		Integer messageLevelInt = verbosityToInt(messageLevel);
 		Integer verbosityInt = verbosityToInt(verbosity);
-		if (verbosityInt != null && minLevelInt != null && verbosityInt >= minLevelInt) answer = true;
+		if (verbosityInt != null &&
+			messageLevelInt != null &&
+			verbosityInt >= messageLevelInt) {
+			answer = true;
+		}
+		tLogger.trace("returning answer="+answer);
 		return answer;
 	}
 
@@ -143,11 +157,13 @@ public class UserIO {
 	
 	
 	public static Verbosity verbosityLevel(Integer levelNum) {
-		Verbosity level = Verbosity.Level0;
-		if (levelNum > 5) levelNum = 5;
-		if (levelNum < 0) levelNum = 0;
-		String levelStr = "Level"+levelNum;
-		level = Verbosity.valueOf(levelStr);
+		Verbosity level = null;
+		if (levelNum != null) {
+			if (levelNum > 5) levelNum = 5;
+			if (levelNum < 0) levelNum = 0;
+			String levelStr = "Level" + levelNum;
+			level = Verbosity.valueOf(levelStr);
+		}
 		return level;
 	}
 	
@@ -162,9 +178,12 @@ public class UserIO {
 	}
 	
 	public Boolean prompt_yes_or_no(String mess) {
+		Logger tLogger = Logger.getLogger("ca.nrc.ui.commandline.UserIO.prompt_yes_or_no");
+		tLogger.trace("invoked with mess="+mess);
 		Pattern patt = Pattern.compile("^\\s*([yn])");
 		boolean answer = false;
 		while (true) {
+			tLogger.trace("echoing the prompt");
 			echo("\n"+mess+" (y/n)\n> ", Verbosity.Level0, false);
 			Scanner input = new Scanner(System.in);
 			String yn = input.nextLine();
