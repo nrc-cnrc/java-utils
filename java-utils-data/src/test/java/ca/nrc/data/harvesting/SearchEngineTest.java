@@ -246,33 +246,7 @@ public abstract class SearchEngineTest {
 		AssertHelpers.assertDeepNotEqual("First page of hits should have been different from the second one.", gotPage1, gotPage2);
 	}
 
-	@Test(timeout=10000)
-	public void test__search__InuktutLanguage() throws Exception {
-		// Most search engines (well, at least Bing) tend to return 
-		// non-Inuktut pages, even when you ask specifically for that language
-		//
-		// So for this test, activate the post-processing language filter
-		//
-		SearchEngine engine = makeSearchEngine().setCheckHitLanguage(true);
 
-		Pair<String,Integer>[] wordCases = new Pair[] {
-			Pair.of("ᓄᓇᕗ",3) // nunavut
-//			Pair.of("ᐃᓂᓕᐅᕆᓂᕐᒥᒃ",10)
-		};
-
-		for (Pair<String,Integer> wordCase: wordCases) {
-			String word = wordCase.getLeft();
-			Integer maxNoFit = wordCase.getRight();
-			SearchEngine.Query query =
-				new SearchEngine.Query(word)
-				.setLang("iu")
-				;
-			List<SearchEngine.Hit> results = engine.search(query).retrievedHits;
-			assertResultsFitTheQuery(results, query, maxNoFit);
-
-		}
-	}
-	
 	/*************************
 	 * TEST HELPER METHODS
 	 * @throws PageHarvesterException 

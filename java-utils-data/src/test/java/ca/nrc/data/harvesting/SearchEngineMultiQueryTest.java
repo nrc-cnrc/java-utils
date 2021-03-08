@@ -55,37 +55,7 @@ public class SearchEngineMultiQueryTest {
 		SearchEngineTest.assertNumberHitsOK(results, expMinRetrieved, expMaxRetrieved, 
 				expMinTotalEstimate, expMaxTotalEstimate);
 	}
-	
-	@Test
-	public void test__search__InuktitutWords() throws Exception {
-		//
-		// Inkutut is one language where we have a lot of problems when
-		// ORing a bunch of words.
-		//
-		// So we make sure to test that it works with the MultiQuery 
-		// engine
-		//
-		String [] terms = new String[] {
-				"ᓄᓇᕗ", "ᓄᓇᕗᒻᒥ", "ᓄᓇᕘᒥ", "ᓄᓇᕘᑉ", "ᓄᓇᕗᒻᒥᐅᑦ", "ᓄᓇᕗᑦ"};
-		Query query = new Query(terms).setMaxHits(50).setLang("iu");
-		SearchResults results = 
-				new SearchEngineMultiQuery(bingTestKey)
-					.setCheckHitSummary(true)
-					.search(query);
-		
-		int maxBadHits = 4;
-		SearchEngineTest.assertResultsFitTheQuery(results, query, maxBadHits);
-		
-		Long expMinRetrieved = new Long(50);
-		Long expMaxRetrieved = new Long(50);
-		Long expMinTotalEstimate = new Long(1000);
-		Long expMaxTotalEstimate = null;		
-		SearchEngineTest.assertNumberHitsOK(results, expMinRetrieved, expMaxRetrieved, 
-				expMinTotalEstimate, expMaxTotalEstimate);
-		
-		SearchEngineTest.assertSufficientHitsFound(Math.round(100), results);
-	}
-	
+
 	@Test @Ignore
 	public void test__search__TermThatProduceLessThanMaxHits() throws Exception {
 		String [] terms = new String[] {"ᐅᖃᖅᑐᖅ"};
