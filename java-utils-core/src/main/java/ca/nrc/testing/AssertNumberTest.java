@@ -16,10 +16,14 @@ public class AssertNumberTest {
 		//
 		AssertNumber.isGreaterOrEqualTo(2, 1);
 		AssertNumber.isLessOrEqualTo(1.0, 2.0);
+		AssertNumber.differsFrom(2, 2);
 
 		// You can mix different types of numbers...
 		AssertNumber.isGreaterOrEqualTo(2.0, new Long(1));
 		AssertNumber.isLessOrEqualTo(1.0, new Long(2));
+		AssertNumber.differsFrom(2.0, new Long(2));
+
+		// You can
 
 		// When a number corresponds to a particular performance metric, you can
 		// compare it to a baseline value and check that it hasn't changed

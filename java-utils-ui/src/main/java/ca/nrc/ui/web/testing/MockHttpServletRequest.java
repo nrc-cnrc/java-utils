@@ -30,7 +30,8 @@ public class MockHttpServletRequest implements HttpServletRequest {
 
 	private Map<String,List<Object>> attributes = new HashMap<String,List<Object>>();
 	private Map<String,List<String>> parameters = new HashMap<String,List<String>>();
- 	
+	private String uri;
+
 	@Override
 	public void setAttribute(String name, Object value) {
 		List<Object> valuesList = this.attributes.get(name);
@@ -317,9 +318,14 @@ public class MockHttpServletRequest implements HttpServletRequest {
 
 	@Override
 	public String getRequestURI() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.uri;
 	}
+
+	public MockHttpServletRequest setURI(String _uri) {
+		this.uri = _uri;
+		return this;
+	}
+	
 
 	@Override
 	public StringBuffer getRequestURL() {
