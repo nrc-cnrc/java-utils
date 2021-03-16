@@ -25,6 +25,25 @@ public class AssertNumber {
 		mess+"\nNumber was larger than expected.\n   Got : "+gotNum+"\n   Expected at most: "+maxNum);
 	}
 
+		public static void differsFrom(Number num, Number otherNum) {
+		isGreaterOrEqualTo("", num, otherNum);
+	}
+
+	public static void differsFrom(String mess, Number num, Number otherNum) {
+		Boolean differ = null;
+		if (num == null && otherNum != null ||
+			num != null & otherNum == null) {
+			differ = true;
+		}
+		if (differ == null) {
+			differ = (num.floatValue() != otherNum.floatValue());
+		}
+
+		Assertions.assertTrue(differ,
+		mess+"\nThe two numbers should have differed, but the were both equal to "+num);
+	}
+
+
 	public static void performanceHasNotChanged(String ofWhat,
 		  Double gotPerf, Double oldPerf, Double tolerance) {
 		performanceHasNotChanged(
@@ -111,7 +130,7 @@ public class AssertNumber {
 			} else {
 				changeType = PerfChange.IMPROVED;
 			}
-		} else {
+		} else if (delta > 0) {
 			if (highIsGood) {
 				changeType = PerfChange.IMPROVED;
 			} else {
