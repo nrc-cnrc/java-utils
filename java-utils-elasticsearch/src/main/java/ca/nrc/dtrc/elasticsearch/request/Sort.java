@@ -5,6 +5,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Sort extends RequestBodyElement {
@@ -21,6 +22,15 @@ public class Sort extends RequestBodyElement {
     public Sort(List<Pair<String,Order>> _criteria) {
         super();
         criteria = _criteria;
+    }
+
+    public Sort(Pair<String,Order>... _critArray) {
+        super();
+        List<Pair<String,Order>> critList =
+            new ArrayList<Pair<String, Order>>();
+        if (_critArray != null) {
+            Collections.addAll(criteria, _critArray);
+        }
     }
 
     public Sort sortBy(String fldName, Order order) {
