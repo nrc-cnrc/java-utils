@@ -6,6 +6,7 @@ import ca.nrc.dtrc.elasticsearch.request.Query;
 import ca.nrc.dtrc.elasticsearch.request.Sort;
 import ca.nrc.file.ResourceGetter;
 import ca.nrc.introspection.Introspection;
+import ca.nrc.testing.AssertFile;
 import ca.nrc.testing.AssertHelpers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONObject;
@@ -17,6 +18,9 @@ import org.junit.Test;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.FileAttribute;
 import java.util.*;
 
 import static org.junit.Assert.assertTrue;
@@ -494,7 +498,32 @@ public class StreamlinedClientTest {
 		String query = "denmark AND rotten";
 		SearchResults<ESTestHelpers.PlayLine> gotSearchResults = client.search(query, new PlayLine());
 		assertIsInFirstNHits("Something is rotten in the state of Denmark.", 3, "longDescription", gotSearchResults);
-	}		
+	}
+
+	@Test
+	public void test__searchFreeform__NullOrEmptyQuery__ReturnsAllDocuments() throws Exception {
+		ESTestHelpers.PlayLine line = new ESTestHelpers.PlayLine("hello world");
+		Introspection.getFieldValue(line, "longDescription", true);
+
+		StreamlinedClient client = ESTestHelpers.makeHamletTestClient();
+		Thread.sleep(1*1000);
+
+		int expTotalHits = 4012;
+
+		String query = null;
+		SearchResults<ESTestHelpers.PlayLine> gotSearchResults =
+			client.search(query, new PlayLine());
+		new AssertSearchResults(gotSearchResults,
+			"Null query should have returned all docs")
+			.totalHitsEquals(expTotalHits);
+
+		query = "  ";
+		gotSearchResults =
+			client.search(query, new PlayLine());
+		new AssertSearchResults(gotSearchResults,
+			"EMPTY query should have returned all docs")
+			.totalHitsEquals(expTotalHits);
+	}
 
 	@Test
 	public void test__searchFreeform__QuotedExpressions() throws Exception {
@@ -1098,7 +1127,62 @@ public class StreamlinedClientTest {
 		Assert.assertTrue(
 			"Index "+indexName+" SHOULD have existed after we added a document to it.",
 			client.indexExists());
+	}
 
+	@Test
+	public void test__dumpToFile__DumpAll() throws Exception {
+		StreamlinedClient esClient = ESTestHelpers.makeHamletTestClient();
+		File gotFile =
+			Files.createTempFile("test", "json", new FileAttribute[0])
+			.toFile();
+		esClient.dumpToFile(gotFile, PlayLine.class);
+		AssertFile.assertFileContains(
+			"Dumped index was missing the first document",
+			gotFile, "{\"longDescription\":\"Bernardo?\",\"additionalFields\":{\"line_id\":32439,\"play_name\":\"Hamlet\",\"speech_number\":4,\"line_number\":\"1.1.4\",\"speaker\":\"FRANCISCO\"},\"_detect_language\":true,\"id\":\"1.1.4\",\"shortDescription\":null,\"lang\":\"en\",\"creationDate\":null,\"content\":\"Bernardo?\"}", true, false);
+		AssertFile.assertFileContains(
+			"Dumped index was missing the last document",
+			gotFile, "{\"longDescription\":\"A dead march. Exeunt, bearing off the dead bodies; after which a peal of ordnance is shot off\",\"additionalFields\":{\"line_id\":36676,\"play_name\":\"Hamlet\",\"speech_number\":147,\"line_number\":\"5.2.424\",\"speaker\":\"PRINCE FORTINBRAS\"},\"_detect_language\":true,\"id\":\"5.2.424\",\"shortDescription\":null,\"lang\":\"en\",\"creationDate\":null,\"content\":\"A dead march. Exeunt, bearing off the dead bodies; after which a peal of ordnance is shot off\"}", true, false);
+	}
+
+	@Test
+	public void test__dumpToFile__DumpMatchingDocs() throws Exception {
+		StreamlinedClient esClient = ESTestHelpers.makeHamletTestClient();
+		File gotFile =
+			Files.createTempFile("test", "json", new FileAttribute[0])
+			.toFile();
+		String query = "additionalFields.speaker:FRANCISCO";
+		esClient.dumpToFile(gotFile, PlayLine.class, PlayLine.class.getName(),
+			query, (Set)null);
+
+		AssertFile.assertFileDoesNotContain(
+			"Dumped index should only have contained lines spoken by FRANCISCO",
+			gotFile.getPath(),
+			"{\"longDescription\":\"Friends to this ground.\",\"additionalFields\":{\"line_id\":32452,\"play_name\":\"Hamlet\",\"speech_number\":13,\"line_number\":\"1.1.16\",\"speaker\":\"HORATIO\"},\"_detect_language\":true,\"id\":\"1.1.16\",\"shortDescription\":null,\"lang\":\"en\",\"creationDate\":null,\"content\":\"Friends to this ground.\"}",
+			false);
+		AssertFile.assertFileContains(
+			"Dumped index was missing a line spoken by FRANCISCO",
+			gotFile, "{\"longDescription\":\"Give you good night.\",\"additionalFields\":{\"line_id\":32454,\"play_name\":\"Hamlet\",\"speech_number\":15,\"line_number\":\"1.1.18\",\"speaker\":\"FRANCISCO\"},\"_detect_language\":true,\"id\":\"1.1.18\",\"shortDescription\":null,\"lang\":\"en\",\"creationDate\":null,\"content\":\"Give you good night.\"}\n", true, false);
+	}
+
+	@Test
+	public void test__dumpToFile__NullQuery() throws Exception {
+		StreamlinedClient esClient = ESTestHelpers.makeHamletTestClient();
+		File gotFile =
+			Files.createTempFile("test", "json", new FileAttribute[0])
+			.toFile();
+		String nullQuery = null;
+		esClient.dumpToFile(gotFile, PlayLine.class, PlayLine.class.getName(),
+			nullQuery, (Set)null);
+
+		AssertFile.assertFileContains(
+			"Dumped index is missing the first line of the play",
+			gotFile,
+			"{\"longDescription\":\"Friends to this ground.\",\"additionalFields\":{\"line_id\":32452,\"play_name\":\"Hamlet\",\"speech_number\":13,\"line_number\":\"1.1.16\",\"speaker\":\"HORATIO\"},\"_detect_language\":true,\"id\":\"1.1.16\",\"shortDescription\":null,\"lang\":\"en\",\"creationDate\":null,\"content\":\"Friends to this ground.\"}",
+			true, false);
+		AssertFile.assertFileContains(
+			"Dumped index is missing the last line of the play",
+			gotFile, "{\"longDescription\":\"Give you good night.\",\"additionalFields\":{\"line_id\":32454,\"play_name\":\"Hamlet\",\"speech_number\":15,\"line_number\":\"1.1.18\",\"speaker\":\"FRANCISCO\"},\"_detect_language\":true,\"id\":\"1.1.18\",\"shortDescription\":null,\"lang\":\"en\",\"creationDate\":null,\"content\":\"Give you good night.\"}\n",
+			true, false);
 	}
 
 	/*************************

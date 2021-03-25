@@ -621,12 +621,21 @@ public class StreamlinedClient {
 
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.searchFreeform");
 
-		Query queryBody = new Query(
-			new JSONObject()
-				.put("query_string", new JSONObject()
+		Query queryBody = null;
+
+		if (freeformQuery != null && !freeformQuery.matches("^\\s*$")) {
+			queryBody = new Query(
+				new JSONObject()
+					.put("query_string", new JSONObject()
 					.put("query", freeformQuery)
-				)
-		);
+				));
+		} else {
+			queryBody = new Query(
+				new JSONObject()
+					.put("exists", new JSONObject()
+					.put("field", "id")
+				));
+		}
 
 		SearchResults<T> hits = search(queryBody, docTypeName, docPrototype,
 		additionalSearchSpecs);

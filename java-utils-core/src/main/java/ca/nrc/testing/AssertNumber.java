@@ -1,6 +1,7 @@
 package ca.nrc.testing;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.junit.Assert;
 import org.junit.jupiter.api.*;
 
 public class AssertNumber {
@@ -150,6 +151,10 @@ public class AssertNumber {
 				"One number was null but not the other\n"+
 				"  Exp : "+exp+"\n"+
 				"  Got : "+got);
+		} else {
+			Double expDouble = exp.doubleValue();
+			Double gotDouble = got.doubleValue();
+			Assert.assertEquals(mess, expDouble, gotDouble, tolerance);
 		}
 	}
 }
