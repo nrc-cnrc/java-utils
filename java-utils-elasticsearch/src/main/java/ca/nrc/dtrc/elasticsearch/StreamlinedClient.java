@@ -26,6 +26,7 @@ import okhttp3.Request.Builder;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.*;
@@ -932,79 +933,72 @@ public class StreamlinedClient {
 		return results;
 	}
 
-	protected String moreLikeThisJsonBody(String type, Map<String, Object> queryDoc) throws ElasticSearchException {
+	protected String moreLikeThisJsonBody(
+		String type, Map<String, Object> queryDoc) throws ElasticSearchException {
 		ObjectMapper mapper = new ObjectMapper();
-		JsonNodeFactory nodeFactory = JsonNodeFactory.instance;
 
-		ObjectNode root = nodeFactory.objectNode();
-		try {
-			ObjectNode query = nodeFactory.objectNode();
-			root.set("query", query);
-			{
-				ObjectNode mlt = nodeFactory.objectNode();
-				query.set("more_like_this", mlt);
-				{
-					mlt.put("min_term_freq", 1);
-					mlt.put("min_doc_freq", 1);
-					mlt.put("max_query_terms", 12);
-
-					ArrayNode fields = nodeFactory.arrayNode();
-					mlt.set("fields", fields);
-
-					ObjectNode like = nodeFactory.objectNode();
-					mlt.set("like", like);
-					{
-						like.put("_index", indexName);
-						like.put("_type", type);
-						ObjectNode doc = nodeFactory.objectNode();
-						like.set("doc", doc);
-						{
-							for (String fieldName : queryDoc.keySet()) {
-								// Ignore all but the 'text' fields
-								String fieldType = getFieldType(fieldName, type);
-								if (fieldType != null && fieldType.equals("text")) {
-									fields.add(fieldName);
-									Object fieldValue = queryDoc.get(fieldName);
-									String json = mapper.writeValueAsString(fieldValue);
-									JsonNode jsonNode = mapper.readTree(json);
-									doc.set(fieldName, jsonNode);
-								}
-							}
-						}
-					}
+		// First, generate the list of searchable fields
+		Set<String> searchableFields = new HashSet<String>();
+		{
+			for (String fieldName : queryDoc.keySet()) {
+				// Ignore all but the 'text' fields
+				String fieldType = getFieldType(fieldName, type);
+				if (fieldType != null && fieldType.equals("text")) {
+					searchableFields.add(fieldName);
 				}
 			}
-			//Snippets
-			ObjectNode highlight = nodeFactory.objectNode();
-			root.set("highlight", highlight);
-			{
-				highlight.put("order", "score");
-
-				ObjectNode fields = nodeFactory.objectNode();
-				highlight.set("fields", fields);
-				{
-					ObjectNode description = nodeFactory.objectNode();
-					fields.set("longDescription", description);
-					{
-						description.put("type", "plain");
-					}
-
-					ObjectNode shortDesc = nodeFactory.objectNode();
-					fields.set("shortDescription", shortDesc);
-					{
-						shortDesc.put("type", "plain");
-					}
-				}
-			}
-
-		} catch (Exception exc) {
-			throw new ElasticSearchException(exc);
 		}
 
-		String jsonBody = root.toString();
+		// Create a JSON representation of the searchable fields
+		JSONArray jsonSearchableFields = new JSONArray();
+		List<String> sortedSearchableFields = new ArrayList<String>(searchableFields);
+		Collections.sort(sortedSearchableFields);
+		for (String fieldName: sortedSearchableFields) {
+			jsonSearchableFields.put(jsonSearchableFields.length(), fieldName);
+		}
+
+		// Create a JSON representation of the query document (searchable fields
+		// only)
+		JSONObject jsonQueryDoc = new JSONObject();
+		for (String fieldName : searchableFields) {
+			Object fieldValue = queryDoc.get(fieldName);
+			jsonQueryDoc.put(fieldName, fieldValue);
+		}
+
+		queryDoc.keySet();
+		JSONObject root2 = new JSONObject()
+			.put("query", new JSONObject()
+				.put("more_like_this", new JSONObject()
+					.put("min_term_freq", 1)
+					.put("min_doc_freq", 1)
+					.put("max_query_terms", 12)
+					.put("fields", jsonSearchableFields)
+					.put("like", new JSONObject()
+						.put("_index", indexName)
+						.put("_type", type)
+						.put("doc", jsonQueryDoc)
+					)
+				)
+			)
+			.put("highlight", new JSONObject()
+				.put("fields", new JSONObject()
+					.put("content", new JSONObject()
+						.put("type", "plain")
+					)
+					.put("shortDescription", new JSONObject()
+						.put("type", "plain")
+					)
+				)
+				.put("order", "score")
+			)
+		;
+
+
+		String jsonBody = root2.toString();
 
 		return jsonBody;
 	}
+
 
 	public <T extends Document> SearchResults<T> moreLikeThese(List<T> queryDocs) throws ElasticSearchException, IOException, InterruptedException {
 		return moreLikeThese(queryDocs, null, null);

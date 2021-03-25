@@ -8,7 +8,9 @@ import ca.nrc.file.ResourceGetter;
 import ca.nrc.introspection.Introspection;
 import ca.nrc.testing.AssertFile;
 import ca.nrc.testing.AssertHelpers;
+import ca.nrc.testing.AssertJson;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
@@ -650,8 +652,7 @@ public class StreamlinedClientTest {
 	@Test
 	public void test__moreLikeThisJsonBody__HappyPath() throws Exception {
 		StreamlinedClient client = ESTestHelpers.makeEmptyTestClient();
-		
-		
+
 		Person homer = new Person("homer", "simpson");
 		
 		// Note: We need to put this document into the empty test index
@@ -661,10 +662,12 @@ public class StreamlinedClientTest {
 		client.putDocument(homer);
 		
 		Map<String, Object> homerMap = new ObjectMapper().convertValue(homer, Map.class);
+//		String gotJson = client.moreLikeThisJsonBody(homer.getClass().getName(), homerMap);
 		String gotJson = client.moreLikeThisJsonBody(homer.getClass().getName(), homerMap);
-		String expJson = 
-				"{\"query\":{\"more_like_this\":{\"min_term_freq\":1,\"min_doc_freq\":1,\"max_query_terms\":12,\"fields\":[\"lang\",\"id\",\"firstName\",\"surname\"],\"like\":{\"_index\":\"es-test\",\"_type\":\"ca.nrc.dtrc.elasticsearch.StreamlinedClientTest$Person\",\"doc\":{\"lang\":\"en\",\"id\":\"homersimpson\",\"firstName\":\"homer\",\"surname\":\"simpson\"}}}},\"highlight\":{\"order\":\"score\",\"fields\":{\"longDescription\":{\"type\":\"plain\"},\"shortDescription\":{\"type\":\"plain\"}}}}";
-		AssertHelpers.assertStringEquals(expJson, gotJson);
+		String expJson =
+				"{\"query\":{\"more_like_this\":{\"max_query_terms\":12,\"min_doc_freq\":1,\"min_term_freq\":1,\"fields\":[\"firstName\",\"id\",\"lang\",\"surname\"],\"like\":{\"_index\":\"es-test\",\"_type\":\"ca.nrc.dtrc.elasticsearch.StreamlinedClientTest$Person\",\"doc\":{\"lang\":\"en\",\"id\":\"homersimpson\",\"firstName\":\"homer\",\"surname\":\"simpson\"}}}},\"highlight\":{\"order\":\"score\",\"fields\":{\"content\":{\"type\":\"plain\"},\"shortDescription\":{\"type\":\"plain\"}}}}";
+		AssertJson.assertJsonStringsAreEquivalent("", expJson, gotJson);
+
 	}
 	
 	@Test
