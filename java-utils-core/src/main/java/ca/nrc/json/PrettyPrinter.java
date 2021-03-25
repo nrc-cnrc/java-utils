@@ -436,6 +436,10 @@ public class PrettyPrinter {
 					if (!first) json = json + ",\n";
 					String aKeyStr = "null";
 					if (aKey != null) aKeyStr = aKey.toString();
+					if (fieldsToIgnore.contains(aKeyStr)) {
+						continue;
+					}
+
 					json = json + subIndentation + "\"" + aKeyStr + "\":\n";
 					json = json + prettyPrint(map.get(aKey), fieldsToIgnore, indentLevel+2);
 					first = false;
@@ -467,6 +471,9 @@ public class PrettyPrinter {
 		
 		boolean first = true;
 		for (T aKey: keysSorted) {
+			if (aKey != null && fieldsToIgnore.contains(aKey.toString())) {
+				continue;
+			}
 			if (!first) json = json + ",\n";
 			json = json + subIndentation + "\"" + aKey.toString() + "\":\n";
 			json = json + prettyPrint(map.get(aKey), fieldsToIgnore, indentLevel+2);

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import ca.nrc.testing.AssertString;
 import org.junit.jupiter.api.*;
 
 public class PrettyPrinterTest {
@@ -257,7 +258,7 @@ public class PrettyPrinterTest {
 	
 
 	@Test
-	public void test__print__Object__IgnoreSomeFields() {
+	public void test__print__ObjectOrMap__IgnoreSomeFields() {
 		class SomeClass {
 			public String someField;
 			public Integer someOtherField;
@@ -272,9 +273,19 @@ public class PrettyPrinterTest {
 			+ "    null\n"
 			+ "}"
 				;
-		
-		Assertions.assertEquals(expJson, gotJson);
-		
+		AssertString.assertStringEquals(
+			"OBJECT JSON string not as expected",
+			expJson, gotJson);
+
+		Map<String,Object> aMap = new HashMap<String,Object>();
+		aMap.put("someField", null);
+		aMap.put("someOtherField", null);
+
+		gotJson = PrettyPrinter.print(aMap, ignoreFields);
+		AssertString.assertStringEquals(
+			"MAP JSON string not as expected",
+			expJson, gotJson);
+
 	}
 
 	@Test
