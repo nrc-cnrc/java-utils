@@ -29,6 +29,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ca.nrc.datastructure.Pair;
 import ca.nrc.debug.ExceptionHelpers;
+import org.json.JSONObject;
 
 public class ObjectStreamReader implements Closeable {
 	
@@ -206,9 +207,13 @@ public class ObjectStreamReader implements Closeable {
 		if (objectJson == null || objectJson.matches("^\\s*$")) {
 			return null;
 		}
-		
+
 		try {
-			object = getMapper().readValue(objectJson, currentObjClass);
+			if (currentObjClass == JSONObject.class) {
+				object = new JSONObject(objectJson);
+			} else {
+				object = getMapper().readValue(objectJson, currentObjClass);
+			}
 		} catch (Exception exc) {
 			currentObjWasMalformed = true;
 			String mess = badJsonMess+"\nCould not map object to an instance of "+currentObjClass;

@@ -6,6 +6,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.StringReader;
 
+import ca.nrc.testing.AssertObject;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -225,7 +228,30 @@ public class ObjectStreamReaderTest {
 		String expJson = "{\"greetings\": \"yo man!\"}";
 		AssertHelpers.assertEqualsJsonCompare(expJson, obj);
 	}
-	
+
+	@Test
+	public void test__readObject__JSONObject() throws Exception {
+		StringReader strReader =
+				new StringReader(
+						  "bodyEndMarker=NEW_LINE"
+						+ "\n"
+						+ "class=org.json.JSONObject\n"
+						+ "\n"
+						+ "{\"arr\": [1,2,3]}\n"
+						+ "\n"
+						);
+		ObjectStreamReader reader = new ObjectStreamReader(strReader);
+
+		JSONObject gotObj = (JSONObject) reader.readObject();
+		JSONObject expObj = new JSONObject()
+			.put("arr", new JSONArray()
+				.put(1)
+				.put(2)
+				.put(3)
+			);
+		AssertObject.assertDeepEquals("", expObj, gotObj);
+	}
+
 	private void assertObjectHasClass(Object obj, Class type) {
 		if (obj == null) {
 			fail("Object was null. Should have been non-null instance of "+type);
