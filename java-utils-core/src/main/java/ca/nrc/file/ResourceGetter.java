@@ -149,6 +149,54 @@ public class ResourceGetter {
 		return tempDir;
 	}
 
+	public static File copyResourceToDir(String resDirRelPath, Path targDir) throws ResourceGetterException {
+		String resPath;
+		try {
+			resPath = getResourcePath(resDirRelPath);
+		} catch (IOException e1) {
+			throw new ResourceGetterException("Could not find resource with path '"+resDirRelPath+"'", e1);
+		}
+
+
+		if (!targDir.toFile().exists()) {
+			targDir.toFile().mkdirs();
+		}
+
+		File destFile = null;
+		if (isInJar(resPath)) {
+			destFile = copyJarResourceDir(resPath, targDir);
+		} else {
+			destFile = copyFileSystemResourceToDir(resPath, targDir);
+		}
+
+		return destFile;
+	}
+
+	private static File copyJarResourceDir(String resPath, Path targDir)
+		throws ResourceGetterException {
+		throw new ResourceGetterException("This method is not implemented yet.");
+	}
+
+	private static File copyFileSystemResourceToDir(String resPath, Path targDir)
+		throws ResourceGetterException {
+		File resFile = new File(resPath);
+		File destFile = new File(targDir.toFile(), resFile.getName());
+		try {
+			if (resFile.isDirectory()) {
+				FileUtils.copyDirectory(resFile, targDir.toFile());
+			} else {
+				FileUtils.copyFile(resFile, destFile);
+			}
+		} catch (IOException e) {
+			throw new ResourceGetterException(
+					"Could not copy '"+resPath+"' to directory '"+targDir.toString()+"'",
+					e);
+		}
+
+		return destFile;
+	}
+
+
 	public static void copyResourceFilesToDir(String resDirRelPath, Path targDir) throws ResourceGetterException {
 		String resPath;
 		try {
