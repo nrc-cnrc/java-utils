@@ -144,7 +144,9 @@ public class AssertNumber {
 
 	public static void assertEquals(String mess, Number exp, Number got, 
 			double tolerance) {
-		if (exp == null && got != null ||
+		if (exp == null && got == null) {
+			// Nothing to do. All is OK
+		} else if (exp == null && got != null ||
 				got == null && exp != null) {
 			Assertions.fail(
 				mess+"\n"+
