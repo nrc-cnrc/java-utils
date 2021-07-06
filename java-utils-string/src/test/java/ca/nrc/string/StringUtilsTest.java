@@ -58,6 +58,38 @@ public class StringUtilsTest {
 		String gotJoined = StringUtils.join(chars, "|");
 		String expJoined = "hello|world";
 		AssertString.assertStringEquals(expJoined, gotJoined);
+	}
 
+	@Test
+	public void test__removeBlankLines__HappyPath() {
+		String orig = "hello world\n\ngreetings universe";
+		String gotNoBlanks = StringUtils.removeBlankLines(orig);
+		AssertString.assertStringEquals(
+			"hello world\ngreetings universe", gotNoBlanks);
+
+		orig = "";
+		gotNoBlanks = StringUtils.removeBlankLines(orig);
+		AssertString.assertStringEquals(
+			"", gotNoBlanks);
+
+		orig = "hello world";
+		gotNoBlanks = StringUtils.removeBlankLines(orig);
+		AssertString.assertStringEquals(
+			"hello world", gotNoBlanks);
+
+		orig = null;
+		gotNoBlanks = StringUtils.removeBlankLines(orig);
+		AssertString.assertStringEquals(
+			null, gotNoBlanks);
+
+		orig = "\n\nhello";
+		gotNoBlanks = StringUtils.removeBlankLines(orig);
+		AssertString.assertStringEquals(
+			"hello", gotNoBlanks);
+
+		orig = "hello\n\n";
+		gotNoBlanks = StringUtils.removeBlankLines(orig);
+		AssertString.assertStringEquals(
+			"hello\n", gotNoBlanks);
 	}
 }

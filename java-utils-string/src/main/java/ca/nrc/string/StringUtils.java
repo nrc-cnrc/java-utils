@@ -96,6 +96,13 @@ public class StringUtils {
             return true;
         }
         return false;
-    }	
+    }
 
+	public static String removeBlankLines(String orig) {
+		String noBlanks = null;
+		if (orig != null) {
+			noBlanks = orig.replaceAll("(?m)^[ \t]*\r?\n", "");
+		}
+		return noBlanks;
+	}
 }
