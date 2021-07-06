@@ -7,7 +7,7 @@ import java.util.Set;
 import org.junit.jupiter.api.*;
 
 public class Asserter<T> {
-	protected String baseMessage = "";
+	public String baseMessage = "";
 	protected T gotObject = null;
 	protected Set<String> ignoreFields = new HashSet<String>();
 

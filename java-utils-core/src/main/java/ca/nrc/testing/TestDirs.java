@@ -1,5 +1,7 @@
 package ca.nrc.testing;
 
+import ca.nrc.file.ResourceGetter;
+import ca.nrc.file.ResourceGetterException;
 import org.junit.jupiter.api.TestInfo;
 
 import java.io.File;
@@ -134,7 +136,9 @@ public class TestDirs {
 
 
 	private void ensureDirExists(Path dirPath) throws IOException {
-		Files.createDirectories(dirPath);
+		if (!dirPath.toFile().exists()){
+			Files.createDirectories(dirPath);
+		}
 		return;
 	}
 
@@ -163,5 +167,22 @@ public class TestDirs {
 		Path dir = targetClassDir.getParent();
 
 		return dir;
+	}
+
+	public void copyResourceFileToInputs(String relPath) throws ResourceGetterException {
+		try {
+			ResourceGetter.copyResourceToDir(relPath, inputsDir());
+		} catch (IOException e) {
+			throw new ResourceGetterException(e);
+		}
+	}
+
+	public void copyResourceDirToInputs(String relPath) throws ResourceGetterException {
+		String dirName = Paths.get(relPath).toFile().getName();
+		try {
+			ResourceGetter.copyResourceFilesToDir(relPath, inputsDir(dirName));
+		} catch (IOException e) {
+			throw new ResourceGetterException(e);
+		}
 	}
 }

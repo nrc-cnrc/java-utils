@@ -8,7 +8,7 @@ import java.nio.file.Path;
 public class TestDirsTest {
 
 	@Test
-	public void test__TestDirs__Synopsis(TestInfo testInfo) throws IOException {
+	public void test__TestDirs__Synopsis(TestInfo testInfo) throws Exception {
 		// Use this class to create and manipulate directories that can
 		// be used for this test
 		//
@@ -62,6 +62,12 @@ public class TestDirsTest {
 		//
 		Path outputFile =
 			testDirs.outputsFile("some", "path", "hello.txt");
+
+		// You can copy a resources file or directory to the inputs dir
+		testDirs.copyResourceFileToInputs("test_data/ca/nrc/resource_getter_files/hello.txt");
+		testDirs.copyResourceDirToInputs("test_data/ca/nrc/resource_getter_files/some_resource_dir");
+
+		return;
 	}
 
 	//////////////////////////////////////////////
