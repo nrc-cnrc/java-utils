@@ -17,4 +17,12 @@ public class ResourceGetterTest {
 
 		AssertFile.assertFileContentEquals("", destFile, "Hello world");
 	}
+
+	@Test
+	public void test__copyResourceToTempLocation__HappyPath() throws Exception {
+		File destFile = ResourceGetter.copyResourceToTempLocation(
+			"test_data/ca/nrc/resource_getter_files/hello.txt");
+
+		AssertFile.assertFileContentEquals("", destFile, "Hello world");
+	}
 }

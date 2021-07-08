@@ -1,13 +1,6 @@
 package ca.nrc.file;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -31,6 +24,7 @@ import java.nio.file.attribute.FileAttribute;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.log4j.Logger;
 
 /*
  * A class for accessing resource files and directories.
@@ -206,6 +200,7 @@ public class ResourceGetter {
 		}
 		
 		File tempLocation = null;
+
 		if (isInJar(resPath)) {
 			tempLocation = copyJarResourceToTempFile(resPath);
 		} else {
@@ -217,6 +212,9 @@ public class ResourceGetter {
 	
 	
 	public static File copyResourceToTempLocation(String resRelPath) throws ResourceGetterException {
+		Logger tLogger = Logger.getLogger("ca.nrc.file.ResourceGetter.copyResourceToTempLocation");
+
+
 		String resPath;
 		try {
 			resPath = getResourcePath(resRelPath);
@@ -225,45 +223,18 @@ public class ResourceGetter {
 		}
 		
 		File tempLocation = null;
+
 		if (isInJar(resPath)) {
-			tempLocation = copyJarResourceToTempFile(resPath);
+			tLogger.trace("Getting resource from JAR");
+			tempLocation = copyJarResourceToTempFile(resRelPath);
 		} else {
+			tLogger.trace("Getting resource from File system");
 			tempLocation = copyFileSystemResourceToTempFile(resPath);
 		}
 						
 		return tempLocation;
 	}
-	
-//	private static File copyResourceDirToTempFile(String dirname, Path resDir) throws IOException {
-//		Path tempDest = Files.createTempDirectory(Paths.get(dirname), "", null);	
-//		
-//		
-//		https://stackoverflow.com/questions/1386809/copy-directory-from-a-jar-file
-//			  
-//		FileCopy.copyFolder(resDir, tempDest);
-//		return tempDest.toFile();
-//	}
-//
-//
-//	private static File copyResourceFileToTempFile(String fname, String ext, File resFile) throws IOException {
-//		File tempFile = File.createTempFile(fname, "."+ext);
-//		
-//		InputStream iStream = getResourceAsStream(resFile.toString());
-//		
-//		OutputStream oStream = new FileOutputStream(tempFile.getAbsolutePath());
-//		
-//		int data = iStream.read();
-//		while(data != -1) {
-//			oStream.write(data);
-//			data = iStream.read();
-//		}
-//		iStream.close();
-//		oStream.close();
-//				
-//		return tempFile;
-//	}
-	
-	
+
 	private static File copyFileSystemResourceToTempFile(String resPath) throws ResourceGetterException {
 		File resFile = new File(resPath);
 		File tempLocation = makeTempLocationForCopy(resPath);
@@ -307,11 +278,14 @@ public class ResourceGetter {
 }
 
 
-	private static File copyJarResourceToTempFile(String resPath) {
+	private static File copyJarResourceToTempFile(String resPath) throws ResourceGetterException {
+		Logger tLogger = Logger.getLogger("ca.nrc.file.ResourceGetter.copyJarResourceToTempFile");
+		tLogger.trace("Getting resPath="+resPath);
 		File tempLocation = null;
-		
-		return null;
-		
+
+		tLogger.trace("File copied to temp location="+tempLocation);
+
+		return tempLocation;
 	}
 
 	private static boolean isInJar(String resPath) {
@@ -339,56 +313,8 @@ public class ResourceGetter {
 	      return sb.toString();
 	}
 
-
-
-
-//	public static void copyFromJar(String source, final Path target) throws ResourceGetterException  {
-//	    URI resourceURI;
-//		try {
-//			resourceURI = new ResourceGetter().getClass().getResource("").toURI();
-//			Path resourcePath = Paths.get(resourceURI.getPath());
-//			
-//			if (isFile(resourceURI)) {
-//				
-//			}
-//			
-////			Map<String,Object> emptyMap = new HashMap<String,Object>();
-////		    FileSystem fileSystem = FileSystems.newFileSystem(
-////		            resourceURI,
-//////		            Collections.<String, String>emptyMap()
-////		            emptyMap
-////		    );
-//	
-//
-//		    FileSystem fileSystem = FileSystems.newFileSystem(
-//		            resourcePath, ClassLoader.getSystemClassLoader()
-//		    );
-//			
-//		    final Path jarPath = fileSystem.getPath(source);
-//	
-//		    StandardCopyOption blah;
-//		    Files.walkFileTree(jarPath, new SimpleFileVisitor<Path>() {
-//	
-//		        private Path currentTarget;
-//	
-//		        @Override
-//		        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
-//		            currentTarget = target.resolve(jarPath.relativize(dir).toString());
-//		            Files.createDirectories(currentTarget);
-//		            return FileVisitResult.CONTINUE;
-//		        }
-//	
-//		        @Override
-//		        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-//		            Files.copy(file, target.resolve(jarPath.relativize(file).toString()), StandardCopyOption.REPLACE_EXISTING);
-//		            return FileVisitResult.CONTINUE;
-//		        }
-//	
-//		    });
-//
-//		} catch (URISyntaxException | IOException e) {
-//			throw new ResourceGetterException(e);
-//		}
-//		
-//	}
+	public static void main(String[] args) throws Exception {
+		File temp = ResourceGetter.copyResourceToTempLocation("eclipseTemplates.xml");
+		System.out.println("-- ResourceGetter.main: temp="+temp);
+	}
 }
