@@ -2,11 +2,13 @@ package ca.nrc.testing;
 
 import static ca.nrc.testing.AssertHelpers.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import ca.nrc.file.ResourceGetter;
 import org.junit.jupiter.api.*;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -16,6 +18,7 @@ public class AssertHelpersTest {
 	/*********************************************************
 	 *  DOCUMENTATION TESTS
 	 *********************************************************/
+
 	@Test
 	public void test__assertEqualsJsonCompare__Synopsis() throws JsonProcessingException, IOException {
 		//

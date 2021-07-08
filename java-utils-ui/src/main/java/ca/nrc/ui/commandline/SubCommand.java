@@ -264,12 +264,7 @@ public abstract class SubCommand {
 	}
 	
 	protected  boolean getInteractive() {
-		boolean interactive = false;
-		String optInteractive = getOptionValue(OPT_INTERACTIVE, false);
-		if (optInteractive != null) {
-			interactive = true;
-		}
-		return interactive;
+		return hasOption(OPT_INTERACTIVE);
 	}
 	
 }
