@@ -47,6 +47,23 @@ public class PrettyPrinterTest {
 		}
 	}
 
+	public static class SomeComparableClass
+		implements Comparable<SomeComparableClass> {
+
+		String keyField = null;
+		String otherField = null;
+
+		public SomeComparableClass(String _key, String _other) {
+			this.keyField = _key;
+			this.otherField = _other;
+		}
+
+		@Override
+		public int compareTo(SomeComparableClass o) {
+			return this.keyField.compareTo(o.keyField);
+		}
+	}
+
 
 	@BeforeEach
 	public void setUp() throws Exception {
@@ -319,7 +336,7 @@ public class PrettyPrinterTest {
 	}
 
 	@Test
-	public void test__print__SetOfComparables() {
+	public void test__print__SetOfPrimitiveComparables() {
 		Set<String> set = new HashSet<String>();
 		set.add("xyz");
 		set.add("abc");
@@ -327,6 +344,41 @@ public class PrettyPrinterTest {
 		String expJson = "[\n  \"abc\",\n  \"xyz\"\n]";
 		Assertions.assertEquals(expJson, gotJson);
 	}
+
+	@Test
+	public void test__print__SetOfNonPrimitiveComparables() {
+		Set<SomeComparableClass> set = new HashSet<SomeComparableClass>();
+		{
+			set.add(new SomeComparableClass("salutations", "universe"));
+			set.add(new SomeComparableClass("hello", "world"));
+			set.add(new SomeComparableClass("greetings", "earth"));
+		}
+		String gotPrint = PrettyPrinter.print(set);
+		String expPrint =
+			"[\n" +
+			"  {\n" +
+			"    \"keyField\":\n" +
+			"      \"greetings\",\n" +
+			"    \"otherField\":\n" +
+			"      \"earth\"\n" +
+			"  },\n" +
+			"  {\n" +
+			"    \"keyField\":\n" +
+			"      \"hello\",\n" +
+			"    \"otherField\":\n" +
+			"      \"world\"\n" +
+			"  },\n" +
+			"  {\n" +
+			"    \"keyField\":\n" +
+			"      \"salutations\",\n" +
+			"    \"otherField\":\n" +
+			"      \"universe\"\n" +
+			"  }\n" +
+			"]";
+		AssertString.assertStringEquals(expPrint, gotPrint);
+		return;
+	}
+
 	
 	@Test
 	public void test__print__DataStructureWithLoops__ShouldNotCauseAStackOverflow() {
@@ -630,7 +682,7 @@ public class PrettyPrinterTest {
 		String[] expFieldNames = new String[] {"greeting"};
 		assertFieldNamesAre(expFieldNames, gotFields);		
 	}
-	
+
 	/*************************************************************
 	 * TEST HELPERS
 	 * @throws IOException 
@@ -655,4 +707,5 @@ public class PrettyPrinterTest {
 				"Field name no "+ii+" differed."+errMess);
 		}
 	}
+
 }

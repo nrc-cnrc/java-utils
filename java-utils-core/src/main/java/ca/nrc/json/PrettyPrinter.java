@@ -507,12 +507,8 @@ public class PrettyPrinter {
 		String json = null;
 		if (set.size() > 0) {
 			Object firstElement = set.iterator().next();
-			if (firstElement instanceof String) {
-				json = prettyPrintSetOfComparables((Set<String>)set, fieldsToIgnore, indentLevel);
-			} else if (firstElement instanceof Integer) {
-				json = prettyPrintSetOfComparables((Set<Integer>)set, fieldsToIgnore, indentLevel);
-			} else if (firstElement instanceof Double) {
-				json = prettyPrintSetOfComparables((Set<Double>)set, fieldsToIgnore, indentLevel);
+			if (firstElement instanceof Comparable) {
+				json = prettyPrintSetOfComparables((Set<Comparable>) set, fieldsToIgnore, indentLevel);
 			} else {
 				// Elements of the set do not belong to a known class of Comparables
 				// Just print them in whatever order the Set class orders them
