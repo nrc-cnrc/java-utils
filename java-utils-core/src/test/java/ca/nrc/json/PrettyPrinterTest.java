@@ -176,6 +176,14 @@ public class PrettyPrinterTest {
 	}
 
 	@Test
+	public void test__print__StringThatContainsDoubleQuotes() {
+		String hello = "I said \"hello\"";
+		String gotJson = PrettyPrinter.print(hello);
+		String expJson = "\"I said \\\"hello\\\"\"";
+		AssertString.assertStringEquals(expJson, gotJson);
+	}
+
+	@Test
 	public void test__print__SetOfStrings() {
 		Set<String> set = new HashSet<String>();
 		set.add("homer");

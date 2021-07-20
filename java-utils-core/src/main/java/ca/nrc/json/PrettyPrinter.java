@@ -228,7 +228,7 @@ public class PrettyPrinter {
 		String json = indentation(indentLevel);
 
 		aString = aString.replace("\\", "\\\\");
-		aString = aString.replace("\"", "\\\"");
+		aString = aString.replaceAll("\"", "\\\\\"");
 
 		json += "\"" + aString + "\"";
 		return json;
