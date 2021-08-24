@@ -1,6 +1,11 @@
 package ca.nrc.datastructure;
 
+import ca.nrc.testing.AssertObject;
 import org.junit.jupiter.api.*;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class ClonerTest {
 
@@ -32,4 +37,15 @@ public class ClonerTest {
 			! orig[1].equals(clone[1]),
 			"Second element should have differed because it was changed in the clone.");
 	}
+
+	@Test
+	public void test__Cloner__HashMapKeySet() throws Exception {
+		Map<String,String> map = new HashMap<String,String>();
+		map.put("hello", "world");
+		Set<String> orig = map.keySet();
+		Set<String> clone = Cloner.clone(orig);
+		String[] expClone = new String[] {"hello"};
+		AssertObject.assertDeepEquals("Clone not as expected", expClone, orig);
+	}
+
 }

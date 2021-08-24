@@ -1,5 +1,6 @@
 package ca.nrc.testing;
 
+import ca.nrc.datastructure.Cloner;
 import ca.nrc.json.PrettyPrinter;
 import org.junit.jupiter.api.*;
 
@@ -98,4 +99,29 @@ public class AssertSet {
         }
     }
 
+	public static <T> void isSubsetOf(String mess,
+ 		Set<T> expSuperset, Set<T> gotSet) {
+		isSubsetOf(mess, expSuperset, gotSet, (Boolean)null);
+	}
+
+
+    public static <T> void isSubsetOf(String mess,
+		Set<T> expSuperset, Set<T> gotSet, Boolean emptySetIsOK) {
+		if (emptySetIsOK == null) {
+			emptySetIsOK = false;
+		}
+		if (gotSet == null) {
+			Assertions.fail(mess+"\nSet should not have been null");
+		}
+		if (expSuperset == null) {
+			Assertions.fail(mess+"\nExpected superset should not be null");
+		}
+		if (!emptySetIsOK && gotSet.size() == 0 && expSuperset.size() > 0) {
+			Assertions.fail(mess+"\nSet should not have been empty");
+		}
+		assertContainsAll(
+			mess+"\nThe actual set was not a subset of the expected superset",
+			gotSet, expSuperset
+		);
+	 }
 }

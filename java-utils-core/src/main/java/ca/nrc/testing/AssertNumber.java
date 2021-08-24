@@ -142,8 +142,21 @@ public class AssertNumber {
 		return Pair.of(changeType, absDelta);
 	}
 
+	public static void assertEquals(String mess, Number exp, Number got,
+		double tolerance) {
+		assertEquals(mess, exp, got, tolerance, (Boolean)null);
+	}
+
 	public static void assertEquals(String mess, Number exp, Number got, 
-			double tolerance) {
+			double tolerance, Boolean toleranceIsRelative) {
+		if (toleranceIsRelative == null) {
+			toleranceIsRelative = false;
+		}
+
+		if (toleranceIsRelative && exp != null) {
+			tolerance = tolerance * exp.doubleValue();
+		}
+
 		if (exp == null && got == null) {
 			// Nothing to do. All is OK
 		} else if (exp == null && got != null ||

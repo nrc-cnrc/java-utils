@@ -484,8 +484,8 @@ public class StreamlinedClientTest {
 		queryLines.add(new ESTestHelpers.PlayLine("To sing or not to sing that is the question"));
 		
 		SearchResults<ESTestHelpers.PlayLine> gotSearchResults = client.moreLikeThese(queryLines, new IncludeFields("^content$"));		
-		assertIsInFirstNHits("To the ambassadors of England gives", 20, "content", gotSearchResults);
-		assertIsInFirstNHits("To be, or not to be: that is the question:", 20, "content", gotSearchResults);
+		assertIsInFirstNHits("To the ambassadors of England gives", 30, "content", gotSearchResults);
+		assertIsInFirstNHits("To be, or not to be: that is the question:", 30, "content", gotSearchResults);
 	}	
 	
 	
