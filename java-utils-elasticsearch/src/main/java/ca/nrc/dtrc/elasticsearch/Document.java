@@ -6,9 +6,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import javax.xml.bind.DatatypeConverter;
 
@@ -111,10 +109,17 @@ public class Document {
 	private void initialize(String _id) {
 		this.setId(_id);
 	}
-	
+
 	@JsonIgnore
 	public String toJson() {
-		String content = PrettyPrinter.print(this);
+		return toJson(new String[0]);
+	}
+
+	@JsonIgnore
+	public String toJson(String... ignoreFields) {
+		Set<String> ignoreFieldsSet = new HashSet<String>();
+		Collections.addAll(ignoreFieldsSet, ignoreFields);
+		String content = PrettyPrinter.print(this, ignoreFieldsSet);
 		return content;
 	}
 

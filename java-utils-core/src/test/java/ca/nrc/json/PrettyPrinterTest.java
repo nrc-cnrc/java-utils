@@ -9,7 +9,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import ca.nrc.testing.AssertObject;
 import ca.nrc.testing.AssertString;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;
 
 public class PrettyPrinterTest {
@@ -283,34 +285,37 @@ public class PrettyPrinterTest {
 	
 
 	@Test
-	public void test__print__ObjectOrMap__IgnoreSomeFields() {
+	public void test__print__ObjectOrMap__IgnoreSomeFields() throws Exception {
 		class SomeClass {
-			public String someField;
-			public Integer someOtherField;
+			public String stringField;
+			public Integer integerField;
+			public Long longField;
+			public Double doubleField;
+			public Boolean booleanField;
+			public List<String> listField;
+			public Set<String> hashsetField;
+			public String[] arrrField;
+			public Map<String,String> mapField;
 		}
-		String[] ignoreFields = new String[] {"someField"};
+
 		SomeClass anObject = new SomeClass();
-		
-		String gotJson = PrettyPrinter.print(anObject, ignoreFields);
-		String expJson = 
-				"{\n"
-			+ "  \"someOtherField\":\n"
-			+ "    null\n"
-			+ "}"
-				;
-		AssertString.assertStringEquals(
-			"OBJECT JSON string not as expected",
-			expJson, gotJson);
 
-		Map<String,Object> aMap = new HashMap<String,Object>();
-		aMap.put("someField", null);
-		aMap.put("someOtherField", null);
-
-		gotJson = PrettyPrinter.print(aMap, ignoreFields);
-		AssertString.assertStringEquals(
-			"MAP JSON string not as expected",
-			expJson, gotJson);
-
+		Map<String,Object> expEntries = new HashMap<String,Object>();
+		String[] fieldNames = new String[] {
+			"stringField", "integerField", "longField", "doubleField",
+			"booleanField", "listField", "hashsetField", "arrrField", "mapField"
+		};
+		for (String fieldName: fieldNames) {
+			expEntries.put(fieldName, null);
+		}
+		for (String fieldToIgnore: fieldNames) {
+			HashSet<String> ignoreFields = new HashSet<String>();
+			ignoreFields.add(fieldToIgnore);
+			String gotJson = PrettyPrinter.print(anObject, ignoreFields);
+			assertJsonFieldsAre(
+				"Field "+fieldToIgnore+" not properly filtered",
+				gotJson, fieldNames, fieldToIgnore);
+		}
 	}
 
 	@Test
@@ -716,4 +721,22 @@ public class PrettyPrinterTest {
 		}
 	}
 
+	private void assertJsonFieldsAre(
+		String mess, String json, String[] fieldsSuperset,
+		String excludedField) throws Exception {
+		Set<String> expFields = new HashSet<String>();
+		for (String aField: fieldsSuperset) {
+			if (!aField.equals(excludedField)) {
+				expFields.add(aField);
+			}
+		}
+
+		Map<String,Object> gotObj = new HashMap<String,Object>();
+		gotObj = new ObjectMapper().readValue(json, gotObj.getClass());
+		Set<String> gotFields = gotObj.keySet();
+		AssertObject.assertDeepEquals(
+			mess+"\nFields were not as expected in JSON string:\n"+json,
+			expFields, gotFields
+		);
+	}
 }
