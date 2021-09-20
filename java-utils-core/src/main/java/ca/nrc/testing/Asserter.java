@@ -33,6 +33,15 @@ public class Asserter<T> {
 		return this;
 	}
 
+	public Asserter<T> checkNull(boolean expected) {
+		if (expected) {
+			isNull();
+		} else {
+			isNotNull();
+		}
+		return this;
+	}
+
 	public Asserter<T> isNull() {
 		Assertions.assertTrue(
 			gotObject == null,

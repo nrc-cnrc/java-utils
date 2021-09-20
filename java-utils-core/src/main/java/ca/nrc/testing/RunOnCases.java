@@ -104,13 +104,24 @@ public class RunOnCases {
 	}
 
 	public static class Case {
-		public  String descr = "";
+		public String descr = "";
+		public boolean _expectsNull = false;
 		public Object[] data = new Object[0];
 
 		public Case(String _descr, Object... _data) {
 			this.descr = _descr;
 			this.data = _data;
 		}
+
+		public Case setExpectsNull(boolean expected) {
+			this._expectsNull = expected;
+			return this;
+		}
+
+		public boolean expectsNull() {
+			return this._expectsNull;
+		}
+
 
 		public String fullDescription(int caseNum) {
 			String fullDescr = "Case #"+caseNum;

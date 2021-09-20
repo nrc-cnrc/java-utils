@@ -87,6 +87,10 @@ public class RunOnCasesTest {
 				.onlyCasesWithDescr("[35]x[79]")
 				.run();
 			});
+
+			// If you expect a particular case to result in a "null" result, then
+			// you can specify that as follows
+			Case aCase = new Case("Case with null result", "data1", "data2").setExpectsNull(true);
 		}
 	}
 
