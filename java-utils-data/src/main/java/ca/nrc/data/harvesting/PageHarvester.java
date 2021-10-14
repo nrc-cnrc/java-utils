@@ -12,8 +12,16 @@ import ca.nrc.data.harvesting.SearchEngine.Hit;
 import ca.nrc.data.harvesting.SearchEngine.IHitVisitor;
 import ca.nrc.data.harvesting.SearchEngine.Query;
 import ca.nrc.data.harvesting.SearchEngine.SearchEngineException;
+import org.apache.log4j.Logger;
 
 public abstract class PageHarvester {
+
+	/** When downloading a page, try this many times before giving up */
+	public int maxTries = 3;
+	public PageHarvester setMaxTries(int _maxTries) {
+		maxTries = _maxTries;
+		return this;
+	}
 
 	protected IPageVisitor visitor;
 	private String error;
@@ -133,18 +141,36 @@ public abstract class PageHarvester {
 	}
 
 	protected void getPage(String urlStr) throws PageHarvesterException {
+		Logger tLogger = Logger.getLogger("ca.nrc.data.harvesting.PageHarvester.getPage");
+		URL url = null;
 		try {
-			URL url = new URL(urlStr);
-			bePoliteWithHost(url);
-
-			Long startMSecs = System.currentTimeMillis();
-			loadPage(urlStr);
-			Long endMSecs = System.currentTimeMillis();
-			logDownload(urlStr, startMSecs, endMSecs);
-		} catch (DownloadActivityException | MalformedURLException e) {
+			url = new URL(urlStr);
+		} catch (MalformedURLException e) {
 			throw new PageHarvesterException(e);
 		}
-		parseCurrentPage();
+		int totalTries = 0;
+		while (true) {
+			totalTries++;
+			tLogger.trace("getting urlStr="+urlStr+" for the "+totalTries+"nth time");
+			try {
+				bePoliteWithHost(url);
+				Long startMSecs = System.currentTimeMillis();
+				loadPage(urlStr);
+				Long endMSecs = System.currentTimeMillis();
+				logDownload(urlStr, startMSecs, endMSecs);
+			} catch (DownloadActivityException e) {
+				if (totalTries < maxTries) {
+					tLogger.trace("Exception raised "+e+". Trying again");
+					continue;
+				} else {
+					tLogger.trace("Could not download the page after "+totalTries+" tries");
+					throw new PageHarvesterException(e);
+				}
+			}
+			parseCurrentPage();
+			tLogger.trace("URL successfully downloaded");
+			break;
+		}
 	}
 
 	/**

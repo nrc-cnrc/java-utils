@@ -286,6 +286,8 @@ public class PageHarvester_HtmlCleaner extends PageHarvester {
 	}
 
 	protected String getHttpPage(URL url) throws PageHarvesterException, IOException {
+		Logger tLogger = Logger.getLogger("ca.nrc.data.harvesting.PageHarvester_HtmlCleaner.getHttpPage");
+		tLogger.trace("Getting url="+url);
 		String oldUserAgent = System.getProperty("http.agent");
 		failureStatus  = 0;
 		HttpURLConnection conn = null;
@@ -297,11 +299,14 @@ public class PageHarvester_HtmlCleaner extends PageHarvester {
 			conn.setReadTimeout(timeout);
 			
 			int status = conn.getResponseCode();
+			tLogger.trace("Got status="+status);
 			if (status == HttpURLConnection.HTTP_OK) {
+				tLogger.trace("Status was OK");
 				return readPage(conn);
 			} else if (status == HttpURLConnection.HTTP_MOVED_TEMP
 					   || status == HttpURLConnection.HTTP_MOVED_PERM
 					   || status == HttpURLConnection.HTTP_SEE_OTHER) {
+				tLogger.trace("Status was one of MOVED, MOVED_PERM or SEE_OTHER");
 				// normally, 3xx is redirect
 				// get redirect url from "location" header field
 				String newUrl = conn.getHeaderField("Location");
@@ -315,6 +320,7 @@ public class PageHarvester_HtmlCleaner extends PageHarvester {
 					failureStatus = status;
 				}
 			} else {
+				tLogger.trace("Status was a failure status");
 				failureStatus = status;
 			}
 		} catch (java.net.SocketTimeoutException exc) {
@@ -344,14 +350,24 @@ public class PageHarvester_HtmlCleaner extends PageHarvester {
 	}	
 	
 	private String readPage(HttpURLConnection conn) throws IOException {
-		final StringBuffer htmlBuff = new StringBuffer();
-		final BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
-		String inputLine;
-		while ((inputLine = in.readLine()) != null) {
-			htmlBuff.append(inputLine);
+		Logger tLogger = Logger.getLogger("ca.nrc.data.harvesting.PageHarvester_HtmlCleaner.readPage");
+		String result;
+		try {
+			tLogger.trace("Reading from conn="+conn);
+			final StringBuffer htmlBuff = new StringBuffer();
+			final BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
+			String inputLine;
+			while ((inputLine = in.readLine()) != null) {
+				htmlBuff.append(inputLine);
+			}
+			in.close();
+			result = htmlBuff.toString();
+			tLogger.trace("returning result=\n" + result);
+		} catch (Exception e) {
+			tLogger.trace("Exception raised: "+e);
+			throw e;
 		}
-		in.close();
-		return htmlBuff.toString();
+		return result;
 	}
 
 	private String getFilePage(URL url) throws IOException {

@@ -227,7 +227,7 @@ public abstract class SearchEngineTest {
 	@Test
 	public void test__search__RestrictToSite() throws Exception {
 		SearchEngine engine = makeSearchEngine();
-		
+
 		String site = "nrc-cnrc.gc.ca";
 		SearchEngine.Query query = new SearchEngine.Query("machine learning");
 		query.setSite(site);
@@ -378,7 +378,8 @@ public abstract class SearchEngineTest {
 	}
 	
 	private static String getHitActualContent(SearchEngine.Hit hit) throws PageHarvesterException {
-		String content = new PageHarvester_HtmlCleaner().harvestSinglePage(hit.url);
+		String content =
+			new PageHarvester_HtmlCleaner().setMaxTries(1).harvestSinglePage(hit.url);
 		
 		return content;
 	}
