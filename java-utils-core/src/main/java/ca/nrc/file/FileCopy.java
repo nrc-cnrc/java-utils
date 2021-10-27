@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 import org.apache.commons.io.FileUtils;
 
@@ -24,7 +25,7 @@ public class FileCopy {
 	                        Files.createDirectory( d );
 	                    return;
 	                }
-	                Files.copy( s, d );// use flag to override existing
+	                Files.copy( s, d, StandardCopyOption.REPLACE_EXISTING );// use flag to override existing
 	            } catch( Exception e ) {
 	                e.printStackTrace();
 	            }
