@@ -20,7 +20,11 @@ public class DocIDIterator<T extends Document> implements Iterator<String> {
 
     @Override
     public boolean hasNext() {
-        return hitsIter.hasNext();
+    	boolean answer = false;
+    	if (hitsIter != null) {
+    		answer = hitsIter.hasNext();
+		}
+    	return answer;
     }
 
     @Override

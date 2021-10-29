@@ -1394,8 +1394,8 @@ public class StreamlinedClient {
 				throw new ElasticSearchException(e);
 			}
 			throw new ElasticSearchException(
-			"Problem getting document with ID: " + docID +
-			"\nES Type: " + esDocType + "\n",
+				"Problem getting document with ID: " + docID +
+				"\nES Type: " + esDocType + "\n",
 			exc, esRespMap, indexName);
 		}
 
