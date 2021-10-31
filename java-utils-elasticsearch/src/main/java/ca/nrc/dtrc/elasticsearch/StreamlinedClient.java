@@ -1393,24 +1393,29 @@ public class StreamlinedClient {
 
 
 		String jsonResp = get(url);
-		try {
-			ObjectNode respNode = mapper.readValue(jsonResp, ObjectNode.class);
-			JsonNode sourceNode = respNode.get("_source");
-			if (sourceNode != null) {
-				doc = mapper.treeToValue(sourceNode, docClass);
-			}
-		} catch (IOException exc) {
-			Map<String, Object> esRespMap = null;
-			try {
-				esRespMap = mapper.readValue(jsonResp, Map.class);
-			} catch (IOException e) {
-				throw new ElasticSearchException(e);
-			}
-			throw new ElasticSearchException(
-				"Problem getting document with ID: " + docID +
-				"\nES Type: " + esDocType + "\n",
-				exc, esRespMap, indexName);
-		}
+
+		doc =
+			Document.mapESResponse(jsonResp, docClass, onBadRecord,
+				"Record for document with ID="+docID+" is corrupted (expected class="+docClass,
+				indexName);
+//		try {
+//			ObjectNode respNode = mapper.readValue(jsonResp, ObjectNode.class);
+//			JsonNode sourceNode = respNode.get("_source");
+//			if (sourceNode != null) {
+//				doc = mapper.treeToValue(sourceNode, docClass);
+//			}
+//		} catch (IOException exc) {
+//			Map<String, Object> esRespMap = null;
+//			try {
+//				esRespMap = mapper.readValue(jsonResp, Map.class);
+//			} catch (IOException e) {
+//				throw new ElasticSearchException(e);
+//			}
+//			throw new ElasticSearchException(
+//				"Problem getting document with ID: " + docID +
+//				"\nES Type: " + esDocType + "\n",
+//				exc, esRespMap, indexName);
+//		}
 
 		return doc;
 	}

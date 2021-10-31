@@ -245,8 +245,16 @@ public class Document {
 	}
 
 	public static <T extends Document> T mapESResponse(
-		String jsonResp, T docProto, StreamlinedClient.BadRecordPolicy badRecordsPolicy, String contextMess,
-		String indexName) throws ElasticSearchException {
+		String jsonResp, Class<T> docClass, StreamlinedClient.BadRecordPolicy badRecordsPolicy,
+		String contextMess, String indexName) throws ElasticSearchException {
+		T proto = (T)prototype4class(docClass);
+		return mapESResponse(jsonResp, proto, badRecordsPolicy, contextMess, indexName);
+	}
+
+
+	public static <T extends Document> T mapESResponse(
+		String jsonResp, T docProto, StreamlinedClient.BadRecordPolicy badRecordsPolicy,
+		String contextMess, String indexName) throws ElasticSearchException {
 
 		T doc = null;
 		Class<? extends Document> docClass = docProto.getClass();
@@ -292,6 +300,19 @@ public class Document {
 			}
 		}
 		return doc;
+	}
+
+	public static Document prototype4class(Class<? extends Document> docClass) throws ElasticSearchException {
+		Document proto = null;
+		try {
+			proto =
+				docClass.getConstructor().newInstance(new Object[0]);
+		} catch (Exception e) {
+			throw new ElasticSearchException(
+				"Could not create prototype for document class "+docClass,
+				e);
+		}
+		return proto;
 	}
 
 	@JsonIgnore
