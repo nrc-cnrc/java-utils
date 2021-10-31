@@ -1,5 +1,6 @@
 package ca.nrc.dtrc.elasticsearch;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -10,15 +11,23 @@ import java.util.*;
 
 import javax.xml.bind.DatatypeConverter;
 
+import ca.nrc.debug.Debug;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ca.nrc.introspection.Introspection;
 import ca.nrc.json.PrettyPrinter;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.log4j.Logger;
+import org.apache.log4j.Level;
 
 public class Document {
 	
 	private static final int MAX_ID_LENGTH = 512;
+
+	private static ObjectMapper mapper = new ObjectMapper();
 	
 	// This makes it possible for a document collection to 
 	// contain documents that are in different languages
@@ -28,7 +37,6 @@ public class Document {
 		
 	public String keyFieldName() {return "id";};
 
-	
 	//
 	// This complicated get/set Id stuff is here to ensure
 	// that the ID never exceeds the maximum number of bytes
@@ -236,4 +244,66 @@ public class Document {
 		return truncated;
 	}
 
+	public static <T extends Document> T mapESResponse(
+		String jsonResp, T docProto, StreamlinedClient.BadRecordPolicy badRecordsPolicy, String contextMess,
+		String indexName) throws ElasticSearchException {
+
+		T doc = null;
+		Class<? extends Document> docClass = docProto.getClass();
+		ObjectNode respNode = null;
+		try {
+			respNode = mapper.readValue(jsonResp, ObjectNode.class);
+		} catch (IOException e) {
+			throw new ElasticSearchException(
+				contextMess + "\n" +
+				"Could not map ES response to ObjectNode (index="+indexName+").\n" +
+				"jsonResp=" + jsonResp);
+		}
+		JsonNode sourceNode = respNode.get("_source");;
+		try {
+			if (sourceNode != null) {
+				doc = (T) mapper.treeToValue(sourceNode, docClass);
+			}
+		} catch (JsonProcessingException exc) {
+			contextMess +=
+				"\nCould not read _source field to instance of " + docClass + "\n"+
+				"_source = " + sourceNode;
+			ElasticSearchException excToRaise =
+				new ElasticSearchException(exc, contextMess, sourceNode, indexName);
+			if (isCorruptedRecord(sourceNode)) {
+				excToRaise =
+					new CorruptedESRecordException(exc, contextMess, sourceNode,
+						indexName);
+			}
+			if (excToRaise instanceof CorruptedESRecordException) {
+				// We log ALL CorruptedESRecordExceptions
+				Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.Document.isCorruptedRecord");
+				logger.setLevel(Level.ERROR);
+				logger.error(contextMess+Debug.printCallStack(exc));
+			}
+
+			if (badRecordsPolicy != StreamlinedClient.BadRecordPolicy.LOG_EXCEPTION ||
+				!(excToRaise instanceof CorruptedESRecordException)) {
+				// We do not raise the exception if this is a corrupted record AND
+				// we are using policy
+				// BadRecordPolicy.LOG_EXCEPTION
+				//   --> log the exception without raising it.
+				throw excToRaise;
+			}
+		}
+		return doc;
+	}
+
+	@JsonIgnore
+	private static boolean isCorruptedRecord(JsonNode jsonData) {
+		Boolean corrupted = null;
+		if (jsonData.has("_scroll") || jsonData.has("scroll")) {
+			corrupted = true;
+		}
+
+		if (corrupted == null) {
+			corrupted = false;
+		}
+		return corrupted;
+	}
 }

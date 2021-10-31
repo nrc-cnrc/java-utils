@@ -45,6 +45,19 @@ public class StreamlinedClient {
 
 	public boolean updatesWaitForRefresh = false;
 
+	/** For some unknown reason, ES records sometimes get corrupted to a state
+	 * where they don't fit the structure of the object they are supposed to represent
+	 * (typically, they end up with unexpected fields like 'scroll').
+	 *
+	 * The onBadRecord attribute specifies what to do in such cases.
+	 *
+	 *   RAISE_EXCEPTION: Raise a BadESRecordException.
+	 *
+	 *   LOG_EXCEPTION: Log the exceptino and return a null Document.
+	 */
+	public static enum BadRecordPolicy {RAISE_EXCEPTION, LOG_EXCEPTION};
+	public BadRecordPolicy onBadRecord = BadRecordPolicy.RAISE_EXCEPTION;
+
 	// Whenever the client issues a transaction that modifies the DB,
 	// it will sleep by that much to give ES time to update all the 
 	// nodes and shards.
@@ -693,8 +706,8 @@ public class StreamlinedClient {
 		}
 
 		URL url = esUrlBuilder()
-		.forDocType(docTypeName).forEndPoint("_search")
-		.scroll().build();
+			.forDocType(docTypeName).forEndPoint("_search")
+			.scroll().build();
 		tLogger.trace("url=" + url + ", jsonQuery=" + jsonQuery);
 		String jsonResponse = post(url, jsonQuery.toString());
 
@@ -1365,8 +1378,8 @@ public class StreamlinedClient {
 	}
 
 	public Document getDocumentWithID(String docID,
-												 Class<? extends Document> docClass, String esDocType)
-	throws ElasticSearchException {
+		Class<? extends Document> docClass, String esDocType)
+		throws ElasticSearchException {
 		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.StreamliendClient.getDocumentWithID");
 		if (esDocType == null) {
 			esDocType = docClass.getName();
@@ -1396,7 +1409,7 @@ public class StreamlinedClient {
 			throw new ElasticSearchException(
 				"Problem getting document with ID: " + docID +
 				"\nES Type: " + esDocType + "\n",
-			exc, esRespMap, indexName);
+				exc, esRespMap, indexName);
 		}
 
 		return doc;
