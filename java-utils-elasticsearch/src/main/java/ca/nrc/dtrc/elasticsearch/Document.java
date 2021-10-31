@@ -244,16 +244,16 @@ public class Document {
 		return truncated;
 	}
 
-	public static <T extends Document> T mapESResponse(
-		String jsonResp, Class<T> docClass, StreamlinedClient.BadRecordPolicy badRecordsPolicy,
+	public static <T extends Document> T mapSingleDocResponse(
+		String jsonResp, Class<T> docClass, ResponseMapper.BadRecordPolicy badRecordsPolicy,
 		String contextMess, String indexName) throws ElasticSearchException {
 		T proto = (T)prototype4class(docClass);
-		return mapESResponse(jsonResp, proto, badRecordsPolicy, contextMess, indexName);
+		return mapSingleDocResponse(jsonResp, proto, badRecordsPolicy, contextMess, indexName);
 	}
 
 
-	public static <T extends Document> T mapESResponse(
-		String jsonResp, T docProto, StreamlinedClient.BadRecordPolicy badRecordsPolicy,
+	public static <T extends Document> T mapSingleDocResponse(
+		String jsonResp, T docProto, ResponseMapper.BadRecordPolicy badRecordsPolicy,
 		String contextMess, String indexName) throws ElasticSearchException {
 
 		T doc = null;
@@ -290,7 +290,7 @@ public class Document {
 				logger.error(contextMess+Debug.printCallStack(exc));
 			}
 
-			if (badRecordsPolicy != StreamlinedClient.BadRecordPolicy.LOG_EXCEPTION ||
+			if (badRecordsPolicy != ResponseMapper.BadRecordPolicy.LOG_EXCEPTION ||
 				!(excToRaise instanceof CorruptedESRecordException)) {
 				// We do not raise the exception if this is a corrupted record AND
 				// we are using policy

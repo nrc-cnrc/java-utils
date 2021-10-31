@@ -9,6 +9,7 @@ import ca.nrc.introspection.Introspection;
 import ca.nrc.testing.AssertFile;
 import ca.nrc.testing.AssertHelpers;
 import ca.nrc.testing.AssertJson;
+import ca.nrc.testing.AssertObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -834,7 +835,7 @@ public class StreamlinedClientTest {
 		StreamlinedClient client = ESTestHelpers.makeEmptyTestClient();
 		
 		Person gotPerson = (Person) client.getDocumentWithID("Homer", Person.class);
-		AssertHelpers.assertDeepEquals("Homer should NOT have been in the index initially", null, gotPerson);		
+		AssertObject.assertDeepEquals("Homer should NOT have been in the index initially", null, gotPerson);
 
 		Person homer = new Person("Homer", "Simpson");
 		client.putDocument(homer);

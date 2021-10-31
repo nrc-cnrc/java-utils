@@ -45,18 +45,8 @@ public class StreamlinedClient {
 
 	public boolean updatesWaitForRefresh = false;
 
-	/** For some unknown reason, ES records sometimes get corrupted to a state
-	 * where they don't fit the structure of the object they are supposed to represent
-	 * (typically, they end up with unexpected fields like 'scroll').
-	 *
-	 * The onBadRecord attribute specifies what to do in such cases.
-	 *
-	 *   RAISE_EXCEPTION: Raise a BadESRecordException.
-	 *
-	 *   LOG_EXCEPTION: Log the exceptino and return a null Document.
-	 */
-	public static enum BadRecordPolicy {RAISE_EXCEPTION, LOG_EXCEPTION};
-	public BadRecordPolicy onBadRecord = BadRecordPolicy.RAISE_EXCEPTION;
+	;
+	public ResponseMapper.BadRecordPolicy onBadRecord = ResponseMapper.BadRecordPolicy.RAISE_EXCEPTION;
 
 	// Whenever the client issues a transaction that modifies the DB,
 	// it will sleep by that much to give ES time to update all the 
@@ -1395,27 +1385,9 @@ public class StreamlinedClient {
 		String jsonResp = get(url);
 
 		doc =
-			Document.mapESResponse(jsonResp, docClass, onBadRecord,
+			Document.mapSingleDocResponse(jsonResp, docClass, onBadRecord,
 				"Record for document with ID="+docID+" is corrupted (expected class="+docClass,
 				indexName);
-//		try {
-//			ObjectNode respNode = mapper.readValue(jsonResp, ObjectNode.class);
-//			JsonNode sourceNode = respNode.get("_source");
-//			if (sourceNode != null) {
-//				doc = mapper.treeToValue(sourceNode, docClass);
-//			}
-//		} catch (IOException exc) {
-//			Map<String, Object> esRespMap = null;
-//			try {
-//				esRespMap = mapper.readValue(jsonResp, Map.class);
-//			} catch (IOException e) {
-//				throw new ElasticSearchException(e);
-//			}
-//			throw new ElasticSearchException(
-//				"Problem getting document with ID: " + docID +
-//				"\nES Type: " + esDocType + "\n",
-//				exc, esRespMap, indexName);
-//		}
 
 		return doc;
 	}
