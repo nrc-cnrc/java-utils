@@ -29,14 +29,31 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 	private Long totalHits = new Long(0);
 	private URL searchURL = null;
 
+	private ResponseMapper respMapper = new ResponseMapper();
+
 	public SearchResults(String jsonResponse, T docPrototype,
 		StreamlinedClient _esClient) throws ElasticSearchException {
-		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults");
+		init__SearchResults(jsonResponse, docPrototype, _esClient,
+		(ResponseMapper)null);
+	}
+
+	public SearchResults(String jsonResponse, T docPrototype,
+		StreamlinedClient _esClient, ResponseMapper _respMapper)
+		throws ElasticSearchException {
+		init__SearchResults(jsonResponse, docPrototype, _esClient, _respMapper);
+	}
+
+	public void init__SearchResults (String jsonResponse, T docPrototype,
+		StreamlinedClient _esClient, ResponseMapper _respMapper)
+		throws ElasticSearchException {
+		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults.init__SearchResults");
 		if (tLogger.isTraceEnabled()) {
 			tLogger.trace("Constructing results of type "+docPrototype.getClass().getName()+" from jsonResponse="+jsonResponse);
 		}
-		init_Searchresults(jsonResponse, (T)null, (StreamlinedClient)null,
-			(URL)null);
+		if (_respMapper == null) {
+			_respMapper = new ResponseMapper();
+		}
+		respMapper = _respMapper;
 	}
 
 	public Long getTotalHits() {return totalHits;}
