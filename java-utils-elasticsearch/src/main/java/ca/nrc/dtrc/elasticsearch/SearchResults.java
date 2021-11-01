@@ -20,6 +20,8 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 	
 	private T docPrototype = null;
 
+	private String indexName = "UNKNOWN";
+
 	private String scrollID = null;
 
 	private Map<String,Object> aggregations = new HashMap<String,Object>();
@@ -34,17 +36,17 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 	public SearchResults(String jsonResponse, T docPrototype,
 		StreamlinedClient _esClient) throws ElasticSearchException {
 		init__SearchResults(jsonResponse, docPrototype, _esClient,
-		(ResponseMapper)null);
+		(ResponseMapper)null, (String)null);
 	}
 
 	public SearchResults(String jsonResponse, T docPrototype,
-		StreamlinedClient _esClient, ResponseMapper _respMapper)
+		StreamlinedClient _esClient, ResponseMapper _respMapper, String _indexName)
 		throws ElasticSearchException {
-		init__SearchResults(jsonResponse, docPrototype, _esClient, _respMapper);
+		init__SearchResults(jsonResponse, docPrototype, _esClient, _respMapper, _indexName);
 	}
 
 	public void init__SearchResults (String jsonResponse, T docPrototype,
-		StreamlinedClient _esClient, ResponseMapper _respMapper)
+		StreamlinedClient _esClient, ResponseMapper _respMapper, String _indexName)
 		throws ElasticSearchException {
 		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults.init__SearchResults");
 		if (tLogger.isTraceEnabled()) {
@@ -54,6 +56,10 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 			_respMapper = new ResponseMapper();
 		}
 		respMapper = _respMapper;
+
+		if (_indexName != null) {
+			indexName = _indexName;
+		}
 	}
 
 	public Long getTotalHits() {return totalHits;}
@@ -138,25 +144,14 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 			ObjectNode hitsCollectionNode = (ObjectNode) jsonRespNode.get("hits");
 			totalHits = hitsCollectionNode.get("total").asLong();
 			ArrayNode hitsArrNode = (ArrayNode) hitsCollectionNode.get("hits");
-			String hitSource = null;
 			for (int ii=0; ii < hitsArrNode.size(); ii++) {
 				T hitObject = null;
-				String hitID = null;
 				try {
-					hitSource = hitsArrNode.get(ii).get("_source").toString();
-					// TODO-ResponseMapper: Use it here
-					hitID =
-						mapper.readValue(
-							hitsArrNode.get(ii).get("_id").toString(), String.class);
-					if (tLogger.isTraceEnabled()) {
-						tLogger.trace("Parsing hit #"+ii+": "+hitSource+" with _id="+hitID);
-					}
-					// TODO-ResponseMapper: Use it here
-					hitObject = (T) mapper.readValue(hitSource, docPrototype.getClass());
+					String hitSource = hitsArrNode.get(ii).toString();
+					hitObject = respMapper.mapSingleDocResponse(hitSource, docPrototype, "", indexName);
 				} catch (Exception e) {
 					throw new BadDocProtoException(e);
 				}
-				hitObject.id = hitID;
 				Double hitScore = hitsArrNode.get(ii).get("_score").asDouble();
 
 				scoredDocuments.add(new Hit<T>(hitObject, hitScore, hitsArrNode.get(ii).get("highlight")));
