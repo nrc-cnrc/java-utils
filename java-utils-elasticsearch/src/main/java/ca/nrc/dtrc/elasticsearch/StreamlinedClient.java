@@ -46,7 +46,7 @@ public class StreamlinedClient {
 	public boolean updatesWaitForRefresh = false;
 
 	;
-	public ResponseMapper.BadRecordPolicy onBadRecord = ResponseMapper.BadRecordPolicy.RAISE_EXCEPTION;
+	public ResponseMapper.BadRecordHandling onBadRecord = ResponseMapper.BadRecordHandling.STRICT;
 
 	// Whenever the client issues a transaction that modifies the DB,
 	// it will sleep by that much to give ES time to update all the 
@@ -863,6 +863,7 @@ public class StreamlinedClient {
 			ArrayNode hitsArrNode = (ArrayNode) hitsCollectionNode.get("hits");
 			for (int ii = 0; ii < hitsArrNode.size(); ii++) {
 				String hitJson = hitsArrNode.get(ii).get("_source").toString();
+				// TODO-ResponseMapper: Use it here
 				T hitObject = (T) mapper.readValue(hitJson, docPrototype.getClass());
 				Double hitScore = hitsArrNode.get(ii).get("_score").asDouble();
 
@@ -1384,6 +1385,7 @@ public class StreamlinedClient {
 
 		String jsonResp = get(url);
 
+		// TODO-ResponseMapper: Use it here
 		doc =
 			Document.mapSingleDocResponse(jsonResp, docClass, onBadRecord,
 				"Record for document with ID="+docID+" is corrupted (expected class="+docClass,

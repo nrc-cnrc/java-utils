@@ -1,7 +1,6 @@
 package ca.nrc.dtrc.elasticsearch;
 
 import ca.nrc.debug.Debug;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -14,30 +13,29 @@ import java.io.IOException;
 /** This class is used to map the Elastic Search responses to objects */
 
 public class ResponseMapper {
-	/** For some unknown reason, ES records sometimes get corrupted to a state
-	 * where they don't fit the structure of the object they are supposed to represent
-	 * (typically, they end up with unexpected fields like 'scroll').
+	/* When the mapper encounters an ES record that does not have the expected
+	 * Document structure, it will behave differently depending on the value of
+	 * onBadRecord.
 	 *
-	 * The onBadRecord attribute specifies what to do in such cases.
+	 *   STRICT: Raise a BadESRecordException.
 	 *
-	 *   RAISE_EXCEPTION: Raise a BadESRecordException.
-	 *
-	 *   LOG_EXCEPTION: Log the exceptino and return a null Document.
+	 *   LENIENT: Log the exception and return a null or empty result
+	 *   (depending on the context).
 	 */
-	public static enum BadRecordPolicy {RAISE_EXCEPTION, LOG_EXCEPTION}
-	public BadRecordPolicy onBadRecord = BadRecordPolicy.RAISE_EXCEPTION;
+	public static enum BadRecordHandling {STRICT, LENIENT}
+	public BadRecordHandling onBadRecord = BadRecordHandling.STRICT;
 
 	private static ObjectMapper mapper = new ObjectMapper();
 
 	public ResponseMapper() {
-		init__ResponseMapper((BadRecordPolicy)null);
+		init__ResponseMapper((BadRecordHandling)null);
 	}
 
-	public ResponseMapper(BadRecordPolicy _onBadRecord) {
+	public ResponseMapper(BadRecordHandling _onBadRecord) {
 		init__ResponseMapper(_onBadRecord);
 	}
 
-	private void init__ResponseMapper(BadRecordPolicy _onBadRecord) {
+	private void init__ResponseMapper(BadRecordHandling _onBadRecord) {
 		if (_onBadRecord != null) {
 			onBadRecord = _onBadRecord;
 		}
@@ -75,43 +73,33 @@ public class ResponseMapper {
 			contextMess +=
 				"\nCould not read _source field to instance of " + docClass + "\n"+
 				"_source = " + sourceNode;
-			ElasticSearchException excToRaise =
-				new ElasticSearchException(exc, contextMess, sourceNode, indexName);
-			if (isCorruptedRecord(sourceNode)) {
-				excToRaise =
-					new CorruptedESRecordException(exc, contextMess, sourceNode,
-						indexName);
-			}
-			if (excToRaise instanceof CorruptedESRecordException) {
-				// We log ALL CorruptedESRecordExceptions
-				Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.Document.isCorruptedRecord");
-				logger.setLevel(Level.ERROR);
-				logger.error(contextMess+ Debug.printCallStack(exc));
-			}
+			BadESRecordException badRecExc =
+				new BadESRecordException(exc, contextMess, sourceNode, indexName);
+			logBadRecordException(contextMess, badRecExc);
 
-			if (this.onBadRecord != BadRecordPolicy.LOG_EXCEPTION ||
-				!(excToRaise instanceof CorruptedESRecordException)) {
-				// We do not raise the exception if this is a corrupted record AND
-				// we are using policy
-				// BadRecordPolicy.LOG_EXCEPTION
-				//   --> log the exception without raising it.
-				throw excToRaise;
+			if (this.onBadRecord == BadRecordHandling.STRICT) {
+				throw badRecExc;
 			}
 		}
 		return doc;
 	}
 
-	@JsonIgnore
-	private static boolean isCorruptedRecord(JsonNode jsonData) {
-		Boolean corrupted = null;
-		if (jsonData.has("_scroll") || jsonData.has("scroll")) {
-			corrupted = true;
-		}
-
-		if (corrupted == null) {
-			corrupted = false;
-		}
-		return corrupted;
+	private void logBadRecordException(String contextMess, BadESRecordException exc) {
+		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.Document.isCorruptedRecord");
+		logger.setLevel(Level.ERROR);
+		logger.error(contextMess+ Debug.printCallStack(exc));
 	}
 
+//	@JsonIgnore
+//	private static boolean isCorruptedRecord(JsonNode jsonData) {
+//		Boolean corrupted = null;
+//		if (jsonData.has("_scroll") || jsonData.has("scroll")) {
+//			corrupted = true;
+//		}
+//
+//		if (corrupted == null) {
+//			corrupted = false;
+//		}
+//		return corrupted;
+//	}
 }

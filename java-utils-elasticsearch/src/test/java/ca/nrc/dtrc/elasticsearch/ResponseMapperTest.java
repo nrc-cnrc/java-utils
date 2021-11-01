@@ -12,19 +12,30 @@ public class ResponseMapperTest {
 		//
 		// The mapper can be set to be 'strict' or 'lenient'
 		//
+		// The two configurations differ in the way they behave when the mapper
+		// encounters an ES record that does not have the expected Document structure.
+		//
+		//	  LENIENT: The mapper will raise a BadESRecordException.
+		//
+		//	  STRITC: The mapper will og the exception and return a null or empty result
+		//   (depending on the context).
+		//
+		// Note that there are two types of reasons why a mapper may encounter a
+		// bad ES record, namely:
+		//
+		//   Programming error: This happens if your code tries to map an ES record
+		//     that is based on a document class DC1, but it passes a different
+		//     class DC2 to the mapping method.
+		//
+		//   Corrupted ES record: For some unknown reason, ES document records can
+		//     become corrupted and end up with a structure that does not correspond
+		//     to any Document class (typically, then end up with non-Document
+		//     fields like 'scroll')
+		//
+		// The ResponseMapper class does not distinguish between those types of
+		// circumstances and will log or raise the exception the same way.
 		final ResponseMapper strictMapper = new ResponseMapper();
-		final ResponseMapper lenientMapper = new ResponseMapper(ResponseMapper.BadRecordPolicy.LOG_EXCEPTION);
-
-		// The lenient configuraiton is designed to deal with corrupted ES records.
-		// Indeed, for some unknown reason, ES records sometimes get corrupted to a state
-		// where they don't fit the structure of the object they are supposed to represent
-		//	(typically, they end up with unexpected fields like 'scroll' in the source).
-		//
-		// When a strict mapper encounters this kind of situation, it will raise
-		// a CorruptedESRecordException.
-		//
-		// A lenient mapper on the other hand will just log the exception and
-		// return some 'default' object.
+		final ResponseMapper lenientMapper = new ResponseMapper(ResponseMapper.BadRecordHandling.LENIENT);
 
 		// You can use the mapper to map different types of ES responses.
 		// For example, here is how you map an ES response that provides the
@@ -50,7 +61,7 @@ public class ResponseMapperTest {
 				// This is a corrupted document record. Not sure how those happen.
 				"\"_source\":{\"scroll\":\"1m\"}}";
 			// In this case, the strict mapper raises an exception
-			Assertions.assertThrows(CorruptedESRecordException.class, () -> {
+			Assertions.assertThrows(BadESRecordException.class, () -> {
 				strictMapper.mapSingleDocResponse(jsonCorruptedDocResp, Person.class, mess, index);
 			});
 			// But the lenient mapper does NOT raise an exception and it

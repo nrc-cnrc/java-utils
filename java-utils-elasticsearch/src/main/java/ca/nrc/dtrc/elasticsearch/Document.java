@@ -245,7 +245,7 @@ public class Document {
 	}
 
 	public static <T extends Document> T mapSingleDocResponse(
-		String jsonResp, Class<T> docClass, ResponseMapper.BadRecordPolicy badRecordsPolicy,
+		String jsonResp, Class<T> docClass, ResponseMapper.BadRecordHandling badRecordsPolicy,
 		String contextMess, String indexName) throws ElasticSearchException {
 		T proto = (T)prototype4class(docClass);
 		return mapSingleDocResponse(jsonResp, proto, badRecordsPolicy, contextMess, indexName);
@@ -253,7 +253,7 @@ public class Document {
 
 
 	public static <T extends Document> T mapSingleDocResponse(
-		String jsonResp, T docProto, ResponseMapper.BadRecordPolicy badRecordsPolicy,
+		String jsonResp, T docProto, ResponseMapper.BadRecordHandling badRecordsPolicy,
 		String contextMess, String indexName) throws ElasticSearchException {
 
 		T doc = null;
@@ -280,21 +280,21 @@ public class Document {
 				new ElasticSearchException(exc, contextMess, sourceNode, indexName);
 			if (isCorruptedRecord(sourceNode)) {
 				excToRaise =
-					new CorruptedESRecordException(exc, contextMess, sourceNode,
+					new BadESRecordException(exc, contextMess, sourceNode,
 						indexName);
 			}
-			if (excToRaise instanceof CorruptedESRecordException) {
+			if (excToRaise instanceof BadESRecordException) {
 				// We log ALL CorruptedESRecordExceptions
 				Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.Document.isCorruptedRecord");
 				logger.setLevel(Level.ERROR);
 				logger.error(contextMess+Debug.printCallStack(exc));
 			}
 
-			if (badRecordsPolicy != ResponseMapper.BadRecordPolicy.LOG_EXCEPTION ||
-				!(excToRaise instanceof CorruptedESRecordException)) {
+			if (badRecordsPolicy != ResponseMapper.BadRecordHandling.LENIENT ||
+				!(excToRaise instanceof BadESRecordException)) {
 				// We do not raise the exception if this is a corrupted record AND
 				// we are using policy
-				// BadRecordPolicy.LOG_EXCEPTION
+				// BadRecordHandling.LOG_EXCEPTION
 				//   --> log the exception without raising it.
 				throw excToRaise;
 			}

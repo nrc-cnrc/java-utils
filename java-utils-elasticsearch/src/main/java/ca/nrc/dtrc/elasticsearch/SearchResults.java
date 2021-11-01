@@ -127,12 +127,14 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 				String hitID = null;
 				try {
 					hitSource = hitsArrNode.get(ii).get("_source").toString();
+					// TODO-ResponseMapper: Use it here
 					hitID =
 						mapper.readValue(
 							hitsArrNode.get(ii).get("_id").toString(), String.class);
 					if (tLogger.isTraceEnabled()) {
 						tLogger.trace("Parsing hit #"+ii+": "+hitSource+" with _id="+hitID);
 					}
+					// TODO-ResponseMapper: Use it here
 					hitObject = (T) mapper.readValue(hitSource, docPrototype.getClass());
 				} catch (Exception e) {
 					throw new BadDocProtoException(e);
