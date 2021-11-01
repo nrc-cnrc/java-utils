@@ -45,7 +45,7 @@ public class StreamlinedClient {
 
 	public boolean updatesWaitForRefresh = false;
 
-	ResponseMapper respMapper = new ResponseMapper();
+	ResponseMapper respMapper = new ResponseMapper((String)null);
 
 	// Whenever the client issues a transaction that modifies the DB,
 	// it will sleep by that much to give ES time to update all the 
@@ -868,7 +868,7 @@ public class StreamlinedClient {
 			ArrayNode hitsArrNode = (ArrayNode) hitsCollectionNode.get("hits");
 			for (int ii = 0; ii < hitsArrNode.size(); ii++) {
 				String hitJson = hitsArrNode.get(ii).toString();
-				T hitObject = respMapper.mapSingleDocResponse(hitJson, docPrototype, "", indexName);
+				T hitObject = respMapper.mapSingleDocResponse(hitJson, docPrototype, "");
 				Double hitScore = hitsArrNode.get(ii).get("_score").asDouble();
 
 				scoredDocuments.add(new Hit<T>(hitObject, hitScore, hitsArrNode.get(ii).get("highlight")));
@@ -1390,8 +1390,7 @@ public class StreamlinedClient {
 		String jsonResp = get(url);
 		doc =
 			respMapper.mapSingleDocResponse(jsonResp, docClass,
-				"Record for document with ID="+docID+" is corrupted (expected class="+docClass,
-				indexName);
+				"Record for document with ID="+docID+" is corrupted (expected class="+docClass);
 
 		return doc;
 	}

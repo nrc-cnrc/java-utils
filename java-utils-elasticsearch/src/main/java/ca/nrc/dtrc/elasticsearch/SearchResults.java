@@ -31,7 +31,7 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 	private Long totalHits = new Long(0);
 	private URL searchURL = null;
 
-	private ResponseMapper respMapper = new ResponseMapper();
+	private ResponseMapper respMapper = new ResponseMapper(indexName);
 
 	public SearchResults(String jsonResponse, T docPrototype,
 		StreamlinedClient _esClient) throws ElasticSearchException {
@@ -52,14 +52,14 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 		if (tLogger.isTraceEnabled()) {
 			tLogger.trace("Constructing results of type "+docPrototype.getClass().getName()+" from jsonResponse="+jsonResponse);
 		}
-		if (_respMapper == null) {
-			_respMapper = new ResponseMapper();
-		}
-		respMapper = _respMapper;
-
 		if (_indexName != null) {
 			indexName = _indexName;
 		}
+		if (_respMapper == null) {
+			_respMapper = new ResponseMapper(indexName);
+		}
+		respMapper = _respMapper;
+
 	}
 
 	public Long getTotalHits() {return totalHits;}
@@ -148,7 +148,7 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 				T hitObject = null;
 				try {
 					String hitSource = hitsArrNode.get(ii).toString();
-					hitObject = respMapper.mapSingleDocResponse(hitSource, docPrototype, "", indexName);
+					hitObject = respMapper.mapSingleDocResponse(hitSource, docPrototype, "");
 				} catch (Exception e) {
 					throw new BadDocProtoException(e);
 				}

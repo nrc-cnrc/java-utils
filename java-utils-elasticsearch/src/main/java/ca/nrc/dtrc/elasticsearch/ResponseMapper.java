@@ -27,30 +27,36 @@ public class ResponseMapper {
 
 	private static ObjectMapper mapper = new ObjectMapper();
 
-	public ResponseMapper() {
-		init__ResponseMapper((BadRecordHandling)null);
+	private String indexName = "UNKNOWN";
+
+	public ResponseMapper(String _indexName) {
+		init__ResponseMapper(_indexName, (BadRecordHandling)null);
 	}
 
-	public ResponseMapper(BadRecordHandling _onBadRecord) {
-		init__ResponseMapper(_onBadRecord);
+	public ResponseMapper(String _indexName, BadRecordHandling _onBadRecord) {
+		init__ResponseMapper(_indexName, _onBadRecord);
 	}
 
-	private void init__ResponseMapper(BadRecordHandling _onBadRecord) {
+	private void init__ResponseMapper(String _indexname,
+		BadRecordHandling _onBadRecord) {
 		if (_onBadRecord != null) {
 			onBadRecord = _onBadRecord;
+		}
+		if (_indexname != null) {
+			indexName = _indexname;
 		}
 	}
 
 	public <T extends Document> T mapSingleDocResponse(
-		String jsonResp, Class<T> docClass, String contextMess, String indexName)
+		String jsonResp, Class<T> docClass, String contextMess)
 		throws ElasticSearchException {
 		T proto = (T)Document.prototype4class(docClass);
-		return mapSingleDocResponse(jsonResp, proto, contextMess, indexName);
+		return mapSingleDocResponse(jsonResp, proto, contextMess);
 	}
 
 
 	public <T extends Document> T mapSingleDocResponse(
-		String jsonResp, T docProto, String contextMess, String indexName)
+		String jsonResp, T docProto, String contextMess)
 		throws ElasticSearchException {
 
 		T doc = null;

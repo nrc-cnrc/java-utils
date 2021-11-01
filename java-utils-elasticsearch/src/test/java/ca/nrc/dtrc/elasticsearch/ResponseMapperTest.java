@@ -34,8 +34,9 @@ public class ResponseMapperTest {
 		//
 		// The ResponseMapper class does not distinguish between those types of
 		// circumstances and will log or raise the exception the same way.
-		final ResponseMapper strictMapper = new ResponseMapper();
-		final ResponseMapper lenientMapper = new ResponseMapper(ResponseMapper.BadRecordHandling.LENIENT);
+		String indexName = "someindex";
+		final ResponseMapper strictMapper = new ResponseMapper(indexName);
+		final ResponseMapper lenientMapper = new ResponseMapper(indexName, ResponseMapper.BadRecordHandling.LENIENT);
 
 		// You can use the mapper to map different types of ES responses.
 		// For example, here is how you map an ES response that provides the
@@ -50,7 +51,7 @@ public class ResponseMapperTest {
 				"\"found\":true," +
 				"\"_source\":{\"id\":\"HomerSimpson\",\"firstName\":\"Homer\",\"surname\":\"Simpson\",\"gender\":\"m\"}}";
 			String mess = "Just testing";
-			Person pers = strictMapper.mapSingleDocResponse(jsonResp, Person.class, mess, index);
+			Person pers = strictMapper.mapSingleDocResponse(jsonResp, Person.class, mess);
 
 			// Response for an non-corrupted document
 			String jsonCorruptedDocResp =
@@ -62,12 +63,12 @@ public class ResponseMapperTest {
 				"\"_source\":{\"scroll\":\"1m\"}}";
 			// In this case, the strict mapper raises an exception
 			Assertions.assertThrows(BadESRecordException.class, () -> {
-				strictMapper.mapSingleDocResponse(jsonCorruptedDocResp, Person.class, mess, index);
+				strictMapper.mapSingleDocResponse(jsonCorruptedDocResp, Person.class, mess);
 			});
 			// But the lenient mapper does NOT raise an exception and it
 			// returns null
 			//
-			pers = lenientMapper.mapSingleDocResponse(jsonCorruptedDocResp, Person.class, mess, index);
+			pers = lenientMapper.mapSingleDocResponse(jsonCorruptedDocResp, Person.class, mess);
 			Assertions.assertTrue(pers == null);
 		}
 	}
