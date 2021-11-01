@@ -6,6 +6,7 @@ import java.util.Map;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.JSONObject;
 
 public class ElasticSearchException extends Exception {
 	
@@ -37,13 +38,23 @@ public class ElasticSearchException extends Exception {
 		super(message(errorMessage, esResponse, indexName), e);
 	}
 
+	public ElasticSearchException (String errorMessage,
+ 		Exception e, String esResponse, String indexName) {
+		super(message(errorMessage, esResponse, indexName), e);
+	}
+
 	public ElasticSearchException (
-		Exception e, String mess, JsonNode esResponse, String indexName) {
+		Exception e, String mess, JSONObject esResponse, String indexName) {
+		super(message(mess, esResponse, indexName), e);
+	}
+
+	public ElasticSearchException (
+		Exception e, String mess, String esResponse, String indexName) {
 		super(message(mess, esResponse, indexName), e);
 	}
 
 	public ElasticSearchException (String errorMessage,
-		Exception e, JsonNode esResponse, String indexName) {
+		Exception e, JSONObject esResponse, String indexName) {
 		super(message(errorMessage, esResponse, indexName), e);
 	}
 
@@ -81,7 +92,7 @@ public class ElasticSearchException extends Exception {
 		return message(errorMessage, jsonResponse, indexName);
 	}
 
-	private static String message(String errorMessage, JsonNode esResponse,
+	private static String message(String errorMessage, JSONObject esResponse,
 		String indexName) {
 		String jsonResponse = null;
 		if (esResponse != null) {

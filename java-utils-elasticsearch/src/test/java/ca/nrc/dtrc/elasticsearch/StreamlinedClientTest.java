@@ -11,7 +11,6 @@ import ca.nrc.testing.AssertHelpers;
 import ca.nrc.testing.AssertJson;
 import ca.nrc.testing.AssertObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Before;
@@ -22,7 +21,6 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.attribute.FileAttribute;
 import java.util.*;
 
@@ -1140,12 +1138,13 @@ public class StreamlinedClientTest {
 			Files.createTempFile("test", "json", new FileAttribute[0])
 			.toFile();
 		esClient.dumpToFile(gotFile, PlayLine.class);
+
 		AssertFile.assertFileContains(
 			"Dumped index was missing the first document",
-			gotFile, "{\"longDescription\":\"Bernardo?\",\"additionalFields\":{\"line_id\":32439,\"play_name\":\"Hamlet\",\"speech_number\":4,\"line_number\":\"1.1.4\",\"speaker\":\"FRANCISCO\"},\"_detect_language\":true,\"id\":\"1.1.4\",\"shortDescription\":null,\"lang\":\"en\",\"creationDate\":null,\"content\":\"Bernardo?\"}", true, false);
+			gotFile, ESTestHelpers.hamletFirstLine, true, false);
 		AssertFile.assertFileContains(
 			"Dumped index was missing the last document",
-			gotFile, "{\"longDescription\":\"A dead march. Exeunt, bearing off the dead bodies; after which a peal of ordnance is shot off\",\"additionalFields\":{\"line_id\":36676,\"play_name\":\"Hamlet\",\"speech_number\":147,\"line_number\":\"5.2.424\",\"speaker\":\"PRINCE FORTINBRAS\"},\"_detect_language\":true,\"id\":\"5.2.424\",\"shortDescription\":null,\"lang\":\"en\",\"creationDate\":null,\"content\":\"A dead march. Exeunt, bearing off the dead bodies; after which a peal of ordnance is shot off\"}", true, false);
+			gotFile, ESTestHelpers.hamletLastLine, true, false);
 	}
 
 	@Test
@@ -1161,11 +1160,20 @@ public class StreamlinedClientTest {
 		AssertFile.assertFileDoesNotContain(
 			"Dumped index should only have contained lines spoken by FRANCISCO",
 			gotFile.getPath(),
-			"{\"longDescription\":\"Friends to this ground.\",\"additionalFields\":{\"line_id\":32452,\"play_name\":\"Hamlet\",\"speech_number\":13,\"line_number\":\"1.1.16\",\"speaker\":\"HORATIO\"},\"_detect_language\":true,\"id\":\"1.1.16\",\"shortDescription\":null,\"lang\":\"en\",\"creationDate\":null,\"content\":\"Friends to this ground.\"}",
+			"\"speaker\":\"HAMLET\"",
 			false);
+		String expLine =
+			"{"+
+			"\"_detect_language\":true,"+
+			"\"additionalFields\":{"+
+			  "\"line_id\":32454,\"line_number\":\"1.1.18\",\"play_name\":\"Hamlet\",\"speaker\":\"FRANCISCO\",\"speech_number\":15"+
+			"},"+
+			"\"content\":\"Give you good night.\",\"creationDate\":null,\"id\":\"1.1.18\",\"lang\":\"en\",\"longDescription\":\"Give you good night.\",\"shortDescription\":null}"
+			;
+
 		AssertFile.assertFileContains(
 			"Dumped index was missing a line spoken by FRANCISCO",
-			gotFile, "{\"longDescription\":\"Give you good night.\",\"additionalFields\":{\"line_id\":32454,\"play_name\":\"Hamlet\",\"speech_number\":15,\"line_number\":\"1.1.18\",\"speaker\":\"FRANCISCO\"},\"_detect_language\":true,\"id\":\"1.1.18\",\"shortDescription\":null,\"lang\":\"en\",\"creationDate\":null,\"content\":\"Give you good night.\"}\n", true, false);
+			gotFile, expLine, true, false);
 	}
 
 	@Test
@@ -1180,12 +1188,11 @@ public class StreamlinedClientTest {
 
 		AssertFile.assertFileContains(
 			"Dumped index is missing the first line of the play",
-			gotFile,
-			"{\"longDescription\":\"Friends to this ground.\",\"additionalFields\":{\"line_id\":32452,\"play_name\":\"Hamlet\",\"speech_number\":13,\"line_number\":\"1.1.16\",\"speaker\":\"HORATIO\"},\"_detect_language\":true,\"id\":\"1.1.16\",\"shortDescription\":null,\"lang\":\"en\",\"creationDate\":null,\"content\":\"Friends to this ground.\"}",
+			gotFile, ESTestHelpers.hamletFirstLine,
 			true, false);
 		AssertFile.assertFileContains(
 			"Dumped index is missing the last line of the play",
-			gotFile, "{\"longDescription\":\"Give you good night.\",\"additionalFields\":{\"line_id\":32454,\"play_name\":\"Hamlet\",\"speech_number\":15,\"line_number\":\"1.1.18\",\"speaker\":\"FRANCISCO\"},\"_detect_language\":true,\"id\":\"1.1.18\",\"shortDescription\":null,\"lang\":\"en\",\"creationDate\":null,\"content\":\"Give you good night.\"}\n",
+			gotFile, ESTestHelpers.hamletLastLine,
 			true, false);
 	}
 

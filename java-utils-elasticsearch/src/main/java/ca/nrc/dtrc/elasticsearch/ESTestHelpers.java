@@ -30,7 +30,25 @@ public class ESTestHelpers {
 	public static final long EXTRA_LONG_WAIT = 4*LONG_WAIT;
 	
 	public static List<String> indicesToBeCleared = new ArrayList<String>();
-	
+
+	public static String hamletFirstLine =
+		"{"+
+		"\"_detect_language\":true,"+
+		"\"additionalFields\":{"+
+		  "\"line_id\":32439,\"line_number\":\"1.1.4\",\"play_name\":\"Hamlet\",\"speaker\":\"FRANCISCO\",\"speech_number\":4"+
+		"},"+
+		"\"content\":\"Bernardo?\",\"creationDate\":null,\"id\":\"1.1.4\",\"lang\":\"en\",\"longDescription\":\"Bernardo?\",\"shortDescription\":null}"
+		;
+
+	public static String hamletLastLine =
+			"{"+
+			"\"_detect_language\":true,"+
+			"\"additionalFields\":{"+
+			  "\"line_id\":36676,\"line_number\":\"5.2.424\",\"play_name\":\"Hamlet\",\"speaker\":\"PRINCE FORTINBRAS\",\"speech_number\":147"+
+			"},"+
+			"\"content\":\"A dead march. Exeunt, bearing off the dead bodies; after which a peal of ordnance is shot off\",\"creationDate\":null,\"id\":\"5.2.424\",\"lang\":\"en\",\"longDescription\":\"A dead march. Exeunt, bearing off the dead bodies; after which a peal of ordnance is shot off\",\"shortDescription\":null}"
+			;
+
 	public static class PlayLine extends Document {        
         public PlayLine() {}
         

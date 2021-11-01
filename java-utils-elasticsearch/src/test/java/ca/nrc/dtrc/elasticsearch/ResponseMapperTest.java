@@ -1,5 +1,6 @@
 package ca.nrc.dtrc.elasticsearch;
 
+import org.json.JSONObject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -50,13 +51,22 @@ public class ResponseMapperTest {
 				"\"_id\":\"HomerSimpson\"," +
 				"\"found\":true," +
 				"\"_source\":{\"id\":\"HomerSimpson\",\"firstName\":\"Homer\",\"surname\":\"Simpson\",\"gender\":\"m\"}}";
+
+			JSONObject jsonrespObj = new JSONObject()
+				.put("_index", "some-index")
+				.put("_type", "cartoon-chars")
+				.put("_id", "HomerSimpson")
+				.put("found", true)
+				.put("source", "{\"id\":\"HomerSimpson\",\"firstName\":\"Homer\",\"surname\":\"Simpson\",\"gender\":\"m\"}}")
+				;
 			String mess = "Just testing";
-			Person pers = strictMapper.mapSingleDocResponse(jsonResp, Person.class, mess);
+			Person pers;
+			pers = strictMapper.mapSingleDocResponse(jsonResp, Person.class, mess);
 
 			// Response for an non-corrupted document
 			String jsonCorruptedDocResp =
 				"{\"_index\":\"some-index\"," +
-				"\"_type\":\"carton-chars\"," +
+				"\"_type\":\"cartoon-chars\"," +
 				"\"_id\":\"HomerSimpson\"," +
 				"\"found\":true," +
 				// This is a corrupted document record. Not sure how those happen.

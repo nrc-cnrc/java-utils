@@ -244,64 +244,6 @@ public class Document {
 		return truncated;
 	}
 
-	public static <T extends Document> T mapSingleDocResponse(
-		String jsonResp, Class<T> docClass, ResponseMapper.BadRecordHandling badRecordsPolicy,
-		String contextMess, String indexName) throws ElasticSearchException {
-		T proto = (T)prototype4class(docClass);
-		return mapSingleDocResponse(jsonResp, proto, badRecordsPolicy, contextMess, indexName);
-	}
-
-
-	public static <T extends Document> T mapSingleDocResponse(
-		String jsonResp, T docProto, ResponseMapper.BadRecordHandling badRecordsPolicy,
-		String contextMess, String indexName) throws ElasticSearchException {
-
-		T doc = null;
-		Class<? extends Document> docClass = docProto.getClass();
-		ObjectNode respNode = null;
-		try {
-			respNode = mapper.readValue(jsonResp, ObjectNode.class);
-		} catch (IOException e) {
-			throw new ElasticSearchException(
-				contextMess + "\n" +
-				"Could not map ES response to ObjectNode (index="+indexName+").\n" +
-				"jsonResp=" + jsonResp);
-		}
-		JsonNode sourceNode = respNode.get("_source");;
-		try {
-			if (sourceNode != null) {
-				doc = (T) mapper.treeToValue(sourceNode, docClass);
-			}
-		} catch (JsonProcessingException exc) {
-			contextMess +=
-				"\nCould not read _source field to instance of " + docClass + "\n"+
-				"_source = " + sourceNode;
-			ElasticSearchException excToRaise =
-				new ElasticSearchException(exc, contextMess, sourceNode, indexName);
-			if (isCorruptedRecord(sourceNode)) {
-				excToRaise =
-					new BadESRecordException(exc, contextMess, sourceNode,
-						indexName);
-			}
-			if (excToRaise instanceof BadESRecordException) {
-				// We log ALL CorruptedESRecordExceptions
-				Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.Document.isCorruptedRecord");
-				logger.setLevel(Level.ERROR);
-				logger.error(contextMess+Debug.printCallStack(exc));
-			}
-
-			if (badRecordsPolicy != ResponseMapper.BadRecordHandling.LENIENT ||
-				!(excToRaise instanceof BadESRecordException)) {
-				// We do not raise the exception if this is a corrupted record AND
-				// we are using policy
-				// BadRecordHandling.LOG_EXCEPTION
-				//   --> log the exception without raising it.
-				throw excToRaise;
-			}
-		}
-		return doc;
-	}
-
 	public static Document prototype4class(Class<? extends Document> docClass) throws ElasticSearchException {
 		Document proto = null;
 		try {
@@ -313,18 +255,5 @@ public class Document {
 				e);
 		}
 		return proto;
-	}
-
-	@JsonIgnore
-	private static boolean isCorruptedRecord(JsonNode jsonData) {
-		Boolean corrupted = null;
-		if (jsonData.has("_scroll") || jsonData.has("scroll")) {
-			corrupted = true;
-		}
-
-		if (corrupted == null) {
-			corrupted = false;
-		}
-		return corrupted;
 	}
 }

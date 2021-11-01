@@ -87,6 +87,11 @@ public class PrettyPrinter {
 		return json;
 	}
 
+	public static String formatAsSingleLine(String json) {
+		json = json.replaceAll("\n\\s*","");
+		return json;
+	}
+
 	private String prettyPrint(Object obj, Set<String> fieldsToIgnore) {
 		String json = prettyPrint(obj, fieldsToIgnore, 0);
 		return json;

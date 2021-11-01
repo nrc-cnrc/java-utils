@@ -10,6 +10,8 @@ import ca.nrc.dtrc.elasticsearch.request.RequestBodyElement;
 import ca.nrc.dtrc.elasticsearch.request.Highlight;
 import ca.nrc.introspection.Introspection;
 import ca.nrc.introspection.IntrospectionException;
+import ca.nrc.json.MapperFactory;
+import ca.nrc.json.PrettyPrinter;
 import ca.nrc.ui.commandline.UserIO;
 import ca.nrc.web.Http;
 import ca.nrc.web.HttpException;
@@ -46,6 +48,8 @@ public class StreamlinedClient {
 	public boolean updatesWaitForRefresh = false;
 
 	ResponseMapper respMapper = new ResponseMapper((String)null);
+
+	private static ObjectMapper mapper = MapperFactory.mapper();
 
 	// Whenever the client issues a transaction that modifies the DB,
 	// it will sleep by that much to give ES time to update all the 
@@ -1475,8 +1479,8 @@ public class StreamlinedClient {
 	}
 
 	public <T extends Document> void dumpToFile(File file, Class<? extends Document> docClass,
-															  String esDocType, String query, Set<String> fieldsToIgnore)
-	throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ElasticSearchException {
+		String esDocType, String query, Set<String> fieldsToIgnore)
+		throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException, ElasticSearchException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.dumpToFile");
 		Document docPrototype = docClass.getConstructor().newInstance();
 		if (esDocType == null) {
@@ -1516,7 +1520,6 @@ public class StreamlinedClient {
 				FileUtils.deleteDirectory(outputFile);
 				outputFile.mkdir();
 			}
-			ObjectMapper mapper = new ObjectMapper();
 			Map<String, Object> docMap = new HashMap<String, Object>();
 			Iterator<?> iter = results.iterator();
 			while (iter.hasNext()) {
@@ -1527,7 +1530,8 @@ public class StreamlinedClient {
 					additionalFields.remove(fld);
 				}
 				if (intoSingleJsonFile) {
-					String json = mapper.writeValueAsString(docMap);
+					String json = PrettyPrinter.print(docMap);
+					json = PrettyPrinter.formatAsSingleLine(json);
 					fWriter.write(json + "\n");
 				} else {
 					writeToTextFile(aScoredDoc.getDocument(), outputFile.getAbsolutePath());
