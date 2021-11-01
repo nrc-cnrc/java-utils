@@ -867,17 +867,16 @@ public class StreamlinedClient {
 			totalHits = hitsCollectionNode.get("total").asLong();
 			ArrayNode hitsArrNode = (ArrayNode) hitsCollectionNode.get("hits");
 			for (int ii = 0; ii < hitsArrNode.size(); ii++) {
-				String hitJson = hitsArrNode.get(ii).get("_source").toString();
-				// TODO-ResponseMapper: Use it here
-				T hitObject = (T) mapper.readValue(hitJson, docPrototype.getClass());
+				String hitJson = hitsArrNode.get(ii).toString();
+				T hitObject = respMapper.mapSingleDocResponse(hitJson, docPrototype, "", indexName);
 				Double hitScore = hitsArrNode.get(ii).get("_score").asDouble();
 
 				scoredDocuments.add(new Hit<T>(hitObject, hitScore, hitsArrNode.get(ii).get("highlight")));
 			}
 		} catch (Exception e) {
 			throw new ElasticSearchException(
-			"Error parsing ES search response:\n" + jsonSearchResponse,
-			e, this.indexName);
+				"Error parsing ES search response:\n" + jsonSearchResponse,
+				e, this.indexName);
 		}
 
 		return Pair.of(Pair.of(totalHits, scrollID), scoredDocuments);
