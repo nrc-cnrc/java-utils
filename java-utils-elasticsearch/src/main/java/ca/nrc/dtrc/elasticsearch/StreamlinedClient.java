@@ -45,8 +45,7 @@ public class StreamlinedClient {
 
 	public boolean updatesWaitForRefresh = false;
 
-	;
-	public ResponseMapper.BadRecordHandling onBadRecord = ResponseMapper.BadRecordHandling.STRICT;
+	ResponseMapper respMapper = new ResponseMapper();
 
 	// Whenever the client issues a transaction that modifies the DB,
 	// it will sleep by that much to give ES time to update all the 
@@ -138,6 +137,12 @@ public class StreamlinedClient {
 				createIndex(indexName);
 			}
 		}
+	}
+
+	@JsonIgnore
+	public StreamlinedClient setResponseMapperPolicy(ResponseMapper.BadRecordHandling policy) {
+		respMapper.onBadRecord = policy;
+		return this;
 	}
 
 	public StreamlinedClient setSleepSecs(double _sleepSecs) {
@@ -1384,10 +1389,8 @@ public class StreamlinedClient {
 
 
 		String jsonResp = get(url);
-
-		// TODO-ResponseMapper: Use it here
 		doc =
-			Document.mapSingleDocResponse(jsonResp, docClass, onBadRecord,
+			respMapper.mapSingleDocResponse(jsonResp, docClass,
 				"Record for document with ID="+docID+" is corrupted (expected class="+docClass,
 				indexName);
 
