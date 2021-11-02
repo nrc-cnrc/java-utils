@@ -53,29 +53,6 @@ public class ResponseMapper {
 	}
 
 	public <T extends Document> T mapSingleDocResponse(
-		String jsonResp, Class<T> docClass, String contextMess)
-		throws ElasticSearchException {
-		T proto = (T)Document.prototype4class(docClass);
-		return mapSingleDocResponse(jsonResp, proto, contextMess);
-	}
-
-	public <T extends Document> T mapSingleDocResponse(
-		String jsonResp, T docProto, String contextMess)
-		throws ElasticSearchException {
-		T doc = null;
-		try {
-			JSONObject jsonRespObj = new JSONObject(jsonResp);
-			doc = mapSingleDocResponse(jsonRespObj, docProto, contextMess);
-		} catch (ElasticSearchException e) {
-			throw e;
-		} catch (Exception e) {
-			throw new ElasticSearchException(e);
-		}
-
-		return doc;
-	}
-
-	public <T extends Document> T mapSingleDocResponse(
 		JSONObject jsonResp, T docProto, String contextMess)
 		throws ElasticSearchException {
 

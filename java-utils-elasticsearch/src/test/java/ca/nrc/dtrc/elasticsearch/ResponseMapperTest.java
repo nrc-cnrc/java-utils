@@ -45,32 +45,33 @@ public class ResponseMapperTest {
 		{
 			// Response for an non-corrupted document
 			String index = "someIndex";
-			String jsonResp =
-				"{\"_index\":\"some-index\"," +
-				"\"_type\":\"carton-chars\"," +
-				"\"_id\":\"HomerSimpson\"," +
-				"\"found\":true," +
-				"\"_source\":{\"id\":\"HomerSimpson\",\"firstName\":\"Homer\",\"surname\":\"Simpson\",\"gender\":\"m\"}}";
-
-			JSONObject jsonrespObj = new JSONObject()
+			JSONObject jsonResp = new JSONObject()
 				.put("_index", "some-index")
 				.put("_type", "cartoon-chars")
 				.put("_id", "HomerSimpson")
 				.put("found", true)
-				.put("source", "{\"id\":\"HomerSimpson\",\"firstName\":\"Homer\",\"surname\":\"Simpson\",\"gender\":\"m\"}}")
+				.put("_source",
+					new JSONObject()
+						.put("id", "HomerSimpson")
+						.put("firstName", "Homer")
+						.put("surname", "Simpson")
+						.put("gender", "m")
+					)
 				;
 			String mess = "Just testing";
 			Person pers;
 			pers = strictMapper.mapSingleDocResponse(jsonResp, Person.class, mess);
 
 			// Response for an non-corrupted document
-			String jsonCorruptedDocResp =
-				"{\"_index\":\"some-index\"," +
-				"\"_type\":\"cartoon-chars\"," +
-				"\"_id\":\"HomerSimpson\"," +
-				"\"found\":true," +
-				// This is a corrupted document record. Not sure how those happen.
-				"\"_source\":{\"scroll\":\"1m\"}}";
+			JSONObject jsonCorruptedDocResp = new JSONObject()
+				.put("_index", "some-index")
+				.put("_type", "cartoon-chars")
+				.put("_id", "HomerSimpson")
+				.put("found", true)
+				// This is a corrupted document record. Not sure how those happen but
+				// they sometimes do.
+				.put("_source", new JSONObject().put("scroll", "1m"));
+				;
 			// In this case, the strict mapper raises an exception
 			Assertions.assertThrows(BadESRecordException.class, () -> {
 				strictMapper.mapSingleDocResponse(jsonCorruptedDocResp, Person.class, mess);

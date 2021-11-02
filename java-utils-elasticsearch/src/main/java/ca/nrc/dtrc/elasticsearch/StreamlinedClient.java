@@ -1395,7 +1395,8 @@ public class StreamlinedClient {
 		ObjectMapper mapper = new ObjectMapper();
 
 
-		String jsonResp = get(url);
+		String jsonRespStr = get(url);
+		JSONObject jsonResp = new JSONObject(jsonRespStr);
 		doc =
 			respMapper.mapSingleDocResponse(jsonResp, docClass,
 				"Record for document with ID="+docID+" is corrupted (expected class="+docClass);
