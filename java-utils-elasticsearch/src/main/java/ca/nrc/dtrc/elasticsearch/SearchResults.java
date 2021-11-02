@@ -2,15 +2,13 @@ package ca.nrc.dtrc.elasticsearch;
 
 import ca.nrc.json.PrettyPrinter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 
@@ -24,7 +22,7 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 
 	private String scrollID = null;
 
-	private Map<String,Object> aggregations = new HashMap<String,Object>();
+	private JSONObject aggregations = new JSONObject();
 	
 	protected HitFilter filter = new HitFilter();
 	
@@ -81,7 +79,7 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 		public List<Hit<T>> getTopScoredDocuments() {
 			return topHits;
 		}
-		public void addHit(T doc, Double score, JsonNode snippets) {
+		public void addHit(T doc, Double score, JSONObject snippets) {
 			scoredHitsBatch.add(new Hit<T>(doc,  score, snippets));
 		}
 		
@@ -106,7 +104,7 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 		}
 
 		init_Searchresults(firstResultsBatch, _scrollID, _totalHits,
-			(Map)null, _docPrototype, _esClient, (URL)null);
+			(JSONObject)null, _docPrototype, _esClient, (URL)null);
 	}	
 	
 	public SearchResults(String jsonResponse, T _docPrototype,
@@ -118,49 +116,52 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 		init_Searchresults(jsonResponse, _docPrototype, _esClient, url);
 	}
 
-	private Triple<Pair<Long, String>, List<Hit<T>>, Map<String, Object>>
+	private Triple<Pair<Long, String>, List<Hit<T>>, JSONObject>
 		parseJsonSearchResponse(String jsonSearchResponse, T docPrototype) throws ElasticSearchException {
 		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults.parseJsonSearchResponse");
 		if (tLogger.isTraceEnabled()) {
 			tLogger.trace("invoked with docPrototype="+docPrototype.getClass().getName()+", jsonSearchResponse="+jsonSearchResponse);
 		}
 		List<Hit<T>> scoredDocuments = new ArrayList<>();
-		Map<String,Object> aggregations = new HashMap<String,Object>();
+		JSONObject aggregations = new JSONObject();
 		String scrollID = null;
 		ObjectMapper mapper = new ObjectMapper();
-		ObjectNode jsonRespNode;
+		JSONObject jsonRespNode;
 		Long totalHits;
 		try {
-			jsonRespNode = (ObjectNode) mapper.readTree(jsonSearchResponse);
+			jsonRespNode = new JSONObject(jsonSearchResponse);
 			if (jsonRespNode.has("_scroll_id")) {
-				scrollID = jsonRespNode.get("_scroll_id").asText();
+				scrollID = jsonRespNode.getString("_scroll_id");
 			}
 			if (jsonRespNode.has("aggregations")) {
-				JsonNode aggrNode = jsonRespNode.get("aggregations");
-				String aggrJson = mapper.writeValueAsString(aggrNode);
-				aggregations = mapper.readValue(aggrJson, aggregations.getClass());
+				aggregations = jsonRespNode.getJSONObject("aggregations");
 			}
 
-			ObjectNode hitsCollectionNode = (ObjectNode) jsonRespNode.get("hits");
-			totalHits = hitsCollectionNode.get("total").asLong();
-			ArrayNode hitsArrNode = (ArrayNode) hitsCollectionNode.get("hits");
-			for (int ii=0; ii < hitsArrNode.size(); ii++) {
+			JSONObject hitsCollectionNode = jsonRespNode.getJSONObject("hits");
+			totalHits = hitsCollectionNode.getLong("total");
+			JSONArray hitsArrNode = hitsCollectionNode.getJSONArray("hits");
+			for (int ii=0; ii < hitsArrNode.length(); ii++) {
 				T hitObject = null;
+				JSONObject hitJson = hitsArrNode.getJSONObject(ii);
 				try {
-					String hitSource = hitsArrNode.get(ii).toString();
+					String hitSource = hitJson.toString();
 					hitObject = respMapper.mapSingleDocResponse(hitSource, docPrototype, "");
 				} catch (Exception e) {
 					throw new BadDocProtoException(e);
 				}
-				Double hitScore = hitsArrNode.get(ii).get("_score").asDouble();
+				Double hitScore = hitJson.getDouble("_score");
 
-				scoredDocuments.add(new Hit<T>(hitObject, hitScore, hitsArrNode.get(ii).get("highlight")));
+				JSONObject highglights = new JSONObject();
+				if (hitJson.has("highlight")) {
+					highglights = hitJson.getJSONObject("highlight");
+				}
+				scoredDocuments.add(new Hit<T>(hitObject, hitScore, highglights));
 			}
-		} catch (IOException | RuntimeException e) {
+		} catch (RuntimeException e) {
 			throw new ElasticSearchException(e);
 		}
 
-		Triple<Pair<Long, String>, List<Hit<T>>, Map<String, Object>> results =
+		Triple<Pair<Long, String>, List<Hit<T>>, JSONObject> results =
 			Triple.of(
 				Pair.of(totalHits, scrollID),
 				scoredDocuments,
@@ -182,9 +183,9 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 		Long _totalHits = new Long(0);
 		String scrollID = null;
 		List<Hit<T>> firstBatch = new ArrayList<Hit<T>>();
-		Map<String,Object> _aggregations = new HashMap<String,Object>();
+		JSONObject _aggregations = new JSONObject();
 		if (jsonResponse != null) {
-			Triple<Pair<Long, String>, List<Hit<T>>, Map<String, Object>>
+			Triple<Pair<Long, String>, List<Hit<T>>, JSONObject>
 			parsedResults = parseJsonSearchResponse(jsonResponse, _docPrototype);
 			_totalHits = parsedResults.getLeft().getLeft();
 			scrollID = parsedResults.getLeft().getRight();
@@ -197,7 +198,7 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 	}
 
 	public void init_Searchresults(List<Hit<T>> firstResultsBatch,
-		String _scrollID, Long _totalHits, Map<String,Object> _aggregations,
+		String _scrollID, Long _totalHits, JSONObject _aggregations,
  		T _docPrototype, StreamlinedClient _esClient, URL _searchURL) {
 		this.scoredHitsBatch = firstResultsBatch;
 		this.scrollID = _scrollID;
@@ -263,12 +264,25 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 		return this;
 	}
 
-	public Object aggrResult(String aggrName) {
-		Map<String,Object> aggr = (Map<String, Object>) aggregations.get(aggrName);
+	public Object aggrResult(String aggrName, Class clazz) throws ElasticSearchException {
 		Object value = null;
-		if (aggr != null) {
-			value = aggr.get("value");
+		JSONObject aggField = aggregations.getJSONObject(aggrName);
+		if (clazz == Integer.class) {
+			value = aggField.getInt("value");
+		} else if (clazz == Long.class) {
+			value = aggField.getLong("value");
+		} else if (clazz == Float.class || clazz == Double.class) {
+			value = aggField.getDouble("value");
+		} else if (clazz == String.class) {
+			value = aggField.getString("value");
+		} else if (clazz == JSONObject.class) {
+			value = aggField.getJSONObject("value");
+		} else if (clazz == JSONArray.class) {
+			value = aggField.getJSONArray("value");
+		} else {
+			throw new ElasticSearchException("Unsupported type for aggregation field "+aggrName+": "+clazz);
 		}
+
 		return value;
 	}
 }

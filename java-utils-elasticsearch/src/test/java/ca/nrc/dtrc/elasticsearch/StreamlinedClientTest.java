@@ -230,7 +230,7 @@ public class StreamlinedClientTest {
 			.aggregate("avgAge", "avg", "age");
 
 		hits = client.search(queryBody, personPrototype, aggsBody);
-		Double averageAge = (Double) hits.aggrResult("avgAge");
+		Double averageAge = (Double) hits.aggrResult("avgAge", Double.class);
 	}
 
 	@Test
@@ -270,9 +270,9 @@ public class StreamlinedClientTest {
 
 		SearchResults<Person> hits =
 			client.search(queryBody, personPrototype, aggsBody);
-		Double gotTotalAge = (Double) hits.aggrResult("totalAge");
+		Long gotTotalAge = (Long) hits.aggrResult("totalAge",Long.class);
 		Assert.assertEquals("Aggregated value not as expected",
-			new Double(82.0), gotTotalAge);
+			new Long(82), gotTotalAge);
 	}
 	
 	@Test

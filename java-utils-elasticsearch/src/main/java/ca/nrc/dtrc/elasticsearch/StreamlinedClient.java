@@ -862,20 +862,24 @@ public class StreamlinedClient {
 		List<Hit<T>> scoredDocuments = new ArrayList<>();
 		String scrollID = null;
 		ObjectMapper mapper = new ObjectMapper();
-		ObjectNode jsonRespNode;
+		JSONObject jsonRespObj;
 		Long totalHits;
 		try {
-			jsonRespNode = (ObjectNode) mapper.readTree(jsonSearchResponse);
-			scrollID = jsonRespNode.get("_scroll_id").asText();
-			ObjectNode hitsCollectionNode = (ObjectNode) jsonRespNode.get("hits");
-			totalHits = hitsCollectionNode.get("total").asLong();
-			ArrayNode hitsArrNode = (ArrayNode) hitsCollectionNode.get("hits");
-			for (int ii = 0; ii < hitsArrNode.size(); ii++) {
-				String hitJson = hitsArrNode.get(ii).toString();
+			jsonRespObj = new JSONObject(jsonSearchResponse);
+			scrollID = jsonRespObj.getString("_scroll_id");
+			JSONObject hitsCollectionNode = jsonRespObj.getJSONObject("hits");
+			totalHits = hitsCollectionNode.getLong("total");
+			JSONArray hitsArrNode = hitsCollectionNode.getJSONArray("hits");
+			for (int ii = 0; ii < hitsArrNode.length(); ii++) {
+				JSONObject hitJson = hitsArrNode.getJSONObject(ii);
 				T hitObject = respMapper.mapSingleDocResponse(hitJson, docPrototype, "");
-				Double hitScore = hitsArrNode.get(ii).get("_score").asDouble();
+				Double hitScore = hitJson.getDouble("_score");
 
-				scoredDocuments.add(new Hit<T>(hitObject, hitScore, hitsArrNode.get(ii).get("highlight")));
+				JSONObject highlight = new JSONObject();
+				if (hitJson.has("highlight")) {
+					highlight = hitJson.getJSONObject("highlight");
+				}
+				scoredDocuments.add(new Hit<T>(hitObject, hitScore, highlight));
 			}
 		} catch (Exception e) {
 			throw new ElasticSearchException(
