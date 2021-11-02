@@ -872,7 +872,7 @@ public class StreamlinedClient {
 			JSONArray hitsArrNode = hitsCollectionNode.getJSONArray("hits");
 			for (int ii = 0; ii < hitsArrNode.length(); ii++) {
 				JSONObject hitJson = hitsArrNode.getJSONObject(ii);
-				T hitObject = respMapper.mapSingleDocResponse(hitJson, docPrototype, "");
+				T hitObject = respMapper.response2doc(hitJson, docPrototype, "");
 				Double hitScore = hitJson.getDouble("_score");
 
 				JSONObject highlight = new JSONObject();
@@ -1398,7 +1398,7 @@ public class StreamlinedClient {
 		String jsonRespStr = get(url);
 		JSONObject jsonResp = new JSONObject(jsonRespStr);
 		doc =
-			respMapper.mapSingleDocResponse(jsonResp, docClass,
+			respMapper.response2doc(jsonResp, docClass,
 				"Record for document with ID="+docID+" is corrupted (expected class="+docClass);
 
 		return doc;
@@ -1504,7 +1504,7 @@ public class StreamlinedClient {
 	}
 
 	private void dumpToFile(File outputFile, SearchResults<? extends Document> results,
-									Boolean intoSingleJsonFile, Set<String> fieldsToIgnore) throws ElasticSearchException {
+		Boolean intoSingleJsonFile, Set<String> fieldsToIgnore) throws ElasticSearchException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.dumpToFile");
 
 		if (fieldsToIgnore == null) {

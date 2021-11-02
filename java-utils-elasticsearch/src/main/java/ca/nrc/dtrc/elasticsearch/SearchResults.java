@@ -144,7 +144,7 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 				T hitObject = null;
 				JSONObject hitJson = hitsArrNode.getJSONObject(ii);
 				try {
-					hitObject = respMapper.mapSingleDocResponse(hitJson, docPrototype, "");
+					hitObject = respMapper.response2doc(hitJson, docPrototype, "");
 				} catch (Exception e) {
 					throw new BadDocProtoException(e);
 				}

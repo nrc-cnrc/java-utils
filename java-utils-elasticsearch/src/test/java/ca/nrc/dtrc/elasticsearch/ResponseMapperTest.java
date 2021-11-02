@@ -60,7 +60,7 @@ public class ResponseMapperTest {
 				;
 			String mess = "Just testing";
 			Person pers;
-			pers = strictMapper.mapSingleDocResponse(jsonResp, Person.class, mess);
+			pers = strictMapper.response2doc(jsonResp, Person.class, mess);
 
 			// Response for an non-corrupted document
 			JSONObject jsonCorruptedDocResp = new JSONObject()
@@ -74,12 +74,12 @@ public class ResponseMapperTest {
 				;
 			// In this case, the strict mapper raises an exception
 			Assertions.assertThrows(BadESRecordException.class, () -> {
-				strictMapper.mapSingleDocResponse(jsonCorruptedDocResp, Person.class, mess);
+				strictMapper.response2doc(jsonCorruptedDocResp, Person.class, mess);
 			});
 			// But the lenient mapper does NOT raise an exception and it
 			// returns null
 			//
-			pers = lenientMapper.mapSingleDocResponse(jsonCorruptedDocResp, Person.class, mess);
+			pers = lenientMapper.response2doc(jsonCorruptedDocResp, Person.class, mess);
 			Assertions.assertTrue(pers == null);
 		}
 	}

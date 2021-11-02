@@ -45,14 +45,14 @@ public class ResponseMapper {
 		}
 	}
 
-	public <T extends Document> T mapSingleDocResponse(
+	public <T extends Document> T response2doc(
 		JSONObject jsonResp, Class<T> docClass, String contextMess)
 		throws ElasticSearchException {
 		T proto = (T)Document.prototype4class(docClass);
-		return mapSingleDocResponse(jsonResp, proto, contextMess);
+		return response2doc(jsonResp, proto, contextMess);
 	}
 
-	public <T extends Document> T mapSingleDocResponse(
+	public <T extends Document> T response2doc(
 		JSONObject jsonResp, T docProto, String contextMess)
 		throws ElasticSearchException {
 
