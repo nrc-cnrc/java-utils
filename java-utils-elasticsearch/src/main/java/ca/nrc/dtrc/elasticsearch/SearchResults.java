@@ -148,7 +148,10 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 				} catch (Exception e) {
 					throw new BadDocProtoException(e);
 				}
-				Double hitScore = hitJson.getDouble("_score");
+				Double hitScore = new Double(0.0);
+				if (hitJson.has("_score") && !hitJson.isNull("_score")) {
+					hitScore = hitJson.getDouble("_score");
+				}
 
 				JSONObject highglights = new JSONObject();
 				if (hitJson.has("highlight")) {
