@@ -37,7 +37,7 @@ public class ResponseMapperTest {
 		// circumstances and will log or raise the exception the same way.
 		String indexName = "someindex";
 		final ResponseMapper strictMapper = new ResponseMapper(indexName);
-		final ResponseMapper lenientMapper = new ResponseMapper(indexName, ResponseMapper.BadRecordHandling.LENIENT);
+		final ResponseMapper lenientMapper = new ResponseMapper(indexName, ErrorHandlingPolicy.LENIENT);
 
 		// You can use the mapper to map different types of ES responses.
 		// For example, here is how you map an ES response that provides the

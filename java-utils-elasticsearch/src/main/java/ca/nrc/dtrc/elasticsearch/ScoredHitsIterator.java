@@ -35,14 +35,37 @@ public class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> 
 	// The SearchResults class needs it to be able to scroll through
 	// the list of hits one batch at a time.
 	@JsonIgnore
-	StreamlinedClient esClient = null;	
-	
+	StreamlinedClient esClient = null;
+
+	public ScoredHitsIterator() throws ElasticSearchException, SearchResultsException {
+		init__ScoredHitsIterator(
+			(List<Hit<T>>)null, (String)null, (T)null, (StreamlinedClient)null,
+			(HitFilter)null);
+	}
+
 	public ScoredHitsIterator(List<Hit<T>> firstResultsBatch, String _scrollID, T _docPrototype, StreamlinedClient _esClient, HitFilter _filter) throws ElasticSearchException, SearchResultsException {
+		init__ScoredHitsIterator(firstResultsBatch, _scrollID, _docPrototype,
+			_esClient, _filter);
+	}
+
+	private void init__ScoredHitsIterator(
+		List<Hit<T>> firstResultsBatch, String _scrollID, T _docPrototype,
+		StreamlinedClient _esClient, HitFilter _filter)
+		throws ElasticSearchException, SearchResultsException {
+
 		this.scrollID = _scrollID;
 		this.docPrototype = _docPrototype;
 		this.esClient = _esClient;
 		this.filter = _filter;
 		this.retrieveAndFilterUntilNonEmptyBatch(firstResultsBatch);
+	}
+
+	public ErrorHandlingPolicy errorPolicy() {
+		ErrorHandlingPolicy policy = ErrorHandlingPolicy.STRICT;
+		if (esClient != null) {
+			policy = esClient._errorPolicy;
+		}
+		return policy;
 	}
 	
 	private void retrieveAndFilterUntilNonEmptyBatch() throws ElasticSearchException, SearchResultsException {
@@ -52,8 +75,13 @@ public class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> 
 	
 	private void retrieveAndFilterUntilNonEmptyBatch(List<Hit<T>> initialBatch) throws ElasticSearchException, SearchResultsException {
 		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.ScoredHitsIterator.retrieveAndFilterUntilNonEmptyBatch");
+		tLogger.trace("scrollID="+scrollID);
 		if (tLogger.isTraceEnabled()) {
-			tLogger.trace("scrollID="+scrollID+", initialBatch="+PrettyPrinter.print(initialBatch));
+			String mess = "initialBatch=null";
+			if (initialBatch != null) {
+				mess = "initialBatch.size()="+initialBatch.size();
+			}
+			tLogger.trace(mess);
 		}
 		if (initialBatch != null) { 
 			documentsBatch = initialBatch; 
@@ -78,7 +106,8 @@ public class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> 
 				// unsuccessful batches
 				unsuccessfulBatchesCountdown--;
 				if (unsuccessfulBatchesCountdown == 0) break;
-				
+
+				tLogger.trace("Scrolling hits with esClient.getErrorPolicy()="+esClient.getErrorPolicy());
 				documentsBatch = esClient.scrollScoredHits(scrollID, docPrototype);
 				
 				// No more hits to be retrieved from ElasticSearch
@@ -88,7 +117,14 @@ public class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> 
 		batchCursor = 0;
 
 		if (tLogger.isTraceEnabled()) {
-			tLogger.trace("Upon exit, batchCursor="+batchCursor+", scrollID="+scrollID+", documentsBatch="+PrettyPrinter.print(documentsBatch));
+			String mess = "Upon exit, batchCursor="+batchCursor+
+				", scrollID="+scrollID;
+			if (initialBatch == null) {
+				mess += ", initialBatch = null";
+			} else {
+				mess += "initialBatch.size()="+initialBatch.size();
+			}
+			tLogger.trace(mess);
 		}
 	}		
 		
@@ -113,33 +149,45 @@ public class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> 
 	}
 	@Override
 	public boolean hasNext() {
-		
+
 		Boolean answer = null;
-		
-		if (documentsBatch == null) {
-			// Null batch --> false;
-			answer = false;
-		}
-		
-		if (answer == null && documentsBatch.size() == 0) {
-			// Non null but empty batch --> false;
-			answer = false;
-		}
-		
-		if (answer == null) {
-			// Current batch is not null and it is not empty
-			// Has the cursor reached the end of the batch?
-			// if so, retrieve next batch, and check again
-			if (batchCursor == documentsBatch.size()) {
-				try {
-					retrieveAndFilterUntilNonEmptyBatch();
-					answer = hasNext();
-				} catch (ElasticSearchException | SearchResultsException e) {
-					answer = false;
-					e.printStackTrace();
+
+		while (answer == null) {
+			if (documentsBatch == null) {
+				// Null batch --> false;
+				answer = false;
+			}
+
+			if (answer == null && documentsBatch.size() == 0) {
+				// Non null but empty batch --> false;
+				answer = false;
+			}
+
+			if (answer == null) {
+				// Current batch is not null and it is not empty
+				// Has the cursor reached the end of the batch?
+				// if so, retrieve next batch, and check again
+				//
+				if (batchCursor == documentsBatch.size()) {
+					try {
+						retrieveAndFilterUntilNonEmptyBatch();
+						continue;
+					} catch (ElasticSearchException | SearchResultsException e) {
+						answer = false;
+						e.printStackTrace();
+					}
+				} else {
+					answer = true;
 				}
-			} else {
-				answer = true;
+			}
+
+			if (answer == null && errorPolicy() == ErrorHandlingPolicy.LENIENT &&
+				null == documentsBatch.get(batchCursor)) {
+				// If using LENIENT error handling, then just skip null batch
+				// elements
+				//
+				batchCursor++;
+				continue;
 			}
 		}
 		

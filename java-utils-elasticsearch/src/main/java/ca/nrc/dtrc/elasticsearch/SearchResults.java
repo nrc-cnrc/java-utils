@@ -1,5 +1,6 @@
 package ca.nrc.dtrc.elasticsearch;
 
+import ca.nrc.debug.Debug;
 import ca.nrc.json.PrettyPrinter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,18 +34,18 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 
 	public SearchResults(String jsonResponse, T docPrototype,
 		StreamlinedClient _esClient) throws ElasticSearchException {
-		init__SearchResults(jsonResponse, docPrototype, _esClient,
-		(ResponseMapper)null, (String)null);
+		init__SearchResults(jsonResponse, docPrototype, _esClient, (String)null);
 	}
 
 	public SearchResults(String jsonResponse, T docPrototype,
-		StreamlinedClient _esClient, ResponseMapper _respMapper, String _indexName)
+		StreamlinedClient _esClient, String _indexName)
 		throws ElasticSearchException {
-		init__SearchResults(jsonResponse, docPrototype, _esClient, _respMapper, _indexName);
+		init__SearchResults(jsonResponse, docPrototype, _esClient, _indexName);
 	}
 
+
 	public void init__SearchResults (String jsonResponse, T docPrototype,
-		StreamlinedClient _esClient, ResponseMapper _respMapper, String _indexName)
+		StreamlinedClient _esClient, String _indexName)
 		throws ElasticSearchException {
 		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults.init__SearchResults");
 		if (tLogger.isTraceEnabled()) {
@@ -53,11 +54,7 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 		if (_indexName != null) {
 			indexName = _indexName;
 		}
-		if (_respMapper == null) {
-			_respMapper = new ResponseMapper(indexName);
-		}
-		respMapper = _respMapper;
-
+		esClient = _esClient;
 	}
 
 	public Long getTotalHits() {return totalHits;}
@@ -217,11 +214,28 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 	public Iterator<Hit<T>> iterator() {
 		ScoredHitsIterator<T> iter = null;
 		try {
+			iter = new EmptyScoredHitsIterator<T>();
+		} catch (ElasticSearchException | SearchResultsException e) {
+			throw new RuntimeException(e);
+		}
+
+		try {
 			iter = new ScoredHitsIterator<T>(scoredHitsBatch, scrollID, docPrototype, esClient, filter);
 		} catch (ElasticSearchException | SearchResultsException e) {
 			logger.error(e);
+			if (errorPolicy() == ErrorHandlingPolicy.STRICT) {
+				throw new RuntimeException(e);
+			}
 		}
 		return iter;
+	}
+
+	public ErrorHandlingPolicy errorPolicy() {
+		ErrorHandlingPolicy policy = null;
+		if (esClient != null) {
+			policy = esClient.getErrorPolicy();
+		}
+		return policy;
 	}
 
 	public DocIDIterator<T> docIDIterator() {

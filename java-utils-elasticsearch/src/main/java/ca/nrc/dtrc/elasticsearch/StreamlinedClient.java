@@ -4,6 +4,7 @@ import ca.nrc.config.ConfigException;
 import ca.nrc.data.file.ObjectStreamReader;
 import ca.nrc.data.file.ObjectStreamReaderException;
 import ca.nrc.datastructure.Pair;
+import ca.nrc.debug.Debug;
 import ca.nrc.dtrc.elasticsearch.request.JsonString;
 import ca.nrc.dtrc.elasticsearch.request.Query;
 import ca.nrc.dtrc.elasticsearch.request.RequestBodyElement;
@@ -98,6 +99,8 @@ public class StreamlinedClient {
 	 */
 	public boolean synchedHttpCalls = true;
 
+	ErrorHandlingPolicy _errorPolicy = ErrorHandlingPolicy.STRICT;
+
 	public StreamlinedClient() throws ElasticSearchException {
 		initialize(null, null, null);
 	}
@@ -144,9 +147,22 @@ public class StreamlinedClient {
 	}
 
 	@JsonIgnore
-	public StreamlinedClient setResponseMapperPolicy(ResponseMapper.BadRecordHandling policy) {
-		respMapper.onBadRecord = policy;
+	public StreamlinedClient setErrorPolicy(ErrorHandlingPolicy policy) {
+		if (policy != null) {
+			_errorPolicy = policy;
+			respMapper.onBadRecord = policy;
+		}
 		return this;
+	}
+
+	@JsonIgnore
+	public ErrorHandlingPolicy getErrorPolicy() {
+		return _errorPolicy;
+	}
+
+	@JsonIgnore
+	public ResponseMapper getRespMapper() {
+		return respMapper;
 	}
 
 	public StreamlinedClient setSleepSecs(double _sleepSecs) {
@@ -390,7 +406,8 @@ public class StreamlinedClient {
 		List<Hit<T>> firstBatch = parsedResults.getSecond();
 		String scrollID = parsedResults.getFirst().getSecond();
 
-		SearchResults results = new SearchResults(firstBatch, scrollID, totalHits, docPrototype, this);
+		SearchResults results =
+			new SearchResults(firstBatch, scrollID, totalHits, docPrototype, this);
 
 		int count = 0;
 		List<T> docs = new ArrayList<T>();
@@ -713,7 +730,7 @@ public class StreamlinedClient {
 		tLogger.trace("post returned jsonResponse=" + jsonResponse);
 
 		SearchResults<T> results =
-		new SearchResults<T>(jsonResponse, docPrototype, this, url);
+			new SearchResults<T>(jsonResponse, docPrototype, this, url);
 
 		tLogger.trace("returning results with #hits=" + results.getTotalHits());
 
@@ -839,6 +856,7 @@ public class StreamlinedClient {
 	}
 
 	public <T extends Document> List<Hit<T>> scrollScoredHits(String scrollID, T docPrototype) throws ElasticSearchException {
+		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.scrollScoredHits");
 		URL url = esUrlBuilder().forEndPoint("_search/scroll").build();
 
 		Map<String, String> postJson = new HashMap<String, String>();
@@ -853,12 +871,19 @@ public class StreamlinedClient {
 			throw new ElasticSearchException(e);
 		}
 
-		Pair<Pair<Long, String>, List<Hit<T>>> parsedResults = parseJsonSearchResponse(jsonResponse, docPrototype);
+		Pair<Pair<Long, String>, List<Hit<T>>> parsedResults = null;
+		try {
+			parsedResults = parseJsonSearchResponse(jsonResponse, docPrototype);
+		} catch (ElasticSearchException e) {
+			logger.error("scrollID="+scrollID+": parseJsonSearchResponse raised exception!");
+			throw e;
+		}
 
 		return parsedResults.getSecond();
 	}
 
 	private <T extends Document> Pair<Pair<Long, String>, List<Hit<T>>> parseJsonSearchResponse(String jsonSearchResponse, T docPrototype) throws ElasticSearchException {
+		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.StreamlinedClient.parseJsonSearchResponse");
 		List<Hit<T>> scoredDocuments = new ArrayList<>();
 		String scrollID = null;
 		ObjectMapper mapper = new ObjectMapper();
@@ -882,6 +907,9 @@ public class StreamlinedClient {
 				scoredDocuments.add(new Hit<T>(hitObject, hitScore, highlight));
 			}
 		} catch (Exception e) {
+			String mess =
+				"Error parsing ES search response:\n" + jsonSearchResponse;
+			logger.error(mess+ Debug.printCallStack(e));
 			throw new ElasticSearchException(
 				"Error parsing ES search response:\n" + jsonSearchResponse,
 				e, this.indexName);

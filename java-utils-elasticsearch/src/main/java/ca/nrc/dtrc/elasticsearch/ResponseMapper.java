@@ -1,12 +1,15 @@
 package ca.nrc.dtrc.elasticsearch;
 
 import ca.nrc.debug.Debug;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
 import java.io.IOException;
+
+import static ca.nrc.dtrc.elasticsearch.ErrorHandlingPolicy.STRICT;
 
 /** This class is used to map the Elastic Search responses to objects */
 
@@ -20,23 +23,22 @@ public class ResponseMapper {
 	 *   LENIENT: Log the exception and return a null or empty result
 	 *   (depending on the context).
 	 */
-	public static enum BadRecordHandling {STRICT, LENIENT}
-	public BadRecordHandling onBadRecord = BadRecordHandling.STRICT;
+	public ErrorHandlingPolicy onBadRecord = STRICT;
 
 	private static ObjectMapper mapper = new ObjectMapper();
 
 	private String indexName = "UNKNOWN";
 
 	public ResponseMapper(String _indexName) {
-		init__ResponseMapper(_indexName, (BadRecordHandling)null);
+		init__ResponseMapper(_indexName, (ErrorHandlingPolicy) null);
 	}
 
-	public ResponseMapper(String _indexName, BadRecordHandling _onBadRecord) {
+	public ResponseMapper(String _indexName, ErrorHandlingPolicy _onBadRecord) {
 		init__ResponseMapper(_indexName, _onBadRecord);
 	}
 
 	private void init__ResponseMapper(String _indexname,
-		BadRecordHandling _onBadRecord) {
+		ErrorHandlingPolicy _onBadRecord) {
 		if (_onBadRecord != null) {
 			onBadRecord = _onBadRecord;
 		}
@@ -72,7 +74,7 @@ public class ResponseMapper {
 				new BadESRecordException(exc, contextMess, sourceJson, indexName);
 				logBadRecordException(contextMess, badRecExc);
 
-				if (this.onBadRecord == BadRecordHandling.STRICT) {
+				if (this.onBadRecord == ErrorHandlingPolicy.STRICT) {
 					throw badRecExc;
 				}
 			}
@@ -81,21 +83,8 @@ public class ResponseMapper {
 	}
 
 	private void logBadRecordException(String contextMess, BadESRecordException exc) {
-		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.Document.isCorruptedRecord");
+		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.ResponseMapper");
 		logger.setLevel(Level.ERROR);
 		logger.error(contextMess+ Debug.printCallStack(exc));
 	}
-
-//	@JsonIgnore
-//	private static boolean isCorruptedRecord(JsonNode jsonData) {
-//		Boolean corrupted = null;
-//		if (jsonData.has("_scroll") || jsonData.has("scroll")) {
-//			corrupted = true;
-//		}
-//
-//		if (corrupted == null) {
-//			corrupted = false;
-//		}
-//		return corrupted;
-//	}
 }
