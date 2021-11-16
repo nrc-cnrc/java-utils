@@ -8,6 +8,10 @@ public class EmptyScoredHitsIterator<T extends Document> extends ScoredHitsItera
 		super();
 	}
 
+	public EmptyScoredHitsIterator(T _docPrototype) throws ElasticSearchException, SearchResultsException {
+		super(_docPrototype);
+	}
+
 	public EmptyScoredHitsIterator(List<Hit<T>> firstResultsBatch, String _scrollID, T _docPrototype, StreamlinedClient _esClient, HitFilter _filter) throws ElasticSearchException, SearchResultsException {
 		super(firstResultsBatch, _scrollID, _docPrototype, _esClient, _filter);
 	}

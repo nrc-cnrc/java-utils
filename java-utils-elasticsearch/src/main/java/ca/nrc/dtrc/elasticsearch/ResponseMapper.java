@@ -25,6 +25,8 @@ public class ResponseMapper {
 	 */
 	public ErrorHandlingPolicy onBadRecord = STRICT;
 
+	Logger errorLogger = null;
+
 	private static ObjectMapper mapper = new ObjectMapper();
 
 	private String indexName = "UNKNOWN";
@@ -45,6 +47,8 @@ public class ResponseMapper {
 		if (_indexname != null) {
 			indexName = _indexname;
 		}
+		errorLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.ResponseMapper");
+		errorLogger.setLevel(Level.ERROR);
 	}
 
 	public <T extends Document> T response2doc(
@@ -59,19 +63,37 @@ public class ResponseMapper {
 		throws ElasticSearchException {
 
 		T doc = null;
-		if (jsonResp.has("_source")) {
+		JSONObject jsonDoc = null;
+		// Leave the doc at null if the response says found=false
+		if (!jsonResp.has("found") || jsonResp.getBoolean("found")) {
+			if (jsonResp.has("_source")) {
+				jsonDoc = jsonResp.getJSONObject("_source");
+			} else {
+				jsonDoc = jsonResp;
+			}
 			Class<? extends Document> docClass = docProto.getClass();
-			String sourceJson = jsonResp.getJSONObject("_source").toString();
+			String sourceJson = jsonDoc.toString();
 			try {
+				String _id = null;
+				if (jsonResp.has("_id")) {
+					_id = jsonResp.getString("_id");
+				}
 				if (sourceJson != null) {
 					doc = (T) mapper.readValue(sourceJson, docClass);
 				}
+				if (_id != null) {
+					doc.setId(_id);
+				}
+				if (doc.getId() == null) {
+					throw new IOException("Document had null ID:\n"+mapper.writeValueAsString(doc));
+				}
 			} catch (IOException exc) {
 				contextMess +=
-				"\nCould not read _source field to instance of " + docClass + "\n" +
-				"_source = " + sourceJson;
+					"\nCould not read _source field to instance of " + docClass + "\n" +
+					"_source = " + sourceJson;
 				BadESRecordException badRecExc =
-				new BadESRecordException(exc, contextMess, sourceJson, indexName);
+					new BadESRecordException(exc, contextMess, sourceJson, indexName);
+
 				logBadRecordException(contextMess, badRecExc);
 
 				if (this.onBadRecord == ErrorHandlingPolicy.STRICT) {
@@ -79,12 +101,11 @@ public class ResponseMapper {
 				}
 			}
 		}
+
 		return doc;
 	}
 
 	private void logBadRecordException(String contextMess, BadESRecordException exc) {
-		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.ResponseMapper");
-		logger.setLevel(Level.ERROR);
-		logger.error(contextMess+ Debug.printCallStack(exc));
+		errorLogger.error(contextMess+ Debug.printCallStack(exc));
 	}
 }

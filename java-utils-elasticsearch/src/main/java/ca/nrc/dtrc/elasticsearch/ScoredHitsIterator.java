@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -21,7 +24,8 @@ public class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> 
 	private HitFilter filter = new HitFilter();
 	
 	private Long totalHits = new Long(0);
-		public Long getTotalHits() {return totalHits;}
+
+	public Long getTotalHits() {return totalHits;}
 		public void setTotalHits(Long _totalHits) {this.totalHits = _totalHits;}
 		
 	private  List<Hit<T>> documentsBatch = new ArrayList<>();		
@@ -37,9 +41,17 @@ public class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> 
 	@JsonIgnore
 	StreamlinedClient esClient = null;
 
+	ObjectMapper mapper = new ObjectMapper();
+
 	public ScoredHitsIterator() throws ElasticSearchException, SearchResultsException {
 		init__ScoredHitsIterator(
 			(List<Hit<T>>)null, (String)null, (T)null, (StreamlinedClient)null,
+			(HitFilter)null);
+	}
+
+	public ScoredHitsIterator(T docPrototype) throws ElasticSearchException, SearchResultsException {
+		init__ScoredHitsIterator(
+			(List<Hit<T>>)null, (String)null, docPrototype, (StreamlinedClient)null,
 			(HitFilter)null);
 	}
 
@@ -149,7 +161,7 @@ public class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> 
 	}
 	@Override
 	public boolean hasNext() {
-
+		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.ScoredHitsIterator.hasNext");
 		Boolean answer = null;
 
 		while (answer == null) {
@@ -173,11 +185,9 @@ public class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> 
 						retrieveAndFilterUntilNonEmptyBatch();
 						continue;
 					} catch (ElasticSearchException | SearchResultsException e) {
+						documentsBatch = null;
 						answer = false;
-						e.printStackTrace();
 					}
-				} else {
-					answer = true;
 				}
 			}
 
@@ -189,14 +199,28 @@ public class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> 
 				batchCursor++;
 				continue;
 			}
+
+			if (answer == null) {
+				// At this point, we know that:
+				// - Current batch is not empty
+				// - Cursor is not at the end of the batch
+				// - Batch element at cursor position is not null
+				answer = true;
+			}
 		}
-		
+
+		if (logger.isEnabledFor(Level.ERROR)) {
+			if (answer && null == documentsBatch.get(batchCursor)) {
+				logger.error("Iterator claims there is a next element, yet the element at the cursor is null");
+			}
+		}
 		return (boolean) answer;
 	}
 
 	
 	@Override
 	public Hit<T> next() {
+		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.ScoredHitsIterator.next");
 		Hit<T> nextItem = null;
 		if (!hasNext()) {
 			String errMess = "There were no more in the list of ElasticSearch hits.";
@@ -215,6 +239,25 @@ public class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> 
 			batchCursor++;
 		}
 
+		if (logger.isEnabledFor(Level.ERROR)) {
+			String docClass = "UNKNOWN";
+			if (docPrototype != null) {
+				docClass = docPrototype.getClass().getSimpleName();
+			}
+			if (nextItem == null) {
+				logger.error("*** Next hit is null!!! (doc class="+docClass+")");
+			}
+			T nextDocument = nextItem.getDocument();
+			if (nextDocument == null) {
+				logger.error("*** Next document is null!!! (doc class="+docClass+")");
+		 	} else if (nextDocument.getId() == null) {
+				try {
+					logger.error("*** Next document has a null ID!!! (doc class="+docClass+"):\n"+mapper.writeValueAsString(nextDocument));
+				} catch (JsonProcessingException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		}
 		return nextItem;
 	}
 }

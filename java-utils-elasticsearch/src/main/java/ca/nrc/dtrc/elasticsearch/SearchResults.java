@@ -214,7 +214,7 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 	public Iterator<Hit<T>> iterator() {
 		ScoredHitsIterator<T> iter = null;
 		try {
-			iter = new EmptyScoredHitsIterator<T>();
+			iter = new EmptyScoredHitsIterator<T>(docPrototype);
 		} catch (ElasticSearchException | SearchResultsException e) {
 			throw new RuntimeException(e);
 		}
