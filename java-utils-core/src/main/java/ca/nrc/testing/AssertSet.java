@@ -1,15 +1,29 @@
 package ca.nrc.testing;
 
-import ca.nrc.datastructure.Cloner;
 import ca.nrc.json.PrettyPrinter;
 import org.junit.jupiter.api.*;
+import org.opentest4j.AssertionFailedError;
 
 import java.io.IOException;
 import java.util.*;
 
-public class AssertSet {
+public class AssertSet extends Asserter<Set> {
 
-    public static <T> void assertEquals(String mess, T[] expElts, T[] gotElts) throws IOException {
+	public AssertSet(Set _gotObject) {
+		super(_gotObject);
+		if (_gotObject == null) {
+			throw new AssertionFailedError("Gotten set was null");
+		}
+	}
+
+	public AssertSet(Set _gotObject, String mess) {
+		super(_gotObject, mess);
+		if (_gotObject == null) {
+			throw new AssertionFailedError("Gotten set was null");
+		}
+	}
+
+	public static <T> void assertEquals(String mess, T[] expElts, T[] gotElts) throws IOException {
         Set<T> expSet = new HashSet<T>();
         Collections.addAll(expSet, expElts);
         Set<T> gotSet = new HashSet<T>();
@@ -76,7 +90,7 @@ public class AssertSet {
     }
 
     public static <T> void assertContainsAll(String mess,
-                                             T[] expItemsArr, Set<T> gotItems) {
+		T[] expItemsArr, Set<T> gotItems) {
         Set<T> expItems = new HashSet<T>();
         Collections.addAll(expItems, expItemsArr);
         assertContainsAll(mess, expItems, gotItems);
@@ -124,4 +138,62 @@ public class AssertSet {
 			gotSet, expSuperset
 		);
 	 }
+
+	public AssertSet isSubsetOf(Object[] expSupersetArr) {
+		if (expSupersetArr == null) {
+			throw new AssertionFailedError("Expected superset was null");
+		}
+
+		Set<Object> expSuperset = new HashSet<Object>();
+		Collections.addAll(expSuperset, expSupersetArr);
+
+		Set<Object> badElements = new HashSet<Object>();
+		for (Object elt: gotSet()) {
+			if (!expSuperset.contains(elt)) {
+				badElements.add(elt);
+			}
+		}
+
+		if (!badElements.isEmpty()) {
+			String mess = baseMessage + "\n" +
+				"Gotten set was not a subset of the Expected set.\n" +
+				"Following gotten elements were not in the expected superset:\n" +
+				PrettyPrinter.print(badElements) + "\n" +
+				"Got set:\n"+PrettyPrinter.print(gotSet())+"\n"+
+				"Exp superset:\n"+PrettyPrinter.print(expSuperset);
+			Assertions.fail(mess);
+		}
+		return this;
+	}
+
+public AssertSet isSupersetOf(Object[] expSubsetArr) {
+		if (expSubsetArr == null) {
+			throw new AssertionFailedError("Expected superset was null");
+		}
+
+		Set<Object> expSubset = new HashSet<Object>();
+		Collections.addAll(expSubset, expSubsetArr);
+
+		Set<Object> badElements = new HashSet<Object>();
+		for (Object elt: expSubset) {
+			if (!gotSet().contains(elt)) {
+				badElements.add(elt);
+			}
+		}
+
+		if (!badElements.isEmpty()) {
+			String mess = baseMessage + "\n" +
+				"Gotten set was not a superset of the Expected set.\n" +
+				"Following expected subset elements were not in the gotten set:\n" +
+				PrettyPrinter.print(badElements) + "\n" +
+				"Got set:\n"+PrettyPrinter.print(gotSet())+"\n"+
+				"Exp sub:\n"+PrettyPrinter.print(expSubset);
+			Assertions.fail(mess);
+		}
+		return this;
+	}
+
+	protected Set<Object> gotSet() {
+		return (Set<Object>) gotObject;
+	}
 }
