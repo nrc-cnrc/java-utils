@@ -34,15 +34,16 @@ public class DataCLI {
 				.desc("Process the full text of an HTML file without attempting to filter 'container' words like navigation menus, banners, etc....")
 				.build();
 
-		// Harvest some web pages and save them to a directory
-		SubCommand addCmd = new CmdHarvest("harvest")
+		// Harvest web pages returned by a paritcular Bing query
+		// and save them to a directory
+		SubCommand addHarvestQuery = new CmdHarvestQuery("harvest_query")
 				.addOption(optWebQuery)
 				.addOption(optBingKey)
 				.addOption(optOutputDir)
 				.addOption(optMaxHits)
 				.addOption(optHTMLFullText);
-		mainCmd.addSubCommand(addCmd);
-		
+		mainCmd.addSubCommand(addHarvestQuery);
+
 
 		return mainCmd;
 	}

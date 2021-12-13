@@ -164,8 +164,11 @@ public class PageHarvester_HtmlCleaner extends PageHarvester {
 	 * @throws IOException
 	 * @throws PageHarvesterException 
 	 */
-	public void harvestHyperLinks(String url, final String linkAttrName, final String pageAttrName)
+	public void harvestHyperLinks(String url, String linkAttrName, final String pageAttrName)
 			throws IOException, PageHarvesterException {
+		if (linkAttrName == null) {
+			linkAttrName = "href";
+		}
 		this.getPage(url);
 		boolean keepGoing = true;
 // 2019-06-24: [AD] Not sure why this while() was here, but it was causing an infinite loop today

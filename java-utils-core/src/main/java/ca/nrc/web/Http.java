@@ -25,7 +25,7 @@ public class Http {
 	public static enum ResponseType {STRING, MAP, JSON_NODE};
 	
 	// As recommended in the OkHttp documentation, we use a single
-	// OkHttpClient instance per thread.\
+	// OkHttpClient instance per thread.
 	//
 	private static Map<Thread,OkHttpClient> httpClients =
 		new HashMap<Thread,OkHttpClient>();

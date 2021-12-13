@@ -74,7 +74,6 @@ public class PageLinkVisitor implements TagNodeVisitor {
 	
 	@Override
 	public boolean visit(TagNode tagNode, HtmlNode htmlNode) {
-//		System.out.println("-- PageLinkVisitor.visit: ENTERED htmlNode.toString()="+htmlNode.toString());
 		if (htmlNode instanceof TagNode) {
 			TagNode nextNode = (TagNode) htmlNode;
 			TagNode attNode = nextNode.findElementHavingAttribute(hyperLinkAttr, false);
@@ -103,6 +102,8 @@ public class PageLinkVisitor implements TagNodeVisitor {
 	}
 
 	private void visitAnchorHref(URL curUrl, String innerlink) throws PageHarvesterException {
+		Logger logger = Logger.getLogger("ca.nrc.data.harvesting.PageLinkVisitor.visit");
+		logger.trace("curUrl="+curUrl+", innerLink="+innerlink);
 		Matcher mp = relatPath.matcher(innerlink);
 
 		if (innerlink.startsWith("http")) {

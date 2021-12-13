@@ -14,7 +14,7 @@ import java.util.Map;
 
 import static org.apache.commons.io.FileUtils.cleanDirectory;
 
-public class CmdHarvest extends DataCmd {
+public class CmdHarvestQuery extends DataCmd {
 
 	PageHarvester harvester = new PageHarvester_HtmlCleaner();
 
@@ -31,7 +31,7 @@ public class CmdHarvest extends DataCmd {
 		return "Harvest one or more web pages.";
 	}
 
-	public CmdHarvest(String name) {
+	public CmdHarvestQuery(String name) {
 		super(name);
 	}
 

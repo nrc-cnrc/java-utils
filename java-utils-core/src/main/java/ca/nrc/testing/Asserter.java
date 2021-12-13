@@ -26,6 +26,11 @@ public class Asserter<T> {
 		this.gotObject = _gotObject;
 	}
 
+	public Asserter<T> fail(String mess) {
+		Assertions.fail(mess);
+		return this;
+	}
+
 	public Asserter<T> isNotNull() {
 		Assertions.assertTrue(
 			gotObject != null,
