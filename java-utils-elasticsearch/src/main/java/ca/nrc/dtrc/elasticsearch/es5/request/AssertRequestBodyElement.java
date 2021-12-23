@@ -1,4 +1,4 @@
-package ca.nrc.dtrc.elasticsearch.request;
+package ca.nrc.dtrc.elasticsearch.es5.request;
 
 import ca.nrc.testing.AssertJson;
 import ca.nrc.testing.Asserter;

@@ -1,4 +1,4 @@
-package ca.nrc.dtrc.elasticsearch.request;
+package ca.nrc.dtrc.elasticsearch.es5.request;
 
 import org.json.JSONArray;
 import org.json.JSONObject;

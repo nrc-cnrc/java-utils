@@ -1,4 +1,4 @@
-package ca.nrc.dtrc.elasticsearch.request;
+package ca.nrc.dtrc.elasticsearch.es5.request;
 
 import org.apache.commons.lang3.tuple.Triple;
 import org.json.JSONObject;
