@@ -1,0 +1,170 @@
+package ca.nrc.dtrc.elasticsearch;
+
+import ca.nrc.dtrc.elasticsearch.cluster.ClusterAPI;
+import ca.nrc.dtrc.elasticsearch.crud.CrudAPI;
+import ca.nrc.dtrc.elasticsearch.engine.EngineAPI;
+import ca.nrc.dtrc.elasticsearch.index.IndexAPI;
+import ca.nrc.dtrc.elasticsearch.search.SearchAPI;
+import ca.nrc.ui.commandline.UserIO;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+/**
+ * Factory for making objects needed to interact with ElasticSearch
+ */
+public abstract class ESFactory {
+
+	public static enum ESOptions {
+		CREATE_IF_NOT_EXISTS, UPDATES_WAIT_FOR_REFRESH, VERBOSE, APPEND
+	};
+
+	public abstract int version();
+	public abstract StreamlinedClient client() throws ElasticSearchException;
+	public abstract IndexAPI indexAPI() throws ElasticSearchException;
+	public abstract CrudAPI crudAPI() throws ElasticSearchException;
+	public abstract SearchAPI searchAPI() throws ElasticSearchException;
+	public abstract ClusterAPI clusterAPI() throws ElasticSearchException;
+
+	public String indexName = null;
+
+	private String serverName = "localhost";
+	private int port = 9205;
+
+	@JsonIgnore
+	UserIO userIO = new UserIO();
+
+	protected ResponseMapper respMapper = new ResponseMapper((String)null);
+
+	public boolean updatesWaitForRefresh = false;
+
+	public ErrorHandlingPolicy _errorPolicy = ErrorHandlingPolicy.STRICT;
+
+	// Whenever the client issues a transaction that modifies the DB,
+	// it will sleep by that much to give ESFactory time to update all the
+	// nodes and shards.
+	public double sleepSecs = 0.0;
+
+	public List<ESObserver> observers = new ArrayList<ESObserver>();
+
+	public ESFactory() {
+	}
+
+	public ESFactory(String _indexName) throws ElasticSearchException {
+		init_ESFactory(_indexName);
+	}
+
+	private void init_ESFactory(String _indexName) throws ElasticSearchException {
+		init_ESFactory(_indexName, (Integer)null);
+	}
+
+	private void init_ESFactory(String _indexName, Integer _port) throws ElasticSearchException {
+		if (_indexName == null) {
+			throw new ElasticSearchException("Index name must not be null");
+		}
+		if (_port == null) {
+			_port = defaultPort();
+		}
+		indexName = _indexName;
+		port = _port;
+
+		new ESVersionChecker(serverName, port)
+			.isRunningVersion(version());
+	}
+
+	public ESFactory setServer(String _server) {
+		serverName = _server;
+		return this;
+	}
+
+	public ESFactory setPort(int _port) {
+		port = _port;
+		return this;
+	}
+
+	public int defaultPort() {
+		int def = 9200 + version();
+		return def;
+	}
+
+
+	public void setErrorPolicy(ErrorHandlingPolicy policy) {
+		if (policy != null) {
+			_errorPolicy = policy;
+			respMapper.onBadRecord = policy;
+		}
+	}
+
+	public ErrorHandlingPolicy getErrorPolicy() {
+		return _errorPolicy;
+	}
+
+	@JsonIgnore
+	List<ESObserver> getObservers() {
+		return observers;
+	}
+
+	public void attachObservers(Collection<ESObserver> _observers) {
+		for (ESObserver anObserver: _observers) {
+			attachObserver(anObserver);
+		}
+	}
+
+	public void attachObserver(ESObserver _obs) {
+		_obs.setObservedIndex(this.indexName);
+		observers.add(_obs);
+	}
+
+	public void detachObservers() {
+		observers = new ArrayList<ESObserver>();
+	}
+
+	public ESUrlBuilder urlBuilder() {
+		int port = 9200 + version();
+		return new ESUrlBuilder(this.indexName, "localhost", port);
+	}
+
+	public void setUserIO(UserIO _userIO) {
+		this.userIO = _userIO;
+	}
+
+	public UserIO getUserIO() {
+		return this.userIO;
+	}
+
+	public void echo(String message, UserIO.Verbosity level) {
+		if (this.userIO != null) userIO.echo(message, level);
+	}
+
+	public EngineAPI engineAPI() throws ElasticSearchException {
+		return new EngineAPI(this);
+	}
+
+
+	public StreamlinedClient client(double sleepSecs) throws ElasticSearchException {
+		StreamlinedClient _client = client();
+		_client.setSleepSecs(sleepSecs);
+		return _client;
+	}
+
+	public Transport transport() {
+		Transport transp = new Transport(indexName, observers);
+		return transp;
+	}
+
+	public void sleep() {
+		try {
+			sleep(this.sleepSecs);
+		} catch (InterruptedException e) {
+			System.exit(0);
+		}
+	}
+
+	public void sleep(double secs) throws InterruptedException {
+		int millis = (int) (1000 * secs);
+		Thread.sleep(millis);
+	}
+
+}

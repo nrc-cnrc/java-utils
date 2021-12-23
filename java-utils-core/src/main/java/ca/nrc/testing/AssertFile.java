@@ -16,14 +16,18 @@ import org.junit.jupiter.api.*;
 
 public class AssertFile {
 	
-	public static void assertFileContains(String mess, File fPath, String pattern, 
-			Boolean isCaseSensitive, Boolean isRegexp) throws IOException {
+	public static void assertFileContains(
+		String mess, File fPath, String pattern,
+		Boolean isCaseSensitive, Boolean isRegexp) throws IOException {
+
 		String fileContent = "";
 		List<String> lines = Files.readAllLines(fPath.toPath());
 		for (String line: lines) {
 			fileContent += "\n"+line;
 		}
-		AssertString.assertStringContains(mess, fileContent, pattern, isCaseSensitive, isRegexp);
+		AssertString.assertStringContains(
+			mess+"\nFile "+fPath+" did not contain the expected string",
+			fileContent, pattern, isCaseSensitive, isRegexp);
 	}
 
 	public static void assertFileDoesNotContain(String mess, String fPath, String pattern, Boolean isRegexp) throws IOException {
@@ -32,7 +36,8 @@ public class AssertFile {
 		for (String line: lines) {
 			fileContent += line;
 		}
-		AssertString.assertStringDoesNotContain(mess, fileContent, pattern, null, isRegexp);
+		AssertString.assertStringDoesNotContain(
+			mess+"\nFile "+fPath+" contained an un-expected string", fileContent, pattern, null, isRegexp);
 	}
 	
 	public static void assertFileContentEquals(String mess, File file, String expFileContent) throws IOException {
