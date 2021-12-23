@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>ca.nrc.java-utils</groupId>
 		<artifactId>java-utils</artifactId>
-		<version>1.0.27</version>
+		<version>1.1.0</version>
 	</parent>	
 	
 	<artifactId>java-utils-data</artifactId>
@@ -75,19 +75,19 @@
 		<dependency>
 			<groupId>ca.nrc.java-utils</groupId>
 			<artifactId>java-utils-core</artifactId>
-			<version>1.0.27</version>
+			<version>1.1.0</version>
 		</dependency>
 
 		<dependency>
 			<groupId>ca.nrc.java-utils</groupId>
 			<artifactId>java-utils-string</artifactId>
-			<version>1.0.27</version>
+			<version>1.1.0</version>
 		</dependency>
 
 		<dependency>
 			<groupId>ca.nrc.java-utils</groupId>
 			<artifactId>java-utils-ui</artifactId>
-			<version>1.0.27</version>
+			<version>1.1.0</version>
 		</dependency>
 
 		<dependency>

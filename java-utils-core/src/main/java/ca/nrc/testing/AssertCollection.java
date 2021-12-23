@@ -8,7 +8,7 @@ import java.util.*;
 public class AssertCollection {
 
 	public static <T> void assertContains(String mess,
-										  T expItem, Collection<T> gotCollection, Boolean compareAsStrings) {
+		T expItem, Collection<T> gotCollection, Boolean compareAsStrings) {
 		if (compareAsStrings == null) {
 			compareAsStrings = false;
 		}
@@ -18,9 +18,9 @@ public class AssertCollection {
 		for (T gotItem : gotCollection) {
 			boolean same = false;
 			if (compareAsStrings) {
-				same = (gotCollection.toString().equals(expItem.toString()));
+				same = (gotItem.toString().equals(expItem.toString()));
 			} else {
-				same = (gotCollection.equals(expItem));
+				same = (gotItem.equals(expItem));
 			}
 			if (same) {
 				found = true;
@@ -33,12 +33,12 @@ public class AssertCollection {
 	}
 
 	public static <T> void assertContains(String mess,
-										  T expItem, T[] gotArray) {
+		T expItem, T[] gotArray) {
 		assertContains(mess, expItem, gotArray, false);
 	}
 
 	public static <T> void assertContains(String mess,
-										  T expItem, T[] gotArray, Boolean compareAsStrings) {
+		T expItem, T[] gotArray, Boolean compareAsStrings) {
 		List<T> gotList = new ArrayList<T>();
 		for (T elt : gotArray) {
 			gotList.add(elt);
@@ -47,7 +47,7 @@ public class AssertCollection {
 	}
 
 	public static <T> void assertContainsAll(String mess,
-											 T[] expItemsArr, T[] gotItemsArr) {
+		T[] expItemsArr, T[] gotItemsArr) {
 		Set<T> expItems = new HashSet<T>();
 		Collections.addAll(expItems, expItemsArr);
 		Set<T> gotItems = new HashSet<T>();
@@ -56,7 +56,7 @@ public class AssertCollection {
 	}
 
 	public static <T> void assertContainsAll(String mess,
-											 T[] expItemsArr, Set<T> gotItems) {
+		T[] expItemsArr, Set<T> gotItems) {
 		Set<T> expItems = new HashSet<T>();
 		Collections.addAll(expItems, expItemsArr);
 		assertContainsAll(mess, expItems, gotItems);

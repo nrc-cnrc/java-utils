@@ -69,7 +69,7 @@ public class AssertObject {
 	public static void assertDeepEquals(
 			String message, Object expObject, Object gotObject,
 			Set<String> ignoreFields, Integer decimalsTolerance) throws IOException {
-		String expObjectJsonString = PrettyPrinter.print(expObject, ignoreFields, decimalsTolerance);
+		String expObjectJsonString = new PrettyPrinter().pprint(expObject, ignoreFields, decimalsTolerance);
 		assertEqualsJsonCompare(message, expObjectJsonString, gotObject, ignoreFields, true, decimalsTolerance);		
 	}
 
@@ -77,7 +77,7 @@ public class AssertObject {
 			String message, Object expObject, Object gotObject,
 			Integer decimalsTolerance) throws IOException {
 		Set<String> ignoreFields = new HashSet<String>();
-		String expObjectJsonString = PrettyPrinter.print(expObject, ignoreFields, decimalsTolerance);
+		String expObjectJsonString = new PrettyPrinter().pprint(expObject, ignoreFields, decimalsTolerance);
 		assertEqualsJsonCompare(message, expObjectJsonString, gotObject, ignoreFields, true, decimalsTolerance);		
 	}
 
@@ -180,7 +180,7 @@ public class AssertObject {
 		 *  - Then we print that JsonNode into a string with keys sorted 
 		 *     alphabetically  
 		*/
-		String gotJsonStrKeysSorted = PrettyPrinter.print(gotObject, ignoreFields, decimalsTolerance);
+		String gotJsonStrKeysSorted = new PrettyPrinter().pprint(gotObject, ignoreFields, decimalsTolerance);
 		
 		/*
 		 *  Possibly "prettify" the expected json string

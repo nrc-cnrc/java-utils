@@ -303,11 +303,10 @@ public class AssertHelpers {
 		int ii = 0;
 		for (Object elt: subsetArr) {
 			if (!superset.contains(elt)) {
-				message += 
-						  "\nElement "+ii+"("+elt+") of the second collection is absent from the first collection\n"
-						+ "First collection:\n"+PrettyPrinter.print(superset)+"\n"
-						+ "\n"
-						+ "Second collection:\n"+PrettyPrinter.print(subsetArr)+"\n"
+				message = message + ("\nElement " + ii + "(" + elt + ") of the second collection is absent from the first collection\n"
+				+ "First collection:\n" + PrettyPrinter.print(superset) + "\n"
+				+ "\n"
+				+ "Second collection:\n" + PrettyPrinter.print(subsetArr) + "\n")
 						;
 					Assertions.fail(message);
 

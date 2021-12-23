@@ -1,0 +1,10 @@
+bodyEndMarker=NEW_LINE
+
+class=ca.nrc.dtrc.elasticsearch.index.IndexDef
+{"types":{"books":{"fields":{"title":{"type":"text", "analyzer":"english"},"pubdate":{"type":"date"}}}}}
+
+class=ca.nrc.dtrc.elasticsearch.CurrentDocType
+{"name": "books"}
+
+class=ca.nrc.dtrc.elasticsearch.Document
+{"id": "Of mice and men", "additionalFields": {"title": "Of mice and men", "pubdate": "1937"}}

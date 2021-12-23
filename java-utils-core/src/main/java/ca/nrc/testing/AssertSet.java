@@ -1,6 +1,7 @@
 package ca.nrc.testing;
 
 import ca.nrc.json.PrettyPrinter;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.*;
 import org.opentest4j.AssertionFailedError;
 
@@ -81,7 +82,7 @@ public class AssertSet extends Asserter<Set> {
     }
 
     public static <T> void assertContainsAll(String mess,
-                                             T[] expItemsArr, T[] gotItemsArr) {
+        T[] expItemsArr, T[] gotItemsArr) {
         Set<T> expItems = new HashSet<T>();
         Collections.addAll(expItems, expItemsArr);
         Set<T> gotItems = new HashSet<T>();
@@ -112,6 +113,22 @@ public class AssertSet extends Asserter<Set> {
             Assertions.fail(mess);
         }
     }
+
+	public static <T> void containsNoneOf(
+		String mess, T[] unexpectedElements, Set<T> gotElements) {
+
+		Set<T> badElements = new HashSet<T>();
+		for (T anElement: unexpectedElements) {
+			if (gotElements.contains(anElement)) {
+				badElements.add(anElement);
+			}
+		}
+		if (!badElements.isEmpty()) {
+			Assertions.fail(
+				"The following unexpected elements were found in the gotten set:\n"+
+				"   "+ StringUtils.join(badElements));
+		}
+	}
 
 	public static <T> void isSubsetOf(String mess,
  		Set<T> expSuperset, Set<T> gotSet) {

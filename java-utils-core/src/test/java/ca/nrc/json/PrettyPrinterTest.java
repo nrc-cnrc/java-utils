@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import ca.nrc.introspection.IntrospectionTest;
 import ca.nrc.testing.AssertObject;
 import ca.nrc.testing.AssertString;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -52,8 +53,8 @@ public class PrettyPrinterTest {
 	public static class SomeComparableClass
 		implements Comparable<SomeComparableClass> {
 
-		String keyField = null;
-		String otherField = null;
+		public String keyField = null;
+		public String otherField = null;
 
 		public SomeComparableClass(String _key, String _other) {
 			this.keyField = _key;
@@ -65,7 +66,6 @@ public class PrettyPrinterTest {
 			return this.keyField.compareTo(o.keyField);
 		}
 	}
-
 
 	@BeforeEach
 	public void setUp() throws Exception {
@@ -637,6 +637,27 @@ public class PrettyPrinterTest {
 	}
 
 	@Test
+	protected void test__print__Object__IgnorePrivateFields() {
+		IntrospectionTest.SomeClass obj = new IntrospectionTest.SomeClass();
+		PrettyPrinter pprinter =
+			new PrettyPrinter(PrettyPrinter.OPTION.IGNORE_PRIVATE_PROPS);
+		String gotJson = pprinter.pprint(obj);
+		String expJson =
+			"{\n" +
+			"  \"privInstPropWithAccessor\":\n" +
+			"    \"priv inst prop with accessor\",\n" +
+			"  \"pubInstProp\":\n" +
+			"    \"pub inst prop\"\n" +
+			"}"
+			;
+		AssertString.assertStringEquals(
+			"Pretty printed json was wrong for class with private props",
+			expJson, gotJson
+		);
+	}
+
+
+	@Test
 	public void test__checkForLoops__SequenceThatDoesNOTIntroduceALoop() {
 		Hello obj1 = new Hello("hi");
 		Hello obj2 = new Hello("greetings");
@@ -680,7 +701,7 @@ public class PrettyPrinterTest {
 	@Test
 	public void test__getAllFields__ClassWithAParentClass() throws IOException {
 		MarriedPerson homer = new MarriedPerson("homer");
-		List<Field> gotFields = PrettyPrinter.getAllFields(homer);
+		List<Field> gotFields = new PrettyPrinter().getAllFields(homer);
 		
 		String[] expFieldNames = new String[] {"spouse", "children", "dependantChildren", "name"};
 		assertFieldNamesAre(expFieldNames, gotFields);
@@ -690,7 +711,7 @@ public class PrettyPrinterTest {
 	@Test
 	public void test__getAllFields__ClassWithoutAParentClass() throws IOException {
 		Hello hello = new Hello("hi");
-		List<Field> gotFields = PrettyPrinter.getAllFields(hello);
+		List<Field> gotFields = new PrettyPrinter().getAllFields(hello);
 		
 		String[] expFieldNames = new String[] {"greeting"};
 		assertFieldNamesAre(expFieldNames, gotFields);		
