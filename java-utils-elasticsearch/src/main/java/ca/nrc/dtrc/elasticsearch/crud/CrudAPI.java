@@ -20,7 +20,7 @@ public abstract class CrudAPI extends ES_API {
 
 	protected abstract URL url4putDocument(String type, String id) throws ElasticSearchException;
 	protected abstract URL url4updateDocument(String type, String id) throws ElasticSearchException;
-	protected abstract URL url4doc(String esDocType, String docID) throws Exception;
+	protected abstract URL url4doc(String esDocType, String docID) throws ElasticSearchException ;
 
 	public CrudAPI(ESFactory _esFactory) throws ElasticSearchException {
 		super(_esFactory);
@@ -88,12 +88,12 @@ public abstract class CrudAPI extends ES_API {
 	}
 
 	public <T extends Document> T getDocumentWithID(
-		String docID, Class<T> docClass) throws Exception {
+		String docID, Class<T> docClass) throws ElasticSearchException  {
 		return getDocumentWithID(docID, docClass, (String)null);
 	}
 
 	public <T extends Document> T getDocumentWithID(
-		String docID, Class<T> docClass, String esDocType) throws Exception {
+		String docID, Class<T> docClass, String esDocType) throws ElasticSearchException  {
 
 		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.CrudAPI.getDocumentWithID");
 
@@ -115,26 +115,26 @@ public abstract class CrudAPI extends ES_API {
 		return doc;
 	}
 
-	public void deleteDocumentWithID(String id) throws Exception {
+	public void deleteDocumentWithID(String id) throws ElasticSearchException  {
 		Pair<String, String> parsed = Document.parseID(id);
 		deleteDocumentWithID(parsed.getLeft(), parsed.getRight());
 	}
 
 	public void deleteDocumentWithID(String docID,
-		Class<? extends Document> docClass) throws Exception {
+		Class<? extends Document> docClass) throws ElasticSearchException {
 
 		String type = Document.determineType(docClass);
 		deleteDocumentWithID(docID, type);
 	}
 
-	public void deleteDocumentWithID(String docID, String esDocType) throws Exception {
+	public void deleteDocumentWithID(String docID, String esDocType) throws ElasticSearchException  {
 		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.crud.CrudAPI.deleteDocumentWithID");
 		URL url = url4doc(esDocType, docID);
 		transport().delete(url);
 		sleep();
 	}
 
-	public void updateDocument(Document doc) throws Exception {
+	public void updateDocument(Document doc) throws ElasticSearchException  {
 		Map<String,Object> docMap =
 			new ObjectMapper().convertValue(doc, Map.class);
 		updateDocument(doc.getClass(), doc.getId(), docMap);
@@ -142,13 +142,13 @@ public abstract class CrudAPI extends ES_API {
 
 	public void updateDocument(
 		Class<? extends Document> docClass, String docID,
-		Map<String, Object> partialDoc) throws Exception {
+		Map<String, Object> partialDoc) throws ElasticSearchException  {
 
 		String esDocType = Document.determineType(docClass);
 		updateDocument(esDocType, docID, partialDoc);
 	}
 
-	public void updateDocument(String esDocType, String docID, Map<String, Object> partialDoc) throws Exception {
+	public void updateDocument(String esDocType, String docID, Map<String, Object> partialDoc) throws ElasticSearchException  {
 		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.es5.StreamlinedClient.updateDocument");
 		URL url = url4updateDocument(esDocType, docID);
 		String jsonBody = null;

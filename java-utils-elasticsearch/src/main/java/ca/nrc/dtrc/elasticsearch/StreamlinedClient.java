@@ -128,11 +128,11 @@ public abstract class StreamlinedClient extends ES_API {
 		return crudAPI().putDocument(type, docID, jsonDoc);
 	}
 
-	public void deleteDocumentWithID(String docID, Class<? extends Document> docClass) throws Exception {
+	public void deleteDocumentWithID(String docID, Class<? extends Document> docClass) throws ElasticSearchException {
 		crudAPI().deleteDocumentWithID(docID, docClass);
 	}
 
-	public void deleteDocumentWithID(String docID, String esDocType) throws Exception {
+	public void deleteDocumentWithID(String docID, String esDocType) throws ElasticSearchException {
 		crudAPI().deleteDocumentWithID(docID, esDocType);
 	}
 
@@ -279,21 +279,21 @@ public abstract class StreamlinedClient extends ES_API {
 		indexAPI().bulkIndex(dataFPath, options);
 	}
 
-	public Document getDocumentWithID(String docID, Class<? extends Document> docClass) throws Exception {
+	public Document getDocumentWithID(String docID, Class<? extends Document> docClass) throws ElasticSearchException {
 		return crudAPI().getDocumentWithID(docID, docClass);
 	}
 
 	public Document getDocumentWithID(String docID,
 		Class<? extends Document> docClass, String esDocType)
-	throws Exception {
+	throws ElasticSearchException {
 		return crudAPI().getDocumentWithID(docID, docClass, esDocType);
 	}
 
-	public void updateDocument(Class<? extends Document> docClass, String docID, Map<String, Object> partialDoc) throws Exception {
+	public void updateDocument(Class<? extends Document> docClass, String docID, Map<String, Object> partialDoc) throws ElasticSearchException {
 		crudAPI().updateDocument(docClass, docID, partialDoc);
 	}
 
-	public void updateDocument(String esDocType, String docID, Map<String, Object> partialDoc) throws Exception {
+	public void updateDocument(String esDocType, String docID, Map<String, Object> partialDoc) throws ElasticSearchException {
 		crudAPI().updateDocument(esDocType, docID, partialDoc);
 	}
 

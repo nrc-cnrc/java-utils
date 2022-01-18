@@ -20,7 +20,7 @@ public class CrudAPI_v5 extends CrudAPI {
 	}
 
 	@Override
-	protected URL url4doc(String esDocType, String docID) throws Exception {
+	protected URL url4doc(String esDocType, String docID) throws ElasticSearchException  {
 		URL url = urlBuilder().forDocType(esDocType).forDocID(docID).build();
 		return url;
 	}

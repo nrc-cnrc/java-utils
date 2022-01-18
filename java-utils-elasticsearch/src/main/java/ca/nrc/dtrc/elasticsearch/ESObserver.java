@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 
 public abstract class ESObserver {
 
-	ESFactory esFactory = null;
+	protected ESFactory esFactory = null;
 
 	public void setObservedIndex(String _indexName) {
  		this.esFactory.indexName = _indexName;

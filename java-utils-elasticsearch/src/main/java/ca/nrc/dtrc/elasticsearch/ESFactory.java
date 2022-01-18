@@ -7,6 +7,7 @@ import ca.nrc.dtrc.elasticsearch.index.IndexAPI;
 import ca.nrc.dtrc.elasticsearch.search.SearchAPI;
 import ca.nrc.ui.commandline.UserIO;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.apache.commons.lang.ArrayUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -33,13 +34,29 @@ public abstract class ESFactory {
 	private String serverName = "localhost";
 	private int port = 9205;
 
+	/**
+	 * Note: As of 2020-01, we have noticed that when several StreamlinedClient_v5
+	 * 	are used concurrently in different threads, it ends up creating
+	 *    documents whose JSON structure does not correspond to the structure
+	 *    of a document.
+	 *
+	 *    If you find that to be the case, then configure your StreamlinedClients
+	 *    with syncHttpCalls = true. Note that this may significantly slow down
+	 *    the operation of the various StreamlinedClients.
+	 *
+	 *    This will cause the client to invoke the Http client throug the
+	 *    synchronized method httpCall_sync below.
+	 */
+	public boolean synchedHttpCalls = true;
+
+
 	@JsonIgnore
 	UserIO userIO = new UserIO();
 
 	protected ResponseMapper respMapper = new ResponseMapper((String)null);
 
 	public boolean updatesWaitForRefresh = false;
-
+	public boolean createIndexIfNotExist = false;
 	public ErrorHandlingPolicy _errorPolicy = ErrorHandlingPolicy.STRICT;
 
 	// Whenever the client issues a transaction that modifies the DB,
@@ -57,10 +74,15 @@ public abstract class ESFactory {
 	}
 
 	private void init_ESFactory(String _indexName) throws ElasticSearchException {
-		init_ESFactory(_indexName, (Integer)null);
+		init_ESFactory(_indexName, (Integer)null, new ESOptions[0]);
 	}
 
 	private void init_ESFactory(String _indexName, Integer _port) throws ElasticSearchException {
+		init_ESFactory(_indexName, _port, new ESOptions[0]);
+	}
+
+	private void init_ESFactory(String _indexName, Integer _port,
+		ESOptions... options) throws ElasticSearchException {
 		if (_indexName == null) {
 			throw new ElasticSearchException("Index name must not be null");
 		}
@@ -72,6 +94,19 @@ public abstract class ESFactory {
 
 		new ESVersionChecker(serverName, port)
 			.isRunningVersion(version());
+
+		if (ArrayUtils.contains(options, ESOptions.UPDATES_WAIT_FOR_REFRESH)) {
+			updatesWaitForRefresh = true;
+		}
+
+		if (ArrayUtils.contains(options, ESOptions.CREATE_IF_NOT_EXISTS)) {
+			createIndexIfNotExist = true;
+		}
+	}
+
+	public ESFactory setIndexName(String name) {
+		indexName = name;
+		return this;
 	}
 
 	public ESFactory setServer(String _server) {
@@ -89,16 +124,26 @@ public abstract class ESFactory {
 		return def;
 	}
 
+	public ESFactory setSleepSecs(double secs) {
+		sleepSecs = secs;
+		return this;
+	}
 
-	public void setErrorPolicy(ErrorHandlingPolicy policy) {
+	public ESFactory setErrorPolicy(ErrorHandlingPolicy policy) {
 		if (policy != null) {
 			_errorPolicy = policy;
 			respMapper.onBadRecord = policy;
 		}
+		return this;
 	}
 
 	public ErrorHandlingPolicy getErrorPolicy() {
 		return _errorPolicy;
+	}
+
+	public ESFactory setSynchedHttpCalls(boolean synched) {
+		synchedHttpCalls = synched;
+		return this;
 	}
 
 	@JsonIgnore
@@ -126,8 +171,9 @@ public abstract class ESFactory {
 		return new ESUrlBuilder(this.indexName, "localhost", port);
 	}
 
-	public void setUserIO(UserIO _userIO) {
+	public ESFactory setUserIO(UserIO _userIO) {
 		this.userIO = _userIO;
+		return this;
 	}
 
 	public UserIO getUserIO() {
@@ -151,6 +197,7 @@ public abstract class ESFactory {
 
 	public Transport transport() {
 		Transport transp = new Transport(indexName, observers);
+		transp.synchedHttpCalls = synchedHttpCalls;
 		return transp;
 	}
 
