@@ -20,6 +20,15 @@ public class ElasticSearchException extends Exception {
 		super(message(esResponse));
 	}
 
+
+	public ElasticSearchException(JSONObject esResponse, String indexName) {
+		super(message((String)null, esResponse, indexName));
+	}
+
+	public ElasticSearchException(JSONObject esResponse) {
+		super(message(esResponse));
+	}
+
 	public ElasticSearchException(String errMessage, Exception exc) {
 		super(ElasticSearchException.message(errMessage), exc);
 	}
@@ -90,6 +99,10 @@ public class ElasticSearchException extends Exception {
 		}
 
 		return message(errorMessage, jsonResponse, indexName);
+	}
+
+	private static String message(JSONObject esResponse) {
+		return message((String)null, esResponse, (String)null);
 	}
 
 	private static String message(String errorMessage, JSONObject esResponse,

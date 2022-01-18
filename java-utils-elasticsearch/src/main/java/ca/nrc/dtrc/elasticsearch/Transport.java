@@ -193,10 +193,9 @@ public class Transport {
 
 		// First, try treating response as a JSONObject
 		try {
-			Map<String,Object> jsonResp =
-				mapper.readValue(jsonResponse, Map.class);
+			JSONObject jsonResp = new JSONObject(jsonResponse);
 			checked = true;
-			if (jsonResp.containsKey("error")) {
+			if (jsonResp.has("error")) {
 				exception = makeElasticSearchException(jsonResp);
 			}
 		} catch (Exception e){
@@ -213,8 +212,8 @@ public class Transport {
 		if (!checked) {
 			// Response is neither a JSONObject nor a JSONArray. So it must be a plain
 			// string tha provides the error message.
-			Map<String, Object> excDetails = new HashMap<String, Object>();
-			excDetails.put("error", jsonResponse);
+			JSONObject excDetails = new JSONObject()
+				.put("error", jsonResponse);
 			exception = new ElasticSearchException(excDetails, this.forIndex);
 			checked = true;
 		}
@@ -298,9 +297,39 @@ public class Transport {
 		return httpResponse;
 	}
 
+	private static ElasticSearchException makeElasticSearchException(
+		JSONObject responseObj) {
+		ElasticSearchException exc =
+			new ElasticSearchException(responseObj);
+
+		if (responseObj.has("error")) {
+			JSONObject error = responseObj.getJSONObject("error");
+			if (error.has("root_cause")) {
+				JSONArray rootCauseLst = error.getJSONArray("root_cause");
+				if (rootCauseLst.length() > 0) {
+					JSONObject rootCause = rootCauseLst.getJSONObject(0);
+					if (rootCause.has("type")) {
+						String errorType = rootCause.getString("type");
+						if (errorType.equals("index_not_found_exception")) {
+							String indexName = "<unknown>";
+							if (rootCause.has("index")) {
+								indexName = rootCause.getString("index");
+							}
+							exc = new NoSuchIndexException("No such index: " + indexName);
+						} else if (errorType.equals("type_missing_exception")) {
+							exc = new NoSuchTypeException();
+						}
+					}
+				}
+			}
+		}
+
+		return exc;
+	}
+
 	private static ElasticSearchException makeElasticSearchException(Map<String, Object> responseObj) {
 		ElasticSearchException exc =
-		new ElasticSearchException(responseObj);
+			new ElasticSearchException(responseObj);
 
 		if (responseObj.containsKey("error")) {
 			Map<String, Object> error = (Map<String, Object>) responseObj.get("error");
