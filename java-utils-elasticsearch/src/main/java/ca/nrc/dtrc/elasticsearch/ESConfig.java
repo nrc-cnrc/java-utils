@@ -27,7 +27,7 @@ public class ESConfig extends Config {
 		if (esVersion == null) {
 			esVersion = 6;
 		}
-		String defaultPort = Integer.toString(9200+esVersion);
+		String defaultPort = Integer.toString(9200);
 
 		if (portCached == null) {
 			portCached = getConfigProperty("ca.nrc.javautils.elasticsearch"+esVersion+".port", defaultPort);

@@ -32,7 +32,7 @@ public abstract class ESFactory {
 	public String indexName = null;
 
 	private String serverName = "localhost";
-	public int port = defaultPort();
+	public int port = 9200;
 
 	/**
 	 * Note: As of 2020-01, we have noticed that when several StreamlinedClient_v5
@@ -86,11 +86,10 @@ public abstract class ESFactory {
 		if (_indexName == null) {
 			throw new ElasticSearchException("Index name must not be null");
 		}
-		if (_port == null) {
-			_port = defaultPort();
-		}
 		indexName = _indexName;
-		port = _port;
+		if (_port != null) {
+			port = _port;
+		}
 
 		new ESVersionChecker(serverName, port)
 			.isRunningVersion(version());
@@ -117,12 +116,6 @@ public abstract class ESFactory {
 	public ESFactory setPort(int _port) {
 		port = _port;
 		return this;
-	}
-
-	public int defaultPort() {
-//		int def = 9200 + version();
-		int def = 9200;
-		return def;
 	}
 
 	public ESFactory setSleepSecs(double secs) {
