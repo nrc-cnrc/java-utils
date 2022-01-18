@@ -32,7 +32,7 @@ public abstract class ESFactory {
 	public String indexName = null;
 
 	private String serverName = "localhost";
-	private int port = 9205;
+	public int port = defaultPort();
 
 	/**
 	 * Note: As of 2020-01, we have noticed that when several StreamlinedClient_v5
@@ -120,7 +120,8 @@ public abstract class ESFactory {
 	}
 
 	public int defaultPort() {
-		int def = 9200 + version();
+//		int def = 9200 + version();
+		int def = 9200;
 		return def;
 	}
 
@@ -167,7 +168,6 @@ public abstract class ESFactory {
 	}
 
 	public ESUrlBuilder urlBuilder() {
-		int port = 9200 + version();
 		return new ESUrlBuilder(this.indexName, "localhost", port);
 	}
 

@@ -29,17 +29,17 @@ public class IndexAPI_v5Test extends IndexAPITest {
 
 	@Override
 	protected String expMappingUrl(String typeName) {
-		return "http://localhost:9205/test-index/_mapping/sometype";
+		return "http://localhost:9200/test-index/_mapping/sometype";
 	}
 
 	@Override
 	protected String expAllMappingUrl(String typeName) {
-		return "http://localhost:9205/test-index";
+		return "http://localhost:9200/test-index";
 	}
 
 	@Override
 	protected String expDeleteByQueryUrl(String docType) {
-		return "http://localhost:9205/test-index/_delete_by_query";
+		return "http://localhost:9200/test-index/_delete_by_query";
 	}
 
 	@Override

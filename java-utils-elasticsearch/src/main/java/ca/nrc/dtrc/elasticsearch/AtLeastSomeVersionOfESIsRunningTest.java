@@ -8,8 +8,8 @@ public class AtLeastSomeVersionOfESIsRunningTest {
 	@Test
 	public void test__ensureAtLeastSomeVersionOfESIsRunning() throws ElasticSearchException, ca.nrc.dtrc.elasticsearch.ElasticSearchException {
 		int[][] possibleVersions = new int [][] {
-			new int[] {5, 9205},
-			new int[] {7, 9207}
+			new int[] {5, 9200},
+			new int[] {7, 9200}
 		};
 		boolean ok = false;
 		for (int[] version: possibleVersions) {

@@ -103,9 +103,9 @@ public class ESTestHelpers {
 	public ESTestHelpers(Integer version) throws ElasticSearchException {
 		if (version != null) {
 			if (version <= 5) {
-				esFactory = new ES5Factory("").setPort(9205);
+				esFactory = new ES5Factory("");
 			} else if (version <= 7) {
-				esFactory = new ES7Factory("").setPort(9207);
+				esFactory = new ES7Factory("");
 			} else {
 				throw new ElasticSearchException("Unsupported ESFactory version "+version);
 			}

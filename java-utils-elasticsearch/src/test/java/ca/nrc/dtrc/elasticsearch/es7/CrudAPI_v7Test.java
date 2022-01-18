@@ -25,11 +25,11 @@ public class CrudAPI_v7Test extends CrudAPITest {
 
 	@Override
 	protected String expUrl4Doc(String type, String docID) {
-		return "http://localhost:9207/es-test/_doc/"+type+":"+docID;
+		return "http://localhost:9200/es-test/_doc/"+type+":"+docID;
 	}
 
 	@Override
 	protected String expUrl4updateDoc(String type, String docID) {
-		return "http://localhost:9207/es-test/_doc/sometype:somedoc/_update?refresh=wait_for";
+		return "http://localhost:9200/es-test/_doc/sometype:somedoc/_update?refresh=wait_for";
 	}
 }
