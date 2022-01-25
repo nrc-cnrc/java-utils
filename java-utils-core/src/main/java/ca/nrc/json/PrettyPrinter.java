@@ -41,8 +41,11 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  */
 
 public class PrettyPrinter {
+
+	public static enum OPTION {IGNORE_PRIVATE_PROPS};
 	
 	private Integer decimals = null;
+	private boolean ignorePrivateProps = false;
 	
 	protected Set<Object> alreadySeen = new HashSet<Object>();
 	
@@ -52,42 +55,73 @@ public class PrettyPrinter {
 	}
 	
 	public PrettyPrinter(Integer _decimals) {
-		this.decimals = _decimals;
+		init__PrettyPrinter(_decimals, new OPTION[0]);
 	}
-	
+
+	public PrettyPrinter(OPTION... _options) {
+		init__PrettyPrinter((Integer)null, _options);
+	}
+
+	private void init__PrettyPrinter(Integer _decimals, OPTION[] _options) {
+		this.decimals = _decimals;
+		for (OPTION anOpt: _options) {
+			if (anOpt == OPTION.IGNORE_PRIVATE_PROPS) {
+				this.ignorePrivateProps = true;
+			}
+		}
+	}
+
 	public static String print(Object obj) {
-		String json = print(obj, new String[] {});
+		return new PrettyPrinter().pprint(obj);
+	}
+
+	public String pprint(Object obj) {
+		String json = pprint(obj, new String[] {});
 		return json;
 	}
-	
+
 	public static String print(Object obj, Integer _decimals) {
+		return new PrettyPrinter(_decimals).pprint(obj);
+	}
+
+	public String pprint(Object obj, Integer _decimals) {
 		PrettyPrinter printer = new PrettyPrinter(_decimals);
 		Set<String> fieldsToIgnoreSet = new HashSet<String>();
 		String json = printer.prettyPrint(obj, fieldsToIgnoreSet);
 		return json;		
 	}
-	
+
 	public static String print(Object obj, Set<String> ignoreFields, Integer _decimals) {
+		return new PrettyPrinter(_decimals).pprint(obj, ignoreFields);
+	}
+
+	public String pprint(Object obj, Set<String> ignoreFields, Integer _decimals) {
 		PrettyPrinter printer = new PrettyPrinter(_decimals);
 		String json = printer.prettyPrint(obj, ignoreFields);
 		return json;		
 	}
-	
+
 	public static String print(Object obj, String[] fieldsToIgnore) {
-		PrettyPrinter printer = new PrettyPrinter();
+		return new PrettyPrinter().pprint(obj, fieldsToIgnore);
+	}
+
+	public String pprint(Object obj, String[] fieldsToIgnore) {
 		Set<String> fieldsToIgnoreSet = new HashSet<String>();
 		for (String aFieldName: fieldsToIgnore) fieldsToIgnoreSet.add(aFieldName);
-		String json = printer.prettyPrint(obj, fieldsToIgnoreSet);
+		String json = prettyPrint(obj, fieldsToIgnoreSet);
 		return json;
 	}
-	
+
 	public static String print(Object obj, Set<String> fieldsToIgnore) {
+		return new PrettyPrinter().pprint(obj, fieldsToIgnore);
+	}
+
+	public String pprint(Object obj, Set<String> fieldsToIgnore) {
 		PrettyPrinter printer = new PrettyPrinter();
 		String json = printer.prettyPrint(obj, fieldsToIgnore);
 		return json;
 	}
-
-	public static String formatAsSingleLine(String json) {
+	public String formatAsSingleLine(String json) {
 		json = json.replaceAll("\n\\s*","");
 		return json;
 	}
@@ -553,7 +587,7 @@ public class PrettyPrinter {
 		return indentationString;
 	}
 
-	protected static boolean elementsAreComparable(Collection<?> coll) {
+	protected boolean elementsAreComparable(Collection<?> coll) {
 		boolean comparable = false;
 		if (coll.size() > 0) {
 			Object firstElement = coll.iterator().next();
@@ -583,23 +617,28 @@ public class PrettyPrinter {
 			alreadySeen.remove(obj);
 		}
 	}
-
 	
-	public static List<Field> getAllFields(Object obj) {
+	public  List<Field> getAllFields(Object obj) {
 		Class type = obj.getClass();
 		List<Field> fields = getAllFields(new ArrayList<Field>(), type);
 		return fields;
 	}
 
 	
-	public static List<Field> getAllFields(List<Field> fields, Class<?> type) {
-	    fields.addAll(Arrays.asList(type.getDeclaredFields()));
+	public List<Field> getAllFields(List<Field> fields, Class<?> type) {
+		Field[] typeFields = null;
+		if (this.ignorePrivateProps) {
+			typeFields = type.getFields();
+		} else {
+			typeFields = type.getDeclaredFields();
+		}
+		fields.addAll(Arrays.asList(typeFields));
 
-	    if (type.getSuperclass() != null) {
-	        getAllFields(fields, type.getSuperclass());
-	    }
+		if (type.getSuperclass() != null) {
+		  getAllFields(fields, type.getSuperclass());
+		}
 
-	    return fields;
+		return fields;
 	}
 
 }

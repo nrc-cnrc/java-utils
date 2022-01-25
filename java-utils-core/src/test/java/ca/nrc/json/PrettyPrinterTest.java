@@ -66,6 +66,16 @@ public class PrettyPrinterTest {
 		}
 	}
 
+	public static class ClassWithPrivatePropertiesAndGetters {
+		public String pub = "public property";
+		private String priv = "private property";
+		private String privWithGetter = "private prop with public getter";
+
+		public String getPrivWithGetter() {
+			return privWithGetter;
+		}
+	}
+
 
 	@BeforeEach
 	public void setUp() throws Exception {
@@ -637,6 +647,27 @@ public class PrettyPrinterTest {
 	}
 
 	@Test
+	protected void test__print__Object__IgnorePrivateFields() {
+		ClassWithPrivatePropertiesAndGetters obj = new ClassWithPrivatePropertiesAndGetters();
+		PrettyPrinter pprinter =
+			new PrettyPrinter(PrettyPrinter.OPTION.IGNORE_PRIVATE_PROPS);
+		String gotJson = pprinter.pprint(obj);
+		String expJson =
+			"{\n" +
+			"  \"pub\":\n" +
+			"    \"public property\"\n" +
+			"  \"privWithGetter\":\n"+
+			"    \"BLAH\"\n" +
+			"}"
+			;
+		AssertString.assertStringEquals(
+			"Pretty printed json was wrong for class with private props",
+			expJson, gotJson
+		);
+	}
+
+
+	@Test
 	public void test__checkForLoops__SequenceThatDoesNOTIntroduceALoop() {
 		Hello obj1 = new Hello("hi");
 		Hello obj2 = new Hello("greetings");
@@ -680,7 +711,7 @@ public class PrettyPrinterTest {
 	@Test
 	public void test__getAllFields__ClassWithAParentClass() throws IOException {
 		MarriedPerson homer = new MarriedPerson("homer");
-		List<Field> gotFields = PrettyPrinter.getAllFields(homer);
+		List<Field> gotFields = new PrettyPrinter().getAllFields(homer);
 		
 		String[] expFieldNames = new String[] {"spouse", "children", "dependantChildren", "name"};
 		assertFieldNamesAre(expFieldNames, gotFields);
@@ -690,7 +721,7 @@ public class PrettyPrinterTest {
 	@Test
 	public void test__getAllFields__ClassWithoutAParentClass() throws IOException {
 		Hello hello = new Hello("hi");
-		List<Field> gotFields = PrettyPrinter.getAllFields(hello);
+		List<Field> gotFields = new PrettyPrinter().getAllFields(hello);
 		
 		String[] expFieldNames = new String[] {"greeting"};
 		assertFieldNamesAre(expFieldNames, gotFields);		
