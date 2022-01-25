@@ -11,11 +11,13 @@ import java.util.*;
 import javax.xml.bind.DatatypeConverter;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import ca.nrc.introspection.Introspection;
 import ca.nrc.json.PrettyPrinter;
 import org.apache.commons.lang3.tuple.Pair;
+import org.json.JSONObject;
 
 public class Document {
 	
@@ -25,7 +27,7 @@ public class Document {
 	
 	// This makes it possible for a document collection to 
 	// contain documents that are in different languages
-	public boolean _detect_language = true;
+	public Boolean _detect_language = true;
 	
 	public String lang = "en";
 		
@@ -227,7 +229,8 @@ public class Document {
 	}
 
 	
-	public Object getField(String fldName, boolean failIfNotFound, Object defaultVal) throws DocumentException {
+	public Object getField(String fldName, boolean failIfNotFound, Object defaultVal)
+		throws DocumentException {
 		Object value = defaultVal;
 		if (fldName.startsWith("additionalFields.")) {
 			// This is a dynamically set, runtie field
@@ -259,16 +262,27 @@ public class Document {
 	}
 	
 	public String toString() {
-		return toString(null);
+		String toS = null;
+		try {
+			toString(null);
+		} catch (ElasticSearchException e) {
+			throw new RuntimeException(e);
+		}
+		return toS;
 	}
 	
-	public String toString(Set<String> fieldsFilter) {
+	public String toString(Set<String> fieldsFilter) throws ElasticSearchException {
 		String toStr = "";
 		ObjectMapper mapper = new ObjectMapper();
-		Map<String, Object> map = mapper.convertValue(this, Map.class);
-		for (String field: map.keySet()) {
+		JSONObject jsonObject = null;
+		try {
+			jsonObject = new JSONObject(mapper.writeValueAsString(this));
+		} catch (JsonProcessingException e) {
+			throw new ElasticSearchException(e);
+		}
+		for (String field: jsonObject.keySet()) {
 			if (fieldsFilter != null && fieldsFilter.contains(field)) continue;
-			toStr += "\n-------\n"+field+": "+map.get(field);
+			toStr += "\n-------\n"+field+": "+jsonObject.get(field);
 		}
 		
 		return toStr;

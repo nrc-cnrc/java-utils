@@ -108,4 +108,19 @@ public class AssertIndex extends Asserter<ESFactory> {
 		);
 		return this;
 	}
+
+	public AssertIndex exists() throws Exception {
+		Assertions.assertTrue(
+			index().exists(),
+			"Index "+index().indexName()+" SHOULD have existed");
+		return this;
+	}
+
+
+	public AssertIndex doesNotExist() throws Exception {
+		Assertions.assertFalse(
+			index().exists(),
+			"Index "+index().indexName()+" should NOT have existed");
+		return this;
+	}
 }

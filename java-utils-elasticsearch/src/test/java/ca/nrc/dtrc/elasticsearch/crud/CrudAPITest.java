@@ -1,15 +1,12 @@
 package ca.nrc.dtrc.elasticsearch.crud;
 
-import ca.nrc.dtrc.elasticsearch.AssertSearchResults;
-import ca.nrc.dtrc.elasticsearch.ESFactory;
-import ca.nrc.dtrc.elasticsearch.ESTestHelpers;
+import ca.nrc.dtrc.elasticsearch.*;
 import ca.nrc.dtrc.elasticsearch.ESTestHelpers.*;
-import ca.nrc.dtrc.elasticsearch.SearchResults;
 import ca.nrc.dtrc.elasticsearch.index.AssertIndex;
 import ca.nrc.dtrc.elasticsearch.index.IndexAPI;
 import ca.nrc.testing.AssertObject;
 import ca.nrc.testing.AssertString;
-import org.json.JSONObject;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -127,6 +124,25 @@ public abstract class CrudAPITest {
 		gotCar = (CarModel) crudAPI.getDocumentWithID(modelID, CarModel.class, esDocType);
 		AssertObject.assertDeepEquals("Corolla have been in the index after being added", corolla2009, gotCar);
 	}
+
+	@Test
+	public void test__getDocumentWithID__NonExistantIndex() throws Exception {
+		esFactory = makeES("nonexistant_index");
+		new AssertIndex(esFactory).doesNotExist();
+
+		Assertions.assertThrows(NoSuchIndexException.class, () ->
+			{
+				esFactory.crudAPI().getDocumentWithID("someid", ShowCharacter.class);
+			},
+			"Getting a doc from non-existand ID should raise exception "+
+			"(unless we pass an argument asking otherwise)");
+
+		ShowCharacter gotDoc =
+			esFactory.crudAPI().getDocumentWithID("someid", ShowCharacter.class, false);
+		Assertions.assertNull(gotDoc,
+			"Retrieving a doc from non-existant index should return null if we provide an argument asking not to fail");
+	}
+
 
 	@Test
 	public void test__putDocument__nonExistantDocs() throws Exception {

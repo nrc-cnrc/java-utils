@@ -23,7 +23,7 @@ public class DocumentTest {
 			this.last = _last;
 		}
 	}
-	
+
 	@Test
 	public void test__getFieldByName__HappyPath() throws Exception {
 		Person homer = new Person("homer", "simpson");

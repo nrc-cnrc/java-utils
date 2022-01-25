@@ -617,7 +617,7 @@ public class PrettyPrinter {
 			alreadySeen.remove(obj);
 		}
 	}
-	
+
 	public  List<Field> getAllFields(Object obj) {
 		Class type = obj.getClass();
 		List<Field> fields = getAllFields(new ArrayList<Field>(), type);
@@ -640,5 +640,4 @@ public class PrettyPrinter {
 
 		return fields;
 	}
-
 }

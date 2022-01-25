@@ -89,11 +89,28 @@ public abstract class CrudAPI extends ES_API {
 
 	public <T extends Document> T getDocumentWithID(
 		String docID, Class<T> docClass) throws ElasticSearchException  {
-		return getDocumentWithID(docID, docClass, (String)null);
+		return getDocumentWithID(docID, docClass, (String)null, (Boolean)null);
 	}
 
 	public <T extends Document> T getDocumentWithID(
-		String docID, Class<T> docClass, String esDocType) throws ElasticSearchException  {
+		String docID, Class<T> docClass, Boolean failIfNonexistantIndex)
+		throws ElasticSearchException {
+		return getDocumentWithID(docID, docClass, (String)null, failIfNonexistantIndex);
+	}
+
+	public <T extends Document> T getDocumentWithID(
+		String docID, Class<T> docClass, String esDocType)
+		throws ElasticSearchException {
+		return getDocumentWithID(docID, docClass, esDocType, (Boolean)null);
+	}
+
+	public <T extends Document> T getDocumentWithID(
+		String docID, Class<T> docClass, String esDocType, Boolean failIfNoSuchIndex)
+		throws ElasticSearchException  {
+
+		if (failIfNoSuchIndex == null) {
+			failIfNoSuchIndex = true;
+		}
 
 		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.CrudAPI.getDocumentWithID");
 
@@ -106,12 +123,17 @@ public abstract class CrudAPI extends ES_API {
 		ObjectMapper mapper = new ObjectMapper();
 
 
-		String jsonRespStr = transport().get(url);
-		JSONObject jsonResp = new JSONObject(jsonRespStr);
-		doc =
+		try {
+			String jsonRespStr = transport().get(url);
+			JSONObject jsonResp = new JSONObject(jsonRespStr);
+			doc =
 			respMapper.response2doc(jsonResp, docClass,
-				"Record for document with ID="+docID+" is corrupted (expected class="+docClass);
-
+			"Record for document with ID=" + docID + " is corrupted (expected class=" + docClass);
+		} catch (NoSuchIndexException e) {
+			if (failIfNoSuchIndex) {
+				throw e;
+			}
+		}
 		return doc;
 	}
 

@@ -760,7 +760,7 @@ public abstract class IndexAPI extends ES_API {
 				}
 				if (intoSingleJsonFile) {
 					String json = PrettyPrinter.print(docMap);
-					json = PrettyPrinter.formatAsSingleLine(json);
+					json = new PrettyPrinter().formatAsSingleLine(json);
 					fWriter.write(json + "\n");
 				} else {
 					writeToTextFile(aScoredDoc.getDocument(), outputFile.getAbsolutePath());

@@ -7,7 +7,6 @@ import ca.nrc.dtrc.elasticsearch.request.Query;
 import ca.nrc.dtrc.elasticsearch.request.RequestBodyElement;
 import ca.nrc.introspection.Introspection;
 import ca.nrc.introspection.IntrospectionException;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -478,7 +477,7 @@ public abstract class SearchAPI extends ES_API {
 
 		Map<String, Object> unfilteredMemberAttibutes = null;
 		try {
-			unfilteredMemberAttibutes = Introspection.publicFields(queryDoc);
+			unfilteredMemberAttibutes = Introspection.fieldValues(queryDoc);
 		} catch (IntrospectionException e) {
 			throw new ElasticSearchException(e);
 		}
@@ -546,21 +545,17 @@ public abstract class SearchAPI extends ES_API {
 		return unscoredHits;
 	}
 
-	public <T extends Document> List<Hit<T>> scrollScoredHits(String scrollID, T docPrototype) throws ElasticSearchException {
+	public <T extends Document> List<Hit<T>> scrollScoredHits(
+		String scrollID, T docPrototype) throws ElasticSearchException {
 		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.search.SearchAPI.scrollScoredHits");
 		URL url = urlBuilder().forEndPoint("_search/scroll").build();
 
-		Map<String, String> postJson = new HashMap<String, String>();
-		{
-			postJson.put("scroll_id", scrollID);
-			postJson.put("scroll", "1m");
-		}
+		JSONObject postJson = new JSONObject()
+			.put("scroll_id", scrollID)
+			.put("scroll", "1m")
+			;
 		String jsonResponse = null;
-		try {
-				jsonResponse = transport().post(url, new ObjectMapper().writeValueAsString(postJson));
-		} catch (JsonProcessingException  e) {
-			throw new ElasticSearchException(e);
-		}
+		jsonResponse = transport().post(url, postJson.toString());
 
 		Pair<Pair<Long, String>, List<Hit<T>>> parsedResults = null;
 		try {

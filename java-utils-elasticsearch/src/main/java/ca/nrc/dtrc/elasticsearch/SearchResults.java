@@ -260,7 +260,11 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 	}
 
 	public DocIDIterator<T> docIDIterator() {
-		return new DocIDIterator<T>(iterator());
+		return docIDIterator((Boolean)null);
+	}
+
+	public DocIDIterator<T> docIDIterator(Boolean withoutType) {
+		return new DocIDIterator<T>(iterator(), withoutType);
 	}
 
 	public DocIterator<T> docIterator() {

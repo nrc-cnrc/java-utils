@@ -8,7 +8,6 @@ import ca.nrc.debug.Debug;
 import ca.nrc.dtrc.elasticsearch.es6.request.Highlight;
 import ca.nrc.dtrc.elasticsearch.es6.request.JsonString;
 import ca.nrc.dtrc.elasticsearch.es6.request.RequestBodyElement;
-import ca.nrc.dtrc.elasticsearch.es6.request.query.MustClause;
 import ca.nrc.dtrc.elasticsearch.es6.request.query.Query;
 import ca.nrc.introspection.Introspection;
 import ca.nrc.introspection.IntrospectionException;
@@ -1129,7 +1128,7 @@ public class StreamlinedClient {
 
 		Map<String, Object> unfilteredMemberAttibutes = null;
 		try {
-			unfilteredMemberAttibutes = Introspection.publicFields(queryDoc);
+			unfilteredMemberAttibutes = Introspection.fieldValues(queryDoc);
 		} catch (IntrospectionException e) {
 			throw new ElasticSearchException(e);
 		}
@@ -1566,7 +1565,7 @@ public class StreamlinedClient {
 				}
 				if (intoSingleJsonFile) {
 					String json = PrettyPrinter.print(docMap);
-					json = PrettyPrinter.formatAsSingleLine(json);
+					json = new PrettyPrinter().formatAsSingleLine(json);
 					fWriter.write(json + "\n");
 				} else {
 					writeToTextFile(aScoredDoc.getDocument(), outputFile.getAbsolutePath());

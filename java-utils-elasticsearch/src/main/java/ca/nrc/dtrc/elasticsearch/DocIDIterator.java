@@ -7,15 +7,29 @@ import java.util.Iterator;
 
 public class DocIDIterator<T extends Document> implements Iterator<String> {
 
-    Iterator<Hit<T>> hitsIter = null;
+	Iterator<Hit<T>> hitsIter = null;
 
-    public DocIDIterator(Iterator<Hit<T>> _hitsIter) {
-        Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.DocIDIterator");
-        if (tLogger.isTraceEnabled()) {
-            tLogger.trace("Constructing with _hitsIter="+ PrettyPrinter.print(_hitsIter));
-        }
+	private Boolean withoutType = false;
 
-        hitsIter = _hitsIter;
+	public DocIDIterator(Iterator<Hit<T>> _hitsIter) {
+		init__DocIDIterator(_hitsIter, (Boolean)null);
+	}
+
+	public DocIDIterator(Iterator<Hit<T>> _hitsIter, Boolean withoutType) {
+		init__DocIDIterator(_hitsIter, withoutType);
+	}
+
+	private void init__DocIDIterator(Iterator<Hit<T>> _hitsIter, Boolean _withoutType) {
+		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.init__DocIDIterator");
+		if (_withoutType != null) {
+			this.withoutType = _withoutType;
+		}
+
+		if (tLogger.isTraceEnabled()) {
+			tLogger.trace("Constructing with _hitsIter="+ PrettyPrinter.print(_hitsIter));
+		}
+
+		hitsIter = _hitsIter;
     }
 
     @Override
@@ -29,6 +43,11 @@ public class DocIDIterator<T extends Document> implements Iterator<String> {
 
     @Override
     public String next() {
-        return hitsIter.next().getDocument().getId();
+    	T hit =  hitsIter.next().getDocument();
+    	String id = hit.getId();
+    	if (withoutType) {
+    		id = hit.getIdWithoutType();
+		}
+    	return id;
     }
 }

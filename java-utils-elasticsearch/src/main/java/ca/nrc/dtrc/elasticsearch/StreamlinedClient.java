@@ -286,7 +286,8 @@ public abstract class StreamlinedClient extends ES_API {
 	public Document getDocumentWithID(String docID,
 		Class<? extends Document> docClass, String esDocType)
 	throws ElasticSearchException {
-		return crudAPI().getDocumentWithID(docID, docClass, esDocType);
+		return crudAPI().getDocumentWithID(docID, docClass, esDocType,
+		(Boolean)null);
 	}
 
 	public void updateDocument(Class<? extends Document> docClass, String docID, Map<String, Object> partialDoc) throws ElasticSearchException {
