@@ -224,6 +224,7 @@ public class Document {
 		}
 		Set<String> ignoreFieldsSet = new HashSet<String>();
 		Collections.addAll(ignoreFieldsSet, ignoreFields);
+		ignoreFieldsSet.add("longDescription");
 		String content = PrettyPrinter.print(this, ignoreFieldsSet);
 		return content;
 	}

@@ -12,11 +12,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import ca.nrc.introspection.Introspection;
+import ca.nrc.introspection.IntrospectionException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.apache.log4j.Logger;
 
 /**
  * Generates a DETERMISTIC Json PrettyPrint of any object.
@@ -71,52 +74,52 @@ public class PrettyPrinter {
 		}
 	}
 
-	public static String print(Object obj) {
+	public static String print(Object obj)  {
 		return new PrettyPrinter().pprint(obj);
 	}
 
-	public String pprint(Object obj) {
+	public String pprint(Object obj)  {
 		String json = pprint(obj, new String[] {});
 		return json;
 	}
 
-	public static String print(Object obj, Integer _decimals) {
+	public static String print(Object obj, Integer _decimals)  {
 		return new PrettyPrinter(_decimals).pprint(obj);
 	}
 
-	public String pprint(Object obj, Integer _decimals) {
+	public String pprint(Object obj, Integer _decimals)  {
 		PrettyPrinter printer = new PrettyPrinter(_decimals);
 		Set<String> fieldsToIgnoreSet = new HashSet<String>();
 		String json = printer.prettyPrint(obj, fieldsToIgnoreSet);
 		return json;		
 	}
 
-	public static String print(Object obj, Set<String> ignoreFields, Integer _decimals) {
+	public static String print(Object obj, Set<String> ignoreFields, Integer _decimals)  {
 		return new PrettyPrinter(_decimals).pprint(obj, ignoreFields);
 	}
 
-	public String pprint(Object obj, Set<String> ignoreFields, Integer _decimals) {
+	public String pprint(Object obj, Set<String> ignoreFields, Integer _decimals)  {
 		PrettyPrinter printer = new PrettyPrinter(_decimals);
 		String json = printer.prettyPrint(obj, ignoreFields);
 		return json;		
 	}
 
-	public static String print(Object obj, String[] fieldsToIgnore) {
+	public static String print(Object obj, String[] fieldsToIgnore)  {
 		return new PrettyPrinter().pprint(obj, fieldsToIgnore);
 	}
 
-	public String pprint(Object obj, String[] fieldsToIgnore) {
+	public String pprint(Object obj, String[] fieldsToIgnore)  {
 		Set<String> fieldsToIgnoreSet = new HashSet<String>();
 		for (String aFieldName: fieldsToIgnore) fieldsToIgnoreSet.add(aFieldName);
 		String json = prettyPrint(obj, fieldsToIgnoreSet);
 		return json;
 	}
 
-	public static String print(Object obj, Set<String> fieldsToIgnore) {
+	public static String print(Object obj, Set<String> fieldsToIgnore)  {
 		return new PrettyPrinter().pprint(obj, fieldsToIgnore);
 	}
 
-	public String pprint(Object obj, Set<String> fieldsToIgnore) {
+	public String pprint(Object obj, Set<String> fieldsToIgnore)  {
 		PrettyPrinter printer = new PrettyPrinter();
 		String json = printer.prettyPrint(obj, fieldsToIgnore);
 		return json;
@@ -126,12 +129,12 @@ public class PrettyPrinter {
 		return json;
 	}
 
-	private String prettyPrint(Object obj, Set<String> fieldsToIgnore) {
+	private String prettyPrint(Object obj, Set<String> fieldsToIgnore)  {
 		String json = prettyPrint(obj, fieldsToIgnore, 0);
 		return json;
 	}
 
-	private String prettyPrint(Object obj, Set<String> fieldsToIgnore, int indentLevel) {
+	private String prettyPrint(Object obj, Set<String> fieldsToIgnore, int indentLevel)  {
 		String json = "";
 
 		boolean loopFound = checkForLoops(obj);
@@ -180,28 +183,28 @@ public class PrettyPrinter {
 		return json;
 	}
 
-	private String prettyPrintLongArray(long[] arr, Set<String> fieldsToIgnore, int indentLevel) {
+	private String prettyPrintLongArray(long[] arr, Set<String> fieldsToIgnore, int indentLevel)  {
 		Long[] objArr = new Long[arr.length];
 		for (int ii=0; ii< arr.length; ii++) objArr[ii] = new Long(arr[ii]);
 		String json = prettyPrintArray(objArr, fieldsToIgnore, indentLevel);
 		return json;
 	}
 
-	private String prettyPrintIntArray(int[] arr, Set<String> fieldsToIgnore, int indentLevel) {
+	private String prettyPrintIntArray(int[] arr, Set<String> fieldsToIgnore, int indentLevel)  {
 		Integer[] objArr = new Integer[arr.length];
 		for (int ii=0; ii< arr.length; ii++) objArr[ii] = new Integer(arr[ii]);
 		String json = prettyPrintArray(objArr, fieldsToIgnore, indentLevel);
 		return json;
 	}
 
-	private String prettyPrintFloatArray(float[] arr, Set<String> fieldsToIgnore, int indentLevel) {
+	private String prettyPrintFloatArray(float[] arr, Set<String> fieldsToIgnore, int indentLevel)  {
 		Float[] objArr = new Float[arr.length];
 		for (int ii=0; ii< arr.length; ii++) objArr[ii] = new Float(arr[ii]);
 		String json = prettyPrintArray(objArr, fieldsToIgnore, indentLevel);
 		return json;
 	}
 
-	private String prettyPrintDoubleArray(double[] arr, Set<String> fieldsToIgnore, int indentLevel) {
+	private String prettyPrintDoubleArray(double[] arr, Set<String> fieldsToIgnore, int indentLevel)  {
 		Double[] objArr = new Double[arr.length];
 		for (int ii=0; ii< arr.length; ii++) objArr[ii] = new Double(arr[ii]);
 		String json = prettyPrintArray(objArr, fieldsToIgnore, indentLevel);
@@ -283,7 +286,7 @@ public class PrettyPrinter {
 		return json;
 	}
 
-	private String prettyPrintArray(Object[] arr, Set<String> fieldsToIgnore2, int indentLevel) {
+	private String prettyPrintArray(Object[] arr, Set<String> fieldsToIgnore2, int indentLevel)  {
 		List<Object> arrAsList = new ArrayList<Object>();
 		for (int ii=0; ii < arr.length; ii++) {
 			arrAsList.add(arr[ii]);
@@ -293,7 +296,7 @@ public class PrettyPrinter {
 		return json;
 	}
 
-	private String prettyPrintJsonNode(JsonNode node, Set<String> fieldsToIgnore, int indentLevel) {
+	private String prettyPrintJsonNode(JsonNode node, Set<String> fieldsToIgnore, int indentLevel)  {
 		String baseIndentation = indentation(indentLevel);
 
 		String json = null;
@@ -318,7 +321,7 @@ public class PrettyPrinter {
 		return json;
 	}
 
-	private String prettyPrintJsonObject(ObjectNode oNode, Set<String> fieldsToIgnore, int indentLevel) {
+	private String prettyPrintJsonObject(ObjectNode oNode, Set<String> fieldsToIgnore, int indentLevel)  {
 		String baseIndentation = indentation(indentLevel);
 		
 		List<String> fieldNames = new ArrayList<String>();
@@ -344,7 +347,7 @@ public class PrettyPrinter {
 		return json;
 	}
 
-	private String prettyPrintJsonArray(ArrayNode aNode, int indentLevel) {
+	private String prettyPrintJsonArray(ArrayNode aNode, int indentLevel)  {
 		String baseIndentation = indentation(indentLevel);
 		String json = baseIndentation + "[\n";
 		
@@ -359,63 +362,62 @@ public class PrettyPrinter {
 		json = json + baseIndentation + "]";
 		return json;	}
 
-	private String prettyPrintObject(Object obj, Set<String> fieldsToIgnore, int indentLevel) {
-		String baseIndentation = indentation(indentLevel);
+	private String prettyPrintObject(Object obj, Set<String> fieldsToIgnore, int indentLevel)  {
+		Logger logger = Logger.getLogger("ca.nrc.json.PrettyPrinter.prettyPrintObject");
+		String className = null;
+		if (logger.isTraceEnabled()) {
+			className = (obj==null?null:obj.getClass().getSimpleName());
+		}
+		logger.trace("Printing object of class: "+className);
+		String baseIndentation = indentation(indentLevel);;
 		if (fieldsToIgnore == null) {
 			fieldsToIgnore = new HashSet<String>();
 		}
-		
-		alreadySeen.add(obj);
-		List<Field> fields = getAllFields(obj);
-		
-		// Sort fields by their name
-		List<Field> sortedFields = new ArrayList<Field>();
-		for (Field aField: fields) sortedFields.add(aField);
-		Collections.sort(sortedFields,
-					new Comparator<Field>() {
-						@Override
-						public int compare(Field lhs, Field rhs) {
-							return lhs.getName().compareToIgnoreCase(rhs.getName());
-						}
-					}
-				);
-		String json = baseIndentation + "{";
-		boolean first = true;		
-		for (Field aField: sortedFields) {
-			String aFieldName = aField.getName();	
-			if (aFieldName.matches("this\\$\\d+")) {
-				// Reference to an inner class method or something...
-				// won't deal with those.
-				continue;
-			}
-			if (java.lang.reflect.Modifier.isStatic(aField.getModifiers())) {
-				continue;
-			}
-			if (aField.isAnnotationPresent(JsonIgnore.class)) {
-				continue;
-			}
-			if (fieldsToIgnore.contains(aField.getName())) {
-				// This is a field to be ignored
-				continue;
-			} 
-			if (!first) {
-				json = json + ",";
-			}			
-			first = false;							
-			json = json + "\n" + indentation(indentLevel+1) + "\"" + aFieldName + "\":\n";
 
-			aField.setAccessible(true);
-			Object aFieldValue;
-			try {
-				aFieldValue = aField.get(obj);
-			} catch (IllegalArgumentException | IllegalAccessException e) {
-				aFieldValue = "** Problem getting value of this attribute: "+e;
+		String json = null;
+		alreadySeen.add(obj);
+		try {
+			Map<String,Object> fieldValues = Introspection.fieldValues(obj);
+			List<String> fieldNames = sortFieldNames(fieldValues);
+			json = baseIndentation + "{";
+			boolean first = true;
+			for (String aFieldName: fieldNames) {
+				logger.trace(className+": Looking at aFieldName="+aFieldName);
+				if (aFieldName.matches("this\\$\\d+")) {
+					// Reference to an inner class method or something...
+					// won't deal with those.
+					continue;
+				}
+				if (fieldsToIgnore.contains(aFieldName)) {
+					// This is a field to be ignored
+					continue;
+				}
+				if (!first) {
+					json = json + ",";
+				}
+				first = false;
+				json = json + "\n" + indentation(indentLevel+1) + "\"" + aFieldName + "\":\n";
+
+				Object aFieldValue = fieldValues.get(aFieldName);
+				json = json + prettyPrint(aFieldValue, fieldsToIgnore, indentLevel+2);
 			}
-			json = json + prettyPrint(aFieldValue, fieldsToIgnore, indentLevel+2);
+			json = json + "\n" + baseIndentation + "}";
+
+		} catch (IntrospectionException e) {
+			throw new RuntimeException(e);
 		}
-		json = json + "\n" + baseIndentation + "}";
-		
+
+		logger.trace("Returning json="+json);
+
+
 		return json;
+	}
+
+	private List<String> sortFieldNames(Map<String, Object> fieldValues) {
+		List<String> names = new ArrayList<String>();
+		names.addAll(fieldValues.keySet());
+		names.sort((String n1, String n2) -> n1.compareToIgnoreCase(n2));
+		return names;
 	}
 
 
@@ -425,7 +427,7 @@ public class PrettyPrinter {
 		return json;
 	}
 
-	private String prettyPrintList(List<Object> list, Set<String> fieldsToIgnore, int indentLevel) {		
+	private String prettyPrintList(List<Object> list, Set<String> fieldsToIgnore, int indentLevel)  {
 		String baseIndentation = indentation(indentLevel);
 		String json = baseIndentation + "[\n";
 		int counter = 1;
@@ -441,7 +443,7 @@ public class PrettyPrinter {
 		return json;
 	}
 
-	private String prettyPrintMap(Map<?,?> map, Set<String> fieldsToIgnore, int indentLevel) {
+	private String prettyPrintMap(Map<?,?> map, Set<String> fieldsToIgnore, int indentLevel)  {
 		String indentation = indentation(indentLevel);
 		String json = null;
 		
@@ -491,7 +493,7 @@ public class PrettyPrinter {
 		return json;
 	}
 	
-	protected <T extends Comparable<? super T>> String prettyPrintMapOfComparables(Map<T, Object> map, Set<String> fieldsToIgnore, int indentLevel) {
+	protected <T extends Comparable<? super T>> String prettyPrintMapOfComparables(Map<T, Object> map, Set<String> fieldsToIgnore, int indentLevel)  {
 		class CustomComp<T extends Comparable<? super T>> implements Comparator<T> {
 			@Override
 			public int compare(T o1, T o2) {
@@ -542,7 +544,7 @@ public class PrettyPrinter {
 	}	
 	
 	
-	protected String prettyPrintSet(Set<?> set, Set<String> fieldsToIgnore, int indentLevel) {
+	protected String prettyPrintSet(Set<?> set, Set<String> fieldsToIgnore, int indentLevel)  {
 		String json = null;
 		if (set.size() > 0) {
 			Object firstElement = set.iterator().next();
@@ -563,7 +565,7 @@ public class PrettyPrinter {
 		return json;		
 	}
 	
-	protected <T extends Comparable<? super T>> String prettyPrintSetOfComparables(Set<T> set, Set<String> fieldsToIgnore, int indentLevel) {
+	protected <T extends Comparable<? super T>> String prettyPrintSetOfComparables(Set<T> set, Set<String> fieldsToIgnore, int indentLevel)  {
 		class CustomComp<T extends Comparable<? super T>> implements Comparator<T> {
 			@Override
 			public int compare(T o1, T o2) {

@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import ca.nrc.introspection.IntrospectionTest;
 import ca.nrc.testing.AssertObject;
 import ca.nrc.testing.AssertString;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -52,8 +53,8 @@ public class PrettyPrinterTest {
 	public static class SomeComparableClass
 		implements Comparable<SomeComparableClass> {
 
-		String keyField = null;
-		String otherField = null;
+		public String keyField = null;
+		public String otherField = null;
 
 		public SomeComparableClass(String _key, String _other) {
 			this.keyField = _key;
@@ -65,17 +66,6 @@ public class PrettyPrinterTest {
 			return this.keyField.compareTo(o.keyField);
 		}
 	}
-
-	public static class ClassWithPrivatePropertiesAndGetters {
-		public String pub = "public property";
-		private String priv = "private property";
-		private String privWithGetter = "private prop with public getter";
-
-		public String getPrivWithGetter() {
-			return privWithGetter;
-		}
-	}
-
 
 	@BeforeEach
 	public void setUp() throws Exception {
@@ -648,16 +638,16 @@ public class PrettyPrinterTest {
 
 	@Test
 	protected void test__print__Object__IgnorePrivateFields() {
-		ClassWithPrivatePropertiesAndGetters obj = new ClassWithPrivatePropertiesAndGetters();
+		IntrospectionTest.SomeClass obj = new IntrospectionTest.SomeClass();
 		PrettyPrinter pprinter =
 			new PrettyPrinter(PrettyPrinter.OPTION.IGNORE_PRIVATE_PROPS);
 		String gotJson = pprinter.pprint(obj);
 		String expJson =
 			"{\n" +
-			"  \"pub\":\n" +
-			"    \"public property\"\n" +
-			"  \"privWithGetter\":\n"+
-			"    \"BLAH\"\n" +
+			"  \"privInstPropWithAccessor\":\n" +
+			"    \"priv inst prop with accessor\",\n" +
+			"  \"pubInstProp\":\n" +
+			"    \"pub inst prop\"\n" +
 			"}"
 			;
 		AssertString.assertStringEquals(

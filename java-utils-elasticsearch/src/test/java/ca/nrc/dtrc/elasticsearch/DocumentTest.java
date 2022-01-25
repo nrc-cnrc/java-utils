@@ -8,7 +8,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Assert;
 import org.junit.Test;
 
-import ca.nrc.testing.AssertHelpers;
+import org.junit.jupiter.api.Assertions;
 
 public class DocumentTest {
 
@@ -34,14 +34,16 @@ public class DocumentTest {
 	@Test
 	public void test_getCreationLocalDate__HappyPath() throws Exception {
 		Document doc = new Document();
-		
+
 		LocalDate gotDate = doc.getCreationLocalDate();
-		AssertHelpers.assertDeepEquals("", null, gotDate);
+		Assertions.assertNull(gotDate);
 		
 		String dateStr = "2018-01-13";
 		doc.setCreationDate(dateStr);
 		gotDate = doc.getCreationLocalDate();
-		AssertHelpers.assertDeepEquals("", LocalDate.parse(dateStr), gotDate);
+		AssertString.assertStringEquals(
+			"",
+			dateStr, gotDate.toString());
 	}
 	
 	@Test
@@ -75,6 +77,8 @@ public class DocumentTest {
 				"    \"hello world\",\n" +
 				"  \"creationDate\":\n" +
 				"    null,\n" +
+				"  \"id\":\n" +
+				"    \"simpledoc:null\",\n" +
 				"  \"idWithoutType\":\n" +
 				"    null,\n" +
 				"  \"lang\":\n" +
@@ -85,7 +89,7 @@ public class DocumentTest {
 				"    \"simpledoc\"\n" +
 				"}"
 				;
-		AssertObject.assertEqualsJsonCompare(expJson, doc);
+		AssertString.assertStringEquals(expJson, gotJson);
 	}
 	
 	@Test
