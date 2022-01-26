@@ -28,7 +28,7 @@ public abstract class CrudAPI extends ES_API {
 
 	public String putDocument(String esDocType, Document doc) throws ElasticSearchException {
 		Document docWithType = doc;
-		if (doc != null && !doc.type.equals(esDocType)) {
+		if (doc != null && (doc.type == null || !doc.type.equals(esDocType))) {
 			try {
 				docWithType = Cloner.clone(doc);
 			} catch (Cloner.ClonerException e) {
