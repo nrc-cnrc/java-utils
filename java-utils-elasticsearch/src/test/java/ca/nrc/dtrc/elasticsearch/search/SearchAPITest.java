@@ -201,7 +201,7 @@ public abstract class SearchAPITest {
 		SearchAPI searchAPI = esFactory.searchAPI();
 		Thread.sleep(1*1000);
 
-		int expTotalHits = 4013;
+		int expTotalHits = 4014;
 
 		String query = null;
 		SearchResults<ESTestHelpers.PlayLine> gotSearchResults =

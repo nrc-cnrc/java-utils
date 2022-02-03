@@ -461,7 +461,7 @@ public abstract class StreamlinedClientTest {
 		StreamlinedClient client = new ESTestHelpers(esVersion()).makeHamletTestIndex().client();
 		Thread.sleep(1*1000);
 
-		int expTotalHits = 4013;
+		int expTotalHits = 4014;
 
 		String query = null;
 		SearchResults<ESTestHelpers.PlayLine> gotSearchResults =

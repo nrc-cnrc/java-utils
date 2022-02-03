@@ -8,7 +8,7 @@ public class ES_v7SpeedTest extends ESSpeedTest {
 
 	@BeforeAll
 	public static void beforeAll() throws Exception {
-		new ESTestHelpers(5).skipTestsUnlessESIsRunning(9207);
+		new ESTestHelpers(7).skipTestsUnlessESIsRunning(9207);
 		return;
 	}
 

@@ -61,25 +61,25 @@ public class ESTestHelpers {
 		"}";
 
 	public static String hamletLastLine =
-			"{\n" +
-			"    \"_detect_language\": true,\n" +
-			"    \"additionalFields\": {\n" +
-			"        \"line_id\": 36676,\n" +
-			"        \"line_number\": \"5.2.425\",\n" +
-			"        \"play_name\": \"Hamlet\",\n" +
-			"        \"speaker\": \"PRINCE FORTINBRAS\",\n" +
-			"        \"speech_number\": 147\n" +
-			"    },\n" +
-			"    \"content\": \"A dead march. Exeunt, bearing off the dead bodies; after which a peal of ordnance is shot off\",\n" +
-			"    \"creationDate\": null,\n" +
-			"    \"id\": \"playline:5.2.425\",\n" +
-			"    \"idWithoutType\": \"5.2.425\",\n" +
-			"    \"lang\": \"en\",\n" +
-			"    \"longDescription\": \"A dead march. Exeunt, bearing off the dead bodies; after which a peal of ordnance is shot off\",\n" +
-			"    \"shortDescription\": null,\n" +
-			"    \"type\": \"playline\"\n" +
-			"}"
-			;
+		"{\n" +
+		"    \"_detect_language\": true,\n" +
+		"    \"additionalFields\": {\n" +
+		"        \"line_id\": 36676,\n" +
+		"        \"line_number\": \"5.2.425\",\n" +
+		"        \"play_name\": \"Hamlet\",\n" +
+		"        \"speaker\": \"PRINCE FORTINBRAS\",\n" +
+		"        \"speech_number\": 147\n" +
+		"    },\n" +
+		"    \"content\": \"A dead march. Exeunt, bearing off the dead bodies; after which a peal of ordnance is shot off\",\n" +
+		"    \"creationDate\": null,\n" +
+		"    \"id\": \"playline:5.2.425\",\n" +
+		"    \"idWithoutType\": \"5.2.425\",\n" +
+		"    \"lang\": \"en\",\n" +
+		"    \"longDescription\": \"A dead march. Exeunt, bearing off the dead bodies; after which a peal of ordnance is shot off\",\n" +
+		"    \"shortDescription\": null,\n" +
+		"    \"type\": \"playline\"\n" +
+		"}"
+		;
 
 	static {
 		hamletFirstLine = jsonDeformat(hamletFirstLine);
