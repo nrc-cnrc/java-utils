@@ -191,6 +191,11 @@ public class Document {
 		return this;
 	}
 
+	public static String removeType(String _id) {
+		String withoutType = parseID(_id).getRight();
+		return withoutType;
+	}
+
 	public static Pair<String,String> parseID(String _id) {
 		String _type = null;
 		String _idNoType = null;
