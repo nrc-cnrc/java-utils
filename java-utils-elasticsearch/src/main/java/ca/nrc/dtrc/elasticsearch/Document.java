@@ -178,7 +178,7 @@ public class Document {
 
 
 	public String getId() {
-		String _id = type+":"+ idWithoutType;
+		String _id = type+":"+ getIdWithoutType();
 		return _id;
 	}
 
