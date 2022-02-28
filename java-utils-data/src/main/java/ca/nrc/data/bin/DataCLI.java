@@ -28,11 +28,16 @@ public class DataCLI {
 				.desc("Max number of hits to retrieve.").hasArg().argName("NNN").build();
 
 		Option optPipeline = Option.builder(null).longOpt(DataCmd.OPT_PIPELINE)
-				.desc("Pipeline to use.").hasArg().argName("NNN").build();
+				.desc("Pipeline to use.").hasArg(false).argName("NNN").build();
 
 		Option optHTMLFullText = Option.builder(null).longOpt(DataCmd.OPT_HTML_FULL_TEXT)
 				.desc("Process the full text of an HTML file without attempting to filter 'container' words like navigation menus, banners, etc....")
 				.build();
+
+		Option optURL = Option.builder(null).longOpt(DataCmd.OPT_URL)
+			.hasArg()
+			.desc("URL of page to be processed.")
+			.build();
 
 		// Harvest web pages returned by a paritcular Bing query
 		// and save them to a directory
@@ -44,6 +49,12 @@ public class DataCLI {
 				.addOption(optHTMLFullText);
 		mainCmd.addSubCommand(addHarvestQuery);
 
+		// Harvest single web page
+		SubCommand harvestPage = new CmdHarvestPage("harvest_page")
+			.addOption(optURL)
+			.addOption(optPipeline);
+
+		mainCmd.addSubCommand(harvestPage);
 
 		return mainCmd;
 	}

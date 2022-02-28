@@ -2,6 +2,8 @@ package ca.nrc.data.bin;
 
 import ca.nrc.ui.commandline.SubCommand;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
@@ -14,6 +16,8 @@ public abstract class DataCmd extends SubCommand {
 	static final String OPT_MAX_HITS = "max-hits";
 	public static final String OPT_HTML_FULL_TEXT = "html-full-text";
 	public static final String OPT_PIPELINE = "pipeline";
+
+	public static final String OPT_URL = "url";
 
 	public DataCmd(String name) {
 		super(name);
@@ -48,5 +52,24 @@ public abstract class DataCmd extends SubCommand {
 	protected boolean getOptHTMLFullText() {
 		boolean fullText = hasOption(DataCmd.OPT_HTML_FULL_TEXT);
 		return fullText;
+	}
+
+	protected boolean getOptPipeline() {
+		boolean pipeline = hasOption(DataCmd.OPT_PIPELINE);
+		return pipeline;
+	}
+
+	protected URL getOptURL() {
+		URL url = null;
+		String urlStr = getOptionValue(DataCmd.OPT_URL, false);
+		if (urlStr != null) {
+			try {
+				url = new URL(urlStr);
+			} catch (MalformedURLException e) {
+				usage("--url value was not a valid URL");
+			}
+		}
+
+		return url;
 	}
 }

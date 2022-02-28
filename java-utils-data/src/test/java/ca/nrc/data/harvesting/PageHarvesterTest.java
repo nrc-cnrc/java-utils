@@ -53,6 +53,7 @@ public abstract class PageHarvesterTest {
 	 * DOCUMENTATION TESTS
 	 ********************************************************************************/
 
+
 	@SuppressWarnings("unused")
 	@Test
 	public void test__PageHarvester__Synopsis() throws Exception {
