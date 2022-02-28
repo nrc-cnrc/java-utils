@@ -73,7 +73,7 @@ public class CmdHarvestPage extends DataCmd {
 					output = harvestPage(input);
 				} catch (Exception e) {
 					output = new JSONObject()
-					.put("error", ExceptionHelpers.printExceptionCauses(e));
+						.put("error", ExceptionHelpers.printExceptionCauses(e));
 				}
 			}
 			System.out.println(output.toString());
@@ -88,20 +88,26 @@ public class CmdHarvestPage extends DataCmd {
 		if (input.has("url") && input.has("html")) {
 			throw new URLandHtmlMutuallyExclusiveException(input);
 		}
-		if (input.has("url")) {
-			String url = input.getString("url");
-			harvester.harvestSinglePage(url);
-			output = new JSONObject()
-				.put("content", harvester.getMainText());
-		} else {
-			String html = input.getString("html");
-			String extractorType = null;
-			if (input.has("extractor_type")) {
-				extractorType = input.getString("extractor_type");
+		MainContentExtractor.ExtractionType extractorType = null;
+		if (input.has("extractor_type")) {
+			try {
+				extractorType = MainContentExtractor.ExtractionType.valueOf(input.getString("extractor_type"));
+			} catch (Exception e) {
+				output.put("error", "Unknown extractor type: "+input.getString("extractor_type"));
+			}
+		}
+		if (!output.has("error")) {
+			String html = null;
+			if (input.has("url")) {
+				String url = input.getString("url");
+				harvester.harvestSinglePage(url);
+				html = harvester.getHtml();
+			} else {
+				html = input.getString("html");
 			}
 			String text = new MainContentExtractor().extract(html, extractorType);
 			output = new JSONObject()
-				.put("content", text);
+			.put("content", text);
 		}
 
 		return output;
