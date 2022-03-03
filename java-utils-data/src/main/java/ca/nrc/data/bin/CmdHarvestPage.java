@@ -13,9 +13,11 @@ import java.util.Scanner;
 public class CmdHarvestPage extends DataCmd {
 
 	PageHarvester_HtmlCleaner harvester = new PageHarvester_HtmlCleaner();
+	Scanner scanner = null;
 
 	public CmdHarvestPage(String name) {
 		super(name);
+		scanner = new Scanner(System.in);
 	}
 
 	@Override
@@ -97,9 +99,10 @@ public class CmdHarvestPage extends DataCmd {
 			}
 		}
 		if (!output.has("error")) {
+			String url = null;
 			String html = null;
 			if (input.has("url")) {
-				String url = input.getString("url");
+				url = input.getString("url");
 				harvester.harvestSinglePage(url);
 				html = harvester.getHtml();
 			} else {
@@ -107,8 +110,12 @@ public class CmdHarvestPage extends DataCmd {
 			}
 			String text = new MainContentExtractor().extract(html, extractorType);
 			output = new JSONObject()
-			.put("content", text);
+				.put("content", text);
+			if (url != null) {
+				output.put("url", url);
+			}
 		}
+
 
 		return output;
 	}
@@ -116,7 +123,6 @@ public class CmdHarvestPage extends DataCmd {
 
 	private JSONObject readInputFromSTDIN() throws BadJsonInputException {
 		JSONObject json = null;
-		Scanner scanner = new Scanner(System.in);
 		String line = scanner.nextLine();
 		if (!line.isEmpty()) {
 			try {
