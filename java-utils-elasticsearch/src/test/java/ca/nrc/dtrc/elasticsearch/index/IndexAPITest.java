@@ -150,6 +150,10 @@ public abstract class IndexAPITest {
 		String indexName = "test-index";
 		IndexAPI index = makeESFactory(indexName).indexAPI();
 
+		// First, make sure the index does not exist
+		index.delete();
+
+		// Then define it.
 		index.define(new IndexDef(), true);
 		Assertions.assertTrue(
 			index.exists(),
@@ -198,27 +202,28 @@ public abstract class IndexAPITest {
 	public void test__isEmpty__HappyPath() throws Exception {
 		String indexName = "test-index";
 		ESFactory factory = makeESFactory(indexName);
+		ShowCharacter homer = new ShowCharacter("Homer", "Simpson", "The Simpsons");
+
 		IndexAPI index = factory.indexAPI();
 		index.delete();
 		Assertions.assertTrue(
 			index.isEmpty(),
-			"Index SHOULD have been empty after index deletion");
+			"Type SHOULD have been empty after index deletion");
 
-		ShowCharacter homer = new ShowCharacter("Homer", "Simpson", "The Simpsons");
 		factory.crudAPI().putDocument(homer);
 
 		Thread.sleep(2*1000);
 
 		Assertions.assertFalse(
 			index.isEmpty(),
-			"Index should NOT have been empty after index deletion");
+			"Type should NOT have been empty after index deletion");
 
 		index.clear();
 		Thread.sleep(2*1000);
 
 		Assertions.assertTrue(
 			index.isEmpty(),
-			"Index SHOULD have been empty after clearing the ShowCharacter type");
+			"Index SHOULD have been empty after clearing");
 	}
 
 	@Test
@@ -497,5 +502,22 @@ public abstract class IndexAPITest {
 		AssertString.assertStringEquals(
 			"mapping URL not as expected",
 			expDeleteByQueryUrl(docType), gotURL.toString());
+	}
+
+	@Test
+	public void test__exists__HappyPath() throws Exception {
+		IndexAPI indexAPI = esFactory.indexAPI();
+
+		indexAPI.delete();
+		Assertions.assertFalse(indexAPI.exists(),
+			"Index should NOT have existed after it was deleted");
+
+		indexAPI.create();
+		Assertions.assertTrue(indexAPI.exists(),
+			"Index SHOULD have existed after it was created");
+
+		indexAPI.clear();
+		Assertions.assertTrue(indexAPI.exists(),
+			"Index should STILL have existed even after it was cleared");
 	}
 }

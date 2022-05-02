@@ -40,7 +40,7 @@ public abstract class CrudAPI extends ES_API {
 	}
 
 	public String putDocument(Document doc) throws ElasticSearchException {
-		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.es5.CrudAPI_v5");
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.crud.CrudAPI.putDocument");
 		defineIndexIfNotExists();
 		if (tLogger.isTraceEnabled()) {
 			try {
@@ -139,7 +139,7 @@ public abstract class CrudAPI extends ES_API {
 
 	public void deleteDocumentWithID(String id) throws ElasticSearchException  {
 		Pair<String, String> parsed = Document.parseID(id);
-		deleteDocumentWithID(parsed.getLeft(), parsed.getRight());
+		deleteDocumentWithID(parsed.getRight(), parsed.getLeft());
 	}
 
 	public void deleteDocumentWithID(String docID,

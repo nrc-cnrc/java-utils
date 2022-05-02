@@ -532,11 +532,12 @@ public abstract class SearchAPITest {
 		homer.setAdditionalField("first", "Homer");
 		homer.setAdditionalField("last", "Simpson");
 		homer.setCreationDate("2018-03-19");
-		homer.setLongDescription("Homer is a character created created by Matt Groening in etc..");
+		homer.setLongDescription("Homer is a character created by Matt Groening in etc..");
 		homer.setShortDescription("Homer is a the father of the Simpsons family");
 
 		esFactory.crudAPI().putDocument(homer);
-		Map<String, Object> gotFilteredFields = esFactory.searchAPI().filterFields(homer);
+		Map<String, Object> gotFilteredFields =
+			esFactory.searchAPI().filterFields(homer);
 		Map<String,Object> expFilteredFields = new HashMap<String,Object>();
 		{
 			expFilteredFields.put("id", "person:homersimpson");
@@ -544,7 +545,7 @@ public abstract class SearchAPITest {
 			expFilteredFields.put("type", "person");
 			expFilteredFields.put("lang", "en");
 
-			expFilteredFields.put("content", "Homer is a character created created by Matt Groening in etc..");
+			expFilteredFields.put("content", "Homer is a character created by Matt Groening in etc..");
 			expFilteredFields.put("shortDescription", "Homer is a the father of the Simpsons family");
 
 			expFilteredFields.put("additionalFields.first", "Homer");

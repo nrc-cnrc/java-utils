@@ -29,7 +29,7 @@ public abstract class IndexAPI extends ES_API {
 	protected abstract URL url4indexDef() throws ElasticSearchException;
 	public abstract URL url4deleteByQuery(String docType) throws ElasticSearchException;
 	public abstract URL url4bulk(String docTypeName) throws ElasticSearchException;
-	protected abstract JSONObject extractFieldsProps(JSONObject jsonObj, String docTypeName);
+	protected abstract JSONObject extractFieldsProps(JSONObject jsonObj, String docTypeName) throws ElasticSearchException;
 	protected abstract void putIndexDefintion(IndexDef iDef) throws ElasticSearchException;
 	protected abstract String bulkLinePrefix(String currDocTypeName, String id);
 
@@ -80,6 +80,7 @@ public abstract class IndexAPI extends ES_API {
 	}
 
 	public void define(IndexDef iDef, Boolean force) throws ElasticSearchException {
+		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.index.indexAPI.define");
 		if (force == null) {
 			force = false;
 		}
@@ -111,8 +112,8 @@ public abstract class IndexAPI extends ES_API {
 			json = new ObjectMapper().writeValueAsString(settings);
 			URL url =
 			urlBuilder()
-			.forEndPoint("_settings")
-			.build();
+				.forEndPoint("_settings")
+				.build();
 			transport().put(url, json);
 		} catch (JsonProcessingException e) {
 			throw new ElasticSearchException(e);
@@ -138,7 +139,7 @@ public abstract class IndexAPI extends ES_API {
 		return exists;
 	}
 
-	public  synchronized void cacheIndexExists(Boolean exists) {
+	public synchronized void cacheIndexExists(Boolean exists) {
 		indexExistsCache.put(indexName(), exists);
 	}
 
@@ -146,7 +147,7 @@ public abstract class IndexAPI extends ES_API {
 		indexExistsCache.put(indexName, exists);
 	}
 
-	private static synchronized Boolean uncacheIndexExists(String indexName) {
+	public static synchronized Boolean uncacheIndexExists(String indexName) {
 		Boolean exists = indexExistsCache.get(indexName);
 		return exists;
 	}
@@ -238,24 +239,35 @@ public abstract class IndexAPI extends ES_API {
 			URL url = url4singletypeMappings(docTypeName);
 
 			logger.trace("url="+url);
-			String jsonResponse = transport().get(url);
-			JSONObject jsonObj = new JSONObject(jsonResponse);
+			try {
+				String jsonResponse = transport().get(url);
+				JSONObject jsonObj = new JSONObject(jsonResponse);
 
-			JSONObject fieldsProps = extractFieldsProps(jsonObj, docTypeName);
+				JSONObject fieldsProps = extractFieldsProps(jsonObj, docTypeName);
 
-			for (String aFldName: fieldsProps.keySet()) {
-				JSONObject aFldProps = fieldsProps.getJSONObject(aFldName);
-			    if (aFldName.equals("additionalFields")) {
-			    	fieldTypes = collectAdditionalFields(aFldProps, fieldTypes);
-			    } else {
-				    String aFldType = null;
-				    if (aFldProps.has("type")) {
-				    	aFldType = aFldProps.getString("type");
-				    } else {
-				    	aFldType = "_EMBEDDED_STRUCTURE";
-				    }
-				    fieldTypes.put(aFldName, aFldType);
-			    }
+				for (String aFldName : fieldsProps.keySet()) {
+					JSONObject aFldProps = fieldsProps.getJSONObject(aFldName);
+					if (aFldName.equals("additionalFields")) {
+						fieldTypes = collectAdditionalFields(aFldProps, fieldTypes);
+					} else {
+						String aFldType = null;
+						if (aFldProps.has("type")) {
+							aFldType = aFldProps.getString("type");
+						} else {
+							aFldType = "_EMBEDDED_STRUCTURE";
+						}
+						fieldTypes.put(aFldName, aFldType);
+					}
+				}
+			} catch (NoSuchIndexException e) {
+				// If we get a NoSuchIndexException it means the 'idefs' index
+				// does not exist. If the base index exists, then it just means
+				// we have not defined any specific mappings for that index, which
+				// is fine. But if the base index does not exist, then raise an
+				// exception
+				if (!exists()) {
+					throw new ElasticSearchException(e);
+				}
 			}
 			cacheFieldTypes(fieldTypes, docTypeName);
 		}
@@ -269,7 +281,7 @@ public abstract class IndexAPI extends ES_API {
 
 	}
 
-	private Map<String, String> collectAdditionalFields(JSONObject dynFieldsMapping, Map<String, String> fieldTypes) {
+	protected Map<String, String> collectAdditionalFields(JSONObject dynFieldsMapping, Map<String, String> fieldTypes) {
 		if (dynFieldsMapping.has("properties")) {
 			JSONObject props = dynFieldsMapping.getJSONObject("properties");
 			for (String aFldName: props.keySet()) {
@@ -288,7 +300,7 @@ public abstract class IndexAPI extends ES_API {
 	}
 
 
-	private static Map<String,String> uncacheFieldTypes(String docClassName) {
+	protected static Map<String,String> uncacheFieldTypes(String docClassName) {
 		Map<String,String> fieldTypes = null;
 		if (fieldTypesCache != null && fieldTypesCache.containsKey(docClassName)) {
 			fieldTypes = fieldTypesCache.get(docClassName);
@@ -316,36 +328,6 @@ public abstract class IndexAPI extends ES_API {
 	public static void clearFieldTypesCache() {
 		fieldTypesCache = null;
 	}
-
-
-//	public boolean isEmpty__OLD() throws ElasticSearchException {
-//		Boolean empty = null;
-//
-//		URL url = null;
-//		try {
-//			url = urlBuilder().forEndPoint("_mappings").build();
-//		} catch (ElasticSearchException e) {
-//			throw new RuntimeException(e);
-//		}
-//
-//		String jsonResp = null;
-//		try {
-//			jsonResp = transport().get(url);
-//		} catch (NoSuchIndexException e1) {
-//			empty = true;
-//		}
-//
-//		if (empty == null) {
-//			// Index exists. Does it include some types?
-//			JSONObject mappings = new JSONObject(jsonResp)
-//				.getJSONObject(indexName())
-//				.getJSONObject("mappings");
-//
-//			empty = (0 == mappings.keySet().size());
-//		}
-//
-//		return empty;
-//	}
 
 	public boolean isEmpty() throws ElasticSearchException {
 		Boolean empty = null;

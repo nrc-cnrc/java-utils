@@ -81,6 +81,11 @@ public class ESUrlBuilder {
 		return this;
 	}
 
+	public ESUrlBuilder forCat(String _cat) {
+		this._cat = _cat;
+		return this;
+	}
+
 	public ESUrlBuilder refresh(boolean _wait) {
 		this.waitForRefresh = _wait;
 		return this;

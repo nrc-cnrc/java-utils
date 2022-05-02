@@ -56,6 +56,8 @@ public abstract class CrudAPITest {
 
 		// This is how you DELETE a document
 		crud.deleteDocumentWithID(homer.getId());
+
+		return;
 	}
 
 	////////////////////////////////////////////

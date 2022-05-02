@@ -1,7 +1,6 @@
 package ca.nrc.dtrc.elasticsearch;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -12,6 +11,7 @@ import ca.nrc.dtrc.elasticsearch.crud.CrudAPI;
 import ca.nrc.dtrc.elasticsearch.engine.MissingESPluginException;
 import ca.nrc.dtrc.elasticsearch.es5.ES5Factory;
 import ca.nrc.dtrc.elasticsearch.es7.ES7Factory;
+import ca.nrc.dtrc.elasticsearch.es7mi.ES7miFactory;
 import org.junit.Assert;
 
 import com.fasterxml.jackson.core.JsonParseException;
@@ -169,6 +169,7 @@ public class ESTestHelpers {
 
 		factory.indexAPI().delete();
 		factory.indexAPI().create();
+
 		return factory;
 	}
 
@@ -194,7 +195,11 @@ public class ESTestHelpers {
 			factory.indexAPI().delete();
 			factory.indexAPI().define(true);
 		} else {
-			factory.indexAPI().clear();
+			if (factory.indexAPI().exists()) {
+				factory.indexAPI().clear();
+			} else {
+				factory.indexAPI().define(true);
+			}
 		}
 		CrudAPI crudAPI = factory.crudAPI();
 
@@ -263,14 +268,18 @@ public class ESTestHelpers {
 	}
 
 	public String testFilesPath(String relPath) throws ElasticSearchException {
-		int forVersion = esFactory.version();
-		if (forVersion > 7) {
-			forVersion = 7;
+		int esVersionNum = esFactory.version();
+		if (esVersionNum > 7) {
+			esVersionNum = 7;
+		}
+		String esVersionDescr = String.valueOf(esVersionNum);
+		if (esFactory instanceof ES7miFactory) {
+			esVersionDescr += "mi";
 		}
 		if (relPath == null) {
 			relPath = "";
 		}
-		relPath = "test_data/ca/nrc/dtrc/elasticsearch/es"+forVersion+"/"+relPath;
+		relPath = "test_data/ca/nrc/dtrc/elasticsearch/es"+esVersionDescr+"/"+relPath;
 		String fPath = null;
 		try {
 			fPath = ResourceGetter.getResourcePath(relPath);
@@ -278,11 +287,11 @@ public class ESTestHelpers {
 			throw new ElasticSearchException(e);
 		}
 		return fPath;
-
 	}
 
 	public String hamletJsonFile() throws ElasticSearchException {
-		return testFilesPath("hamlet.json");
+		String hamletFile = testFilesPath("hamlet.json");
+		return hamletFile;
 	}
 
 	public static void assertNoError(String jsonResponse) throws JsonParseException, JsonMappingException, IOException {

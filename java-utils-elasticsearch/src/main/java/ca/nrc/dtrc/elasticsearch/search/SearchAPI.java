@@ -115,6 +115,8 @@ public abstract class SearchAPI extends ES_API {
 		Query query, String docTypeName, T docPrototype,
 		RequestBodyElement... additionalBodyElts) throws ElasticSearchException {
 
+		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.search.SearchAPI.search_4");
+
 		RequestBodyElement[] bodyElements =
 		new RequestBodyElement[additionalBodyElts.length + 1];
 			bodyElements[0] = query;
@@ -128,14 +130,15 @@ public abstract class SearchAPI extends ES_API {
 		}
 
 		String reqJson = mergedElt.jsonString().toString();
-		return search(new JsonString(reqJson), docTypeName, docPrototype);
+		SearchResults<T> results = search(new JsonString(reqJson), docTypeName, docPrototype);
+		logger.trace("returning results with #hits=" + results.getTotalHits());
+		return results;
 	}
 
 	public <T extends Document> SearchResults<T> search(
 		JsonString jsonQuery,
 		String docTypeName, T docPrototype) throws ElasticSearchException {
-
-		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.es5.StreamlinedClient.search");
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.search.SearchAPI.search__3");
 
 		docTypeName = Document.determineType(docTypeName, docPrototype);
 
