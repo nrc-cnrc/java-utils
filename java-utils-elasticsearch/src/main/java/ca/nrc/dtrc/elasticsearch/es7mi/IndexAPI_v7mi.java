@@ -128,9 +128,10 @@ public class IndexAPI_v7mi extends IndexAPI {
 	}
 
 	@Override
-	protected String bulkLinePrefix(String currDocTypeName, String id) {
+	protected String bulkLinePrefix(String currDocTypeName, String id) throws ElasticSearchException {
+		String typeIndex = esFactory().index4type(currDocTypeName);
 		String prefix =
-		"{\"index\": {\"_index\": \"" + indexName() + "\", \"_type\" : \"_doc\", \"_id\": \"" + id + "\"}}";
+			"{\"index\": {\"_index\": \"" + typeIndex + "\", \"_type\" : \"_doc\", \"_id\": \"" + id + "\"}}";
 		return prefix;
 	}
 

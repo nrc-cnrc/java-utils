@@ -31,7 +31,7 @@ public abstract class IndexAPI extends ES_API {
 	public abstract URL url4bulk(String docTypeName) throws ElasticSearchException;
 	protected abstract JSONObject extractFieldsProps(JSONObject jsonObj, String docTypeName) throws ElasticSearchException;
 	protected abstract void putIndexDefintion(IndexDef iDef) throws ElasticSearchException;
-	protected abstract String bulkLinePrefix(String currDocTypeName, String id);
+	protected abstract String bulkLinePrefix(String currDocTypeName, String id) throws ElasticSearchException;
 
 	private static  Map<String,Boolean> indexExistsCache =
 		new HashMap<String,Boolean>();
@@ -569,6 +569,7 @@ public abstract class IndexAPI extends ES_API {
 						for (ESObserver obs : esFactory.observers) {
 							obs.observeBulkIndex(batchStart, batchStart + currBatchSize, indexName(), currDocTypeName);
 						}
+						tLogger.trace("Bulk indexing batch:\n"+jsonBatch);
 						bulk(jsonBatch, defDocTypeName);
 						batchStart += currBatchSize;
 						currBatchSize = 0;
