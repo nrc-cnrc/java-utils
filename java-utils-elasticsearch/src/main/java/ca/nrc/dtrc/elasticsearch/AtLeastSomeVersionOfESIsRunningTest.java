@@ -1,6 +1,5 @@
 package ca.nrc.dtrc.elasticsearch;
 
-import ca.nrc.dtrc.elasticsearch.es6.ElasticSearchException;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
 
