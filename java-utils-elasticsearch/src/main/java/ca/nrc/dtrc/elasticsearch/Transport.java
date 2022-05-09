@@ -11,7 +11,6 @@ import org.apache.log4j.Logger;
 
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -164,11 +163,11 @@ public class Transport {
 		return jsonResponse;
 	}
 
-	public void delete(URL url) throws ElasticSearchException {
-		delete(url, "");
+	public String delete(URL url) throws ElasticSearchException {
+		return delete(url, "");
 	}
 
-	public void delete(URL url, String jsonBody) throws ElasticSearchException {
+	public String delete(URL url, String jsonBody) throws ElasticSearchException {
 		@SuppressWarnings("unused")
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.Transport.delete");
 
@@ -185,6 +184,8 @@ public class Transport {
 		for (ESObserver obs : observers) {
 			obs.observeAfterDELETE(url, jsonBody);
 		}
+
+		return jsonResponse;
 	}
 
 	public void checkForESErrorResponse(String jsonResponse) throws ElasticSearchException {

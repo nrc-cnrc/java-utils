@@ -54,7 +54,7 @@ public class ESUrlBuilderTest  {
 		String expURL = "http://localhost:9090/_search/scroll";
 		AssertString.assertStringEquals(expURL, gotURL.toString());
 	}
-
+	
 	@Test
 	public void test__delete_by_query__HappyPath() throws Exception {
 		URL gotURL = 

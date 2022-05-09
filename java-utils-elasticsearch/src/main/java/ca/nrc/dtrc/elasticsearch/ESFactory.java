@@ -19,7 +19,8 @@ import java.util.List;
 public abstract class ESFactory {
 
 	public static enum ESOptions {
-		CREATE_IF_NOT_EXISTS, UPDATES_WAIT_FOR_REFRESH, VERBOSE, APPEND
+		CREATE_IF_NOT_EXISTS, UPDATES_WAIT_FOR_REFRESH, VERBOSE, APPEND, SCROLL,
+		SEARCH_AFTER
 	};
 
 	public abstract int version();

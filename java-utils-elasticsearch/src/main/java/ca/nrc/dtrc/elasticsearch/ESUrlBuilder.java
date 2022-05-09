@@ -39,7 +39,7 @@ public class ESUrlBuilder {
 		this.serverName = _serverName;
 		this.port = _port;
 	}
-	
+
 	private String baseUrl() {
 		String _url = "http://"+serverName+":"+port+"/";
 		return _url;
@@ -53,6 +53,11 @@ public class ESUrlBuilder {
 	
 	public ESUrlBuilder forClass(Class<? extends Document> _docClass) {
 		this.docType = _docClass.getName();
+		return this;
+	}
+
+	public ESUrlBuilder noIndexName() {
+		this.indexName = null;
 		return this;
 	}
 

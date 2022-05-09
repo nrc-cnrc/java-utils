@@ -12,7 +12,7 @@ import org.json.JSONObject;
 import java.net.URL;
 import java.util.*;
 
-public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
+public class SearchResults<T extends Document> implements Iterable<Hit<T>>, AutoCloseable {
 	
 	final static Logger logger = Logger.getLogger(SearchResults.class);
 	
@@ -326,5 +326,21 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>> {
 		}
 
 		return value;
+	}
+
+	public void close() throws ElasticSearchException {
+		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults.close");
+		if (scrollID != null) {
+			URL url = urlBuilder().noIndexName()
+				.forEndPoint("_search/scroll/"+scrollID)
+				.build();
+			String json = "{\"scroll_id\":\""+scrollID+"\"}";
+			String response = esFactory.transport().delete(url);
+			logger.trace("delete() returned response="+response);
+		}
+	}
+
+	ESUrlBuilder urlBuilder() {
+		return esFactory.urlBuilder();
 	}
 }

@@ -17,6 +17,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -66,18 +67,49 @@ public abstract class SearchAPITest {
 		// who is older than 30.
 		//
 		String query = "surname:simpson AND age:>30";
-		SearchResults<ShowCharacter> hits =
-			searchAPI.search(query, characterPrototype);
 
-		// You can then find out how many hits fit the query and loop through
-		// them.
-		Long totalHits = hits.getTotalHits();
-		Iterator<Hit<ShowCharacter>> iter = hits.iterator();
-		while (iter.hasNext()) {
-			Hit<ShowCharacter> scoredHit = iter.next();
-			ShowCharacter hitDocument = scoredHit.getDocument();
-			Double hitScore = scoredHit.getScore();
+		// Note: It's a good practice to invoke search() inside of a try() {}.
+		// This ensures that the search results will be automatically closed when
+		// you exit the try block.
+		// More on the importance of closing search results below.
+		//
+		try (SearchResults<ShowCharacter> hits =
+			searchAPI.search(query, characterPrototype)) {
+
+			// You can then find out how many hits fit the query and loop through
+			// them.
+			Long totalHits = hits.getTotalHits();
+			Iterator<Hit<ShowCharacter>> iter = hits.iterator();
+			while (iter.hasNext()) {
+				Hit<ShowCharacter> scoredHit = iter.next();
+				ShowCharacter hitDocument = scoredHit.getDocument();
+				Double hitScore = scoredHit.getScore();
+			}
 		}
+
+
+		///////////////////////////////////////////////////////////////////////
+		// IMPORTANT:When you are done with a search result, it's important to
+		// close it. Failing to do so may decrase performance or even RAISE EXCEPTIONS!!!
+		//
+		// Reason for this is that search search() request opens an ES scroll context
+		// and those are expensive. Therefore, if you have too many active scroll
+		// contexts, performance will suffer. Also, ES7 puts a cap of
+		// 500 on the number of active scroll contexts and will raise an exception
+		// if that cap is exceeded.
+		//
+		// Failing to close a search result is not and absolute must, because in
+		// if If you forget to close a search result, the scroll context
+		// will close automatically when either:
+		//
+		// - The scroll index hasn't been used for 1 minute
+		// - The search result or iterator object has been gargabe collected
+		//
+		// But in some situations, this will happen too late to prevent exceeding
+		// the ES cap on the number of active scroll contexts.
+		//
+		// Therefore, it's best to invoke search inside of a try() {} block as in
+		// the above example.
 
 		//
 		// Note that like Google, ElasticSearch sometimes plays fast and loose
@@ -103,7 +135,10 @@ public abstract class SearchAPITest {
 					)
 				)
 		);
-		hits = searchAPI.search(queryBody, characterPrototype);
+		try (SearchResults<ShowCharacter> hits =
+			  searchAPI.search(queryBody, characterPrototype)) {
+
+		}
 
 
 		// You can also ask for some aggregations to be performed on some of
@@ -125,16 +160,20 @@ public abstract class SearchAPITest {
 		Aggs aggsBody =
 			new Aggs()
 			.aggregate("avgAge", "avg", "age");
-		hits = searchAPI.search(queryBody, characterPrototype, aggsBody);
-		Double averageAge = (Double) hits.aggrResult("avgAge", Double.class);
+		try (SearchResults<ShowCharacter> hits =
+			searchAPI.search(queryBody, characterPrototype, aggsBody)) {
+			Double averageAge = (Double) hits.aggrResult("avgAge", Double.class);
+		}
 
 		//
 		// You can also find documents that are similar to a particular doc.
 		//
 		ShowCharacter queryPerson =
 			new ShowCharacter("Lisa", "Simpson", "The Simpsons");
-		SearchResults<ShowCharacter> searchResults =
-			searchAPI.moreLikeThis(queryPerson);
+		try(SearchResults<ShowCharacter> searchResults =
+			searchAPI.moreLikeThis(queryPerson)) {
+
+		}
 
 		//
 		// You can also find documents that are similar to a list of
@@ -143,31 +182,35 @@ public abstract class SearchAPITest {
 		List<ShowCharacter> queryPeople = new ArrayList<ShowCharacter>();
 		queryPeople.add(new ShowCharacter("Lisa", "Simpson", "The Simpsons"));
 		queryPeople.add(new ShowCharacter("Bart", "Simpson", "The Simpsons"));
-		searchResults = searchAPI.moreLikeThese(queryPeople);
+		try (SearchResults<ShowCharacter> searchResults =
+			  searchAPI.moreLikeThese(queryPeople)) {
 
+			// You may have noticed that the moreLikeThis and moreLikeThese searches
+			// do not allow you to set hard criteria on the similar docs you want.
+			//
+			// You can however attach a HitFilter to SearchResults, in order
+			// to only get those similar docs that you want.
+			//
+			// For example, say you only want similar docs whose 'gender' field is
+			// set to 'f'...
+			//
 
-		// You may have noticed that the moreLikeThis and moreLikeThese searches
-		// do not allow you to set hard criteria on the similar docs you want.
-		//
-		// You can however attach a HitFilter to SearchResults, in order
-		// to only get those similar docs that you want.
-		//
-		// For example, say you only want similar docs whose 'gender' field is
-		// set to 'f'...
-		//
+			// See documentation tests of HitFilder for other possiblities
+			HitFilter genderFilter = new HitFilter("+ gender:f");
+			searchResults.setFilter(genderFilter);
 
-		// See documentation tests of HitFilder for other possiblities
-		HitFilter genderFilter = new HitFilter("+ gender:f");
-		searchResults.setFilter(genderFilter);
+			// The iterator will then only loop through the hits that pass
+			// the gender filter
+			Iterator<Hit<ShowCharacter>> iter = searchResults.iterator();
+			while (iter.hasNext()) {
+				Hit<ShowCharacter> scoredHit = iter.next();
+				ShowCharacter hitDocument = scoredHit.getDocument();
+				Double hitScore = scoredHit.getScore();
+			}
 
-		// The iterator will then only loop through the hits that pass
-		// the gender filter
-		iter = searchResults.iterator();
-		while (iter.hasNext()) {
-			Hit<ShowCharacter> scoredHit = iter.next();
-			ShowCharacter hitDocument = scoredHit.getDocument();
-			Double hitScore = scoredHit.getScore();
 		}
+
+
 	}
 
 	/////////////////////////////////////////
@@ -552,5 +595,32 @@ public abstract class SearchAPITest {
 			expFilteredFields.put("additionalFields.last", "Simpson");
 		}
 		AssertObject.assertDeepEquals("Negative filter did not produce expected field names", expFilteredFields, gotFilteredFields);
+	}
+
+	@Test
+	public void test__search__SearchResults_AutoClosing() throws Exception {
+		esFactory = new ESTestHelpers(esFactory).makeHamletTestIndex();
+
+		// When we hundreds of searches in a short time, there is a risk that we
+		// will exceed ES7's quota for the maximum number of opened scroll contexts.
+		//
+		// For that reason, SearchResults are auto-closable and will ask ES to delete
+		// their scroll context upon closing.
+		//
+		// This test checks that this auto-closing feature works properly and allows us
+		// to fire (and auto-close) > 500 searches within one minute.
+		//
+		PlayLine proto = new PlayLine();
+		for (int ii=0; ii < 600; ii++) {
+			System.out.println("Search #"+ii);
+			try(SearchResults<PlayLine> results =
+				esFactory.searchAPI().search("Hamlet", "playline", proto)) {
+				DocIterator<PlayLine> iterator = results.docIterator();
+				for (int jj = 0; jj < 20; jj++) {
+					iterator.next();
+				}
+				int x = 1;
+			}
+		}
 	}
 }
