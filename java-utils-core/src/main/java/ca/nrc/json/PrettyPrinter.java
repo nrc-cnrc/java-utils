@@ -171,7 +171,9 @@ public class PrettyPrinter {
 		} else if (obj instanceof Object[] || obj instanceof double[] || obj instanceof int[] || obj instanceof long[]) {
 			json = prettyPrintArray((Object[])obj, fieldsToIgnore, indentLevel);			
 		} else if (obj instanceof JsonNode) {
-			json = prettyPrintJsonNode((JsonNode)obj, fieldsToIgnore, indentLevel);
+			json = prettyPrintJsonNode((JsonNode) obj, fieldsToIgnore, indentLevel);
+		} else if (obj instanceof Class) {
+			json = prettyPrintClass((Class)obj);
 		} else {
 			json = prettyPrintObject(obj, fieldsToIgnore, indentLevel);
 		}
@@ -181,6 +183,11 @@ public class PrettyPrinter {
 		}
 		
 		return json;
+	}
+
+	private String prettyPrintClass(Class clazz) {
+		String pprinted = "\"Class<"+clazz.getName()+">\"";
+		return pprinted;
 	}
 
 	private String prettyPrintLongArray(long[] arr, Set<String> fieldsToIgnore, int indentLevel)  {
@@ -386,10 +393,12 @@ public class PrettyPrinter {
 				if (aFieldName.matches("this\\$\\d+")) {
 					// Reference to an inner class method or something...
 					// won't deal with those.
+					logger.trace(className+": Skipping field (inner class)");
 					continue;
 				}
 				if (fieldsToIgnore.contains(aFieldName)) {
 					// This is a field to be ignored
+					logger.trace(className+": Skipping field (was included in list of fields to ignore");
 					continue;
 				}
 				if (!first) {
@@ -399,7 +408,11 @@ public class PrettyPrinter {
 				json = json + "\n" + indentation(indentLevel+1) + "\"" + aFieldName + "\":\n";
 
 				Object aFieldValue = fieldValues.get(aFieldName);
+				logger.trace(
+					"Pretty printing aFieldName="+aFieldName+
+					"; type="+(aFieldValue == null?"UNKNOWN":aFieldValue.getClass().getSimpleName()));
 				json = json + prettyPrint(aFieldValue, fieldsToIgnore, indentLevel+2);
+				logger.trace("Done with aFieldName="+aFieldName);
 			}
 			json = json + "\n" + baseIndentation + "}";
 

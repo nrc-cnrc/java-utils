@@ -178,10 +178,15 @@ public abstract class ESFactory {
 		if (this.userIO != null) userIO.echo(message, level);
 	}
 
+	public SearchAPI searchAPI(SearchAPI.PaginationStrategy _paginationStrategy) throws ElasticSearchException {
+		SearchAPI api = searchAPI();
+		api.paginateWith = _paginationStrategy;
+		return api;
+	}
+
 	public EngineAPI engineAPI() throws ElasticSearchException {
 		return new EngineAPI(this);
 	}
-
 
 	public StreamlinedClient client(double sleepSecs) throws ElasticSearchException {
 		StreamlinedClient _client = client();

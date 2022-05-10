@@ -21,23 +21,30 @@ public abstract class ResultsMergerTest {
 	ResultsMerger<Document> merger = null;
 	SearchResults<Document> mltHits = null;
 	SearchResults<Document> bQueryHits = null;
+
 	@BeforeEach
 	public void setUp() throws Exception {
 		esFactory = makeESFactory("test-index");
 		merger = new ResultsMerger<Document>();
-		mltHits = new SearchResults<Document>(esFactory);
+		mltHits = makeSearchResults(esFactory);
 		{
 			mltHits.addHit(new Document("mltOnlyDoc1", "doc"), 10.3, null);
 			mltHits.addHit(new Document("mltOnlyDoc2", "doc"), 5.36, null);
 			mltHits.addHit(new Document("mltAndBQueryDoc", "doc"), 2.89, null);
 		}
-		bQueryHits = new SearchResults<Document>(esFactory);
+		bQueryHits = makeSearchResults(esFactory);
 		{
 			bQueryHits.addHit(new Document("mltAndBQueryDoc", "doc"), 0.67, null);
 			bQueryHits.addHit(new Document("bQueryOnlyDoc1", "doc"), 0.35, null);
 			bQueryHits.addHit(new Document("bQueryOnlyDoc2", "doc"), 7.90, null);
 		}
 		return;
+	}
+
+	protected <T extends Document> SearchResults<T> makeSearchResults(ESFactory factory) throws ElasticSearchException {
+		SearchResults<T> results = new SearchResults_SearchAfter<T>(
+				null, null, null, esFactory, null);
+		return results;
 	}
 	
 	/*******************************************************************
@@ -59,12 +66,12 @@ public abstract class ResultsMergerTest {
 		// input query. Then you would merge the results, taking
 		// into accout the scores of both lists.
 		//
-		SearchResults<Document> mltHits = new SearchResults<Document>(esFactory);
+		SearchResults<Document> mltHits = makeSearchResults(esFactory);
 		{
 			mltHits.addHit(new Document("mltOnlyDoc", "doc"), 10.3, null);
 			mltHits.addHit(new Document("mltAndBQueryDoc", "doc"), 2.89, null);
 		}
-		SearchResults<Document> bQueryHits = new SearchResults<Document>(esFactory);
+		SearchResults<Document> bQueryHits = makeSearchResults(esFactory);
 		{
 			bQueryHits.addHit(new Document("mltAndBQueryDoc", "doc"), 0.67, null);
 			bQueryHits.addHit(new Document("bQueryOnlyDoc", "doc"), 0.35, null);
@@ -116,7 +123,7 @@ public abstract class ResultsMergerTest {
 
 	@Test
 	public void test__normalizeScores__ListHasZeroVariance() throws Exception {
-		SearchResults<Document> hitsWithZeroVariance = new SearchResults<Document>(esFactory);
+		SearchResults<Document> hitsWithZeroVariance = makeSearchResults(esFactory);
 		{
 			hitsWithZeroVariance.addHit(new Document("doc1", "doc"), 32.0, null);
 			hitsWithZeroVariance.addHit(new Document("doc2", "doc"), 32.0, null);

@@ -179,6 +179,7 @@ public abstract class IndexAPITest {
 			"Retrieved index definition was not as expected",
 			definition, gotDef
 		);
+		return;
 	}
 
 	@Test

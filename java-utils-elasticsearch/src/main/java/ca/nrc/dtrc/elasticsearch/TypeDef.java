@@ -1,5 +1,6 @@
 package ca.nrc.dtrc.elasticsearch;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.json.JSONObject;
 
 import java.util.HashMap;
@@ -9,8 +10,8 @@ public class TypeDef {
 	
 	public Map<String,FieldDef> fields = new HashMap<String,FieldDef>();
 
+	@JsonIgnore
 	public FieldDef getFieldDef(String fldName) {
-		
 		if (!fields.containsKey(fldName)) {
 			fields.put(fldName, new FieldDef());
 		} 

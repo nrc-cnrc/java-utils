@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import ca.nrc.dtrc.elasticsearch.search.SearchAPI;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.log4j.Level;
@@ -13,14 +14,17 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import ca.nrc.json.PrettyPrinter;
 
-public class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> {
-	
+public abstract class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> {
+
+	protected abstract List<Hit<T>> nextHitsPage() throws ElasticSearchException;
+
 	private static final int MAX_CONSEC_UNSUCCESSFUL_BATCHES = 5;
 
-	private T docPrototype = null;
+	public SearchAPI.PaginationStrategy paginateWith =
+		SearchAPI.PaginationStrategy.SCROLL;
 
-	private String scrollID = null;
-	
+	protected T docPrototype = null;
+
 	private HitFilter filter = new HitFilter();
 	
 	private Long totalHits = new Long(0);
@@ -28,12 +32,10 @@ public class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> 
 	public Long getTotalHits() {return totalHits;}
 		public void setTotalHits(Long _totalHits) {this.totalHits = _totalHits;}
 		
-	private  List<Hit<T>> documentsBatch = new ArrayList<>();		
+	protected  List<Hit<T>> documentsBatch = new ArrayList<Hit<T>>();
 		public List<Hit<T>> getFirstDocumentsBatch() {return documentsBatch;}
 		
 	private int batchCursor = 0;	
-	
-	boolean potentiallyMoreInIndex = true;
 	
 	// ESFactory that was used to retrieve the results.
 	// The SearchResults class needs it to be able to scroll through
@@ -43,34 +45,31 @@ public class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> 
 
 	ObjectMapper mapper = new ObjectMapper();
 
-	public ScoredHitsIterator() throws ElasticSearchException, SearchResultsException {
+
+	public ScoredHitsIterator(ESFactory _esFactory, T docPrototype) throws ElasticSearchException, SearchResultsException {
 		init__ScoredHitsIterator(
-			(List<Hit<T>>)null, (String)null, (T)null, (ESFactory)null,
-			(HitFilter)null);
+			(List<Hit<T>>)null, docPrototype,
+			_esFactory, (HitFilter)null);
 	}
 
-	public ScoredHitsIterator(T docPrototype) throws ElasticSearchException, SearchResultsException {
-		init__ScoredHitsIterator(
-			(List<Hit<T>>)null, (String)null, docPrototype, (ESFactory)null,
-			(HitFilter)null);
-	}
-
-	public ScoredHitsIterator(List<Hit<T>> firstResultsBatch, String _scrollID,
+	public ScoredHitsIterator(List<Hit<T>> firstResultsBatch,
 		T _docPrototype, ESFactory _esFactory, HitFilter _filter) throws ElasticSearchException, SearchResultsException {
-		init__ScoredHitsIterator(firstResultsBatch, _scrollID, _docPrototype,
-		_esFactory, _filter);
+		init__ScoredHitsIterator(
+			firstResultsBatch, _docPrototype, _esFactory, _filter);
 	}
 
 	private void init__ScoredHitsIterator(
-		List<Hit<T>> firstResultsBatch, String _scrollID, T _docPrototype,
-		ESFactory _esFactory, HitFilter _filter)
+		List<Hit<T>> firstResultsBatch,
+		T _docPrototype, ESFactory _esFactory, HitFilter _filter)
 		throws ElasticSearchException, SearchResultsException {
 
-		this.scrollID = _scrollID;
 		this.docPrototype = _docPrototype;
 		this.esFactory = _esFactory;
 		this.filter = _filter;
-		this.retrieveAndFilterUntilNonEmptyBatch(firstResultsBatch);
+		if (firstResultsBatch != null) {
+			this.documentsBatch = firstResultsBatch;
+		}
+		return;
 	}
 
 	public ErrorHandlingPolicy errorPolicy() {
@@ -81,84 +80,100 @@ public class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> 
 		return policy;
 	}
 	
-	private void retrieveAndFilterUntilNonEmptyBatch() throws ElasticSearchException, SearchResultsException {
-		retrieveAndFilterUntilNonEmptyBatch(null);
-	}
-	
-	private void retrieveAndFilterUntilNonEmptyBatch(List<Hit<T>> initialBatch) throws ElasticSearchException, SearchResultsException {
+	protected void retrieveAndFilterUntilNonEmptyBatch() throws ElasticSearchException, SearchResultsException {
 		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.ScoredHitsIterator.retrieveAndFilterUntilNonEmptyBatch");
-		tLogger.trace("scrollID="+scrollID);
 		if (tLogger.isTraceEnabled()) {
-			String mess = "initialBatch=null";
-			if (initialBatch != null) {
-				mess = "initialBatch.size()="+initialBatch.size();
-			}
-			tLogger.trace(mess);
+			tLogger.trace(
+				"\n  esClient.getErrorPolicy(): " + esFactory.getErrorPolicy());
 		}
-		if (initialBatch != null) { 
-			documentsBatch = initialBatch; 
-		} else {
-			documentsBatch = new ArrayList<Hit<T>>();
-		}
-		
-		if (scrollID == null) {
-			// Note: scrollID == null may happen when we are creating 
-			//   dummy list of hits for testing purposes.
-			documentsBatch = initialBatch;
-		} else {
-			int unsuccessfulBatchesCountdown = MAX_CONSEC_UNSUCCESSFUL_BATCHES;
-			while(true) {
-				filterDocumentsBatch();
-				
-				// Last batch retrieved from ESFactory contains some hits that passed the filter
-				if (documentsBatch.size() > 0) break;
-				
-				// Last batch retrieved from ESFactory did NOT contains any hits that pass the filter
-				// Try another batch unless we reached the maximum number of consecutive
-				// unsuccessful batches
-				unsuccessfulBatchesCountdown--;
-				if (unsuccessfulBatchesCountdown == 0) break;
 
-				tLogger.trace("Scrolling hits with esClient.getErrorPolicy()="+esFactory.getErrorPolicy());
-				documentsBatch = esFactory.searchAPI()
-					.scrollScoredHits(scrollID, docPrototype);
-				
-				// No more hits to be retrieved from ElasticSearch
-				if (documentsBatch == null) break;
+		int loopCounter = 0;
+
+		// Keep polling the server for a new batch of hits until either:
+		// - We get one that contains at least one hit that passes the filter.
+		//    OR
+		// - We reach the maximum number of tries.
+
+		boolean keepGoing = true;
+		while(keepGoing) {
+			loopCounter++;
+			traceDocsBatch(tLogger,
+				"retrieveAndFilterUntilNonEmptyBatch[top of while loop]:\n  loopCounter="+loopCounter);
+
+			try {
+				documentsBatch = nextHitsPage();
+				if (documentsBatch != null && documentsBatch.isEmpty()) {
+					// If the next page of hits is empty, that means we there
+					// are no more hits to be found.
+					documentsBatch = null;
+					break;
+				}
+				traceDocsBatch(tLogger,
+					"retrieveAndFilterUntilNonEmptyBatch[after polling server for new batch]:\n  loopCounter="+loopCounter);
+			} catch (Exception e) {
+				if (e.getMessage().contains("scrollId is missing")) {
+					tLogger.trace("There are no more hits to be had: EXITING\n  loopCounter="+loopCounter);
+					documentsBatch = null;
+					break;
+				} else {
+					throw e;
+				}
+			}
+
+			filterDocumentsBatch();
+			traceDocsBatch(tLogger,
+				"retrieveAndFilterUntilNonEmptyBatch[after filtering current batch]:\n  loopCounter="+loopCounter);
+
+			if (documentsBatch.size() > 0) {
+				// Last batch retrieved from server contains some hits that passed the filter
+				tLogger.trace("At least one hit in the batch passes the filter: EXITING\n  loopCounter="+loopCounter);
+				break;
+			} else {
+				tLogger.trace("None of the hits in the batch passes the filter.\n  loopCounter="+loopCounter);
+				if (loopCounter == MAX_CONSEC_UNSUCCESSFUL_BATCHES) {
+					tLogger.trace("Reached max number of tries: EXITING");
+					break;
+				} else {
+					tLogger.trace("Trying another batch.\n  loopCounter="+loopCounter);
+				}
 			}
 		}
 		batchCursor = 0;
 
+		traceDocsBatch(tLogger, "retrieveAndFilterUntilNonEmptyBatch[upon exit]");
+		return;
+	}
+
+	private void traceDocsBatch(Logger tLogger, String context) {
 		if (tLogger.isTraceEnabled()) {
-			String mess = "Upon exit, batchCursor="+batchCursor+
-				", scrollID="+scrollID;
-			if (initialBatch == null) {
-				mess += ", initialBatch = null";
-			} else {
-				mess += "initialBatch.size()="+initialBatch.size();
-			}
+			String mess = context + "\n"
+				+ " batchCursor: " + batchCursor + "\n"
+				+ " documentsBatch: " + (documentsBatch == null?"null": documentsBatch.size()+" elements")
+				;
 			tLogger.trace(mess);
 		}
-	}		
-		
+	}
 
-	private void filterDocumentsBatch() throws SearchResultsException {
+
+	protected void filterDocumentsBatch() throws SearchResultsException {
 		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.filterDocumentsBatch");
-		List<Hit<T>> filteredHits = new ArrayList<Hit<T>>();
-		for (Hit<T> aHit: documentsBatch) {
-			try {
-				if (filter == null || filter.keep(aHit)) { 
-					filteredHits.add(aHit);							
-				} else {
-					if (tLogger.isTraceEnabled()) {
-						tLogger.trace("** Rejected aHit="+PrettyPrinter.print(aHit));
+		if (documentsBatch != null) {
+			List<Hit<T>> filteredHits = new ArrayList<Hit<T>>();
+			for (Hit<T> aHit : documentsBatch) {
+				try {
+					if (filter == null || filter.keep(aHit)) {
+						filteredHits.add(aHit);
+					} else {
+						if (tLogger.isTraceEnabled()) {
+							tLogger.trace("** Rejected aHit=" + PrettyPrinter.print(aHit));
+						}
 					}
+				} catch (HitFilterException e) {
+					throw new SearchResultsException(e);
 				}
-			} catch (HitFilterException e) {
-				throw new SearchResultsException(e);
 			}
+			documentsBatch = filteredHits;
 		}
-		documentsBatch = filteredHits;
 	}
 	@Override
 	public boolean hasNext() {
@@ -168,11 +183,6 @@ public class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> 
 		while (answer == null) {
 			if (documentsBatch == null) {
 				// Null batch --> false;
-				answer = false;
-			}
-
-			if (answer == null && documentsBatch.size() == 0) {
-				// Non null but empty batch --> false;
 				answer = false;
 			}
 

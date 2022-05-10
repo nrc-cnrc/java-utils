@@ -53,6 +53,7 @@ public abstract class StreamlinedClientTest {
 		// Nothing to do... probably the index didn't exist in
 		// the first place.
 	  }
+	  return;
 	}
 
 	public  StreamlinedClient makeClient() throws ElasticSearchException {
@@ -559,8 +560,8 @@ public abstract class StreamlinedClientTest {
 		Map<String,String> expTypes = new HashMap<String,String>();
 		{
 			expTypes.put("type", "text");
-			expTypes.put("id", "text");
-			expTypes.put("idWithoutType", "text");
+			expTypes.put("id", "keyword");
+			expTypes.put("idWithoutType", "keyword");
 			expTypes.put("_detect_language", "boolean");
 			expTypes.put("lang", "text");
 			expTypes.put("additionalFields.birthDay", "date");
@@ -593,9 +594,9 @@ public abstract class StreamlinedClientTest {
 		Map<String, String> gotTypes = esClient.indexAPI().fieldTypes(type);
 		Map<String,String> expTypes = new HashMap<String,String>();
 		{
-			expTypes.put("id", "text");
+			expTypes.put("id", "keyword");
+			expTypes.put("idWithoutType", "keyword");
 			expTypes.put("type", "text");
-			expTypes.put("idWithoutType", "text");
 			expTypes.put("_detect_language", "boolean");
 			expTypes.put("lang", "text");
 
@@ -621,8 +622,8 @@ public abstract class StreamlinedClientTest {
 		Map<String, String> gotTypes = esClient.indexAPI().fieldTypes(type);
 		Map<String,String> expTypes = new HashMap<String,String>();
 		{
-			expTypes.put("id", "text");
-			expTypes.put("idWithoutType", "text");
+			expTypes.put("id", "keyword");
+			expTypes.put("idWithoutType", "keyword");
 			expTypes.put("type", "text");
 			expTypes.put("_detect_language", "boolean");
 			expTypes.put("lang", "text");

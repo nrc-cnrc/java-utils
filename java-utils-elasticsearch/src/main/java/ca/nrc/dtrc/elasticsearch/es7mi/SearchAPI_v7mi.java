@@ -18,10 +18,13 @@ public class SearchAPI_v7mi extends SearchAPI {
 
 	@Override
 	protected URL searchURL(String docTypeName) throws ElasticSearchException {
-		URL url = esFactory().urlBuilder(docTypeName)
+		ESUrlBuilder builder = esFactory().urlBuilder(docTypeName)
 			.forDocType(docTypeName).forEndPoint("_search")
-			.includeTypeInUrl(false)
-			.scroll().build();
+			.includeTypeInUrl(false);
+		if (paginateWith == SearchAPI.PaginationStrategy.SCROLL) {
+			builder.scroll();
+		}
+		URL url = builder.build();
 		return url;
 	}
 
@@ -40,7 +43,7 @@ public class SearchAPI_v7mi extends SearchAPI {
 		throws ElasticSearchException {
 
 		// Initialize results to an empty results set.
-		SearchResults<T> results = new SearchResults<T>(esFactory());
+		SearchResults<T> results = new SearchResults_Scroll<T>(esFactory());
 		IndexAPI_v7mi indexAPI = esFactory().indexAPI();
 		if (!indexAPI.exists()) {
 			// If the base index does not exist, we raise an exception.

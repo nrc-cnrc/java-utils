@@ -1,10 +1,7 @@
 package ca.nrc.dtrc.elasticsearch.search;
 
 import ca.nrc.dtrc.elasticsearch.*;
-import ca.nrc.dtrc.elasticsearch.request.Highlight;
-import ca.nrc.dtrc.elasticsearch.request.JsonString;
-import ca.nrc.dtrc.elasticsearch.request.Query;
-import ca.nrc.dtrc.elasticsearch.request.RequestBodyElement;
+import ca.nrc.dtrc.elasticsearch.request.*;
 import ca.nrc.introspection.Introspection;
 import ca.nrc.introspection.IntrospectionException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -13,8 +10,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.apache.log4j.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -27,6 +23,27 @@ import java.util.regex.Pattern;
  * API for carrying out different types of ElasticSearch searches.
  */
 public abstract class SearchAPI extends ES_API {
+	/**
+	 * Strategies for looping through lists of hits.
+	 *
+	 * SCROLL: Uses ES 'scroll' approach. This can be faster, but it may raise
+	 *   exceptions if we carry out more than 500 searches in the space of
+	 *   1 minute.
+	 *
+	 * SEARCH_AFTER: uses ES 'search after' approach. This may be faster, but
+	 *   it will NOT raise exceptions even if you issue more than 500 searches
+	 *   in the space of 1 minute.
+	 *
+	 * NONE: Does not use any pagination strategy. This means you will only be
+	 *    able to retrieve hits that are contained on the very first page of hits.
+	 *    This can be faster in situations where you only care about things like:
+	 *    - Finding out the total number of available hits
+	 *    - Getting a hit (any hit)
+	 *    - Getting the very first hit
+	 */
+	public static enum PaginationStrategy {SCROLL, SEARCH_AFTER, NONE}
+
+	public PaginationStrategy paginateWith = PaginationStrategy.SEARCH_AFTER;
 
 	protected abstract URL searchURL(String docTypeName) throws ElasticSearchException;
 	protected abstract void addType2mltBody(String esDocType, JSONObject mltBody) throws ElasticSearchException;
@@ -47,6 +64,25 @@ public abstract class SearchAPI extends ES_API {
 
 	public SearchAPI(ESFactory _esFactory) throws ElasticSearchException {
 		super(_esFactory);
+		init__SearchAPI((PaginationStrategy)null);
+	}
+
+	public SearchAPI(ESFactory _esFactory, PaginationStrategy _paginateWith) throws ElasticSearchException {
+		super(_esFactory);
+		init__SearchAPI(_paginateWith);
+	}
+
+	private void init__SearchAPI(PaginationStrategy _paginationStrategy) {
+		if (_paginationStrategy != null) {
+			this.paginateWith = _paginationStrategy;
+		}
+	}
+
+	/**
+	 * Name of the field to use as a tie breaker for sorting criteria
+	 */
+	protected String sortTieBreakerField() {
+		return "id";
 	}
 
 	public <T extends Document> SearchResults<T> search(
@@ -118,21 +154,85 @@ public abstract class SearchAPI extends ES_API {
 		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.search.SearchAPI.search_4");
 
 		RequestBodyElement[] bodyElements =
-		new RequestBodyElement[additionalBodyElts.length + 1];
+			new RequestBodyElement[additionalBodyElts.length + 1];
 			bodyElements[0] = query;
 		for (int ii = 1; ii < bodyElements.length; ii++) {
 			bodyElements[ii] = additionalBodyElts[ii - 1];
 		}
+
+		bodyElements = ensureSortingForSearchAfter(bodyElements);
+
 		RequestBodyElement mergedElt = RequestBodyElement.mergeElements(bodyElements);
 		if (!mergedElt.containsKey("highlight")) {
 			Highlight highlight = new Highlight().hihglightField("longDescription");
 			mergedElt = RequestBodyElement.mergeElements(mergedElt, highlight);
 		}
 
+
 		String reqJson = mergedElt.jsonString().toString();
 		SearchResults<T> results = search(new JsonString(reqJson), docTypeName, docPrototype);
 		logger.trace("returning results with #hits=" + results.getTotalHits());
 		return results;
+	}
+
+	/**
+	 * When using 'search with' for paginating search results, this method
+	 * ensures that the array of request body elements contains at least one
+	 * sort element and this sort criteria will produce a unique value for each
+	 * document.
+	 */
+	private RequestBodyElement[] ensureSortingForSearchAfter(RequestBodyElement[] elements) {
+		RequestBodyElement[] augmentedElements = elements;
+		if (paginateWith == PaginationStrategy.SEARCH_AFTER) {
+			boolean hasSort = false;
+			for (RequestBodyElement elt : elements) {
+				if (elt instanceof Sort) {
+					// Make sure that the existing sort element uses the id field as
+					// a tie breaker
+					Sort sort = (Sort) elt;
+					if (!sort.hasCriteria("id")) {
+						sort.sortBy("id", Sort.Order.asc);
+					}
+					hasSort = true;
+				}
+			}
+			if (!hasSort) {
+				augmentedElements = new RequestBodyElement[elements.length + 1];
+				for (int ii = 0; ii < elements.length; ii++) {
+					augmentedElements[ii] = elements[ii];
+				}
+				Sort sort = new Sort().sortBy(sortTieBreakerField(), Sort.Order.asc);
+				augmentedElements[augmentedElements.length - 1] = sort;
+			}
+		}
+		return augmentedElements;
+	}
+
+	/**
+	 * When using 'search after' to paginate search results, this method ensures
+	 * that the JSON request object includes a sort criteria and that this sort
+	 * criteria will produce a unique value for each document.
+	 *
+	 * This is to ensure that we can loop through documents using search_after.
+	 */
+	private JSONObject ensureSortingForSearchAfter(JSONObject request) {
+		if (paginateWith == PaginationStrategy.SEARCH_AFTER) {
+			if (!request.has("sort")) {
+				request.put("sort", new JSONArray()
+					.put(new JSONObject()
+						.put("_score", new JSONObject()
+							.put("order", "desc")
+						)
+					)
+					.put(new JSONObject()
+						.put(sortTieBreakerField(), new JSONObject()
+							.put("order", "asc")
+						)
+					)
+				);
+			}
+		}
+		return request;
 	}
 
 	public <T extends Document> SearchResults<T> search(
@@ -148,8 +248,14 @@ public abstract class SearchAPI extends ES_API {
 
 		tLogger.trace("post returned jsonResponse=" + jsonResponse);
 
-		SearchResults<T> results =
-			new SearchResults<T>(jsonResponse, docPrototype, esFactory, url);
+		SearchResults<T> results = null;
+		if (paginateWith == PaginationStrategy.SCROLL) {
+			results = new SearchResults_Scroll<T>(jsonResponse,
+				docPrototype, esFactory, url);
+		}  else {
+			results = new SearchResults_SearchAfter<T>(
+				jsonQuery, jsonResponse, docPrototype, esFactory, url);
+		}
 
 		tLogger.trace("returning results with #hits=" + results.getTotalHits());
 
@@ -198,8 +304,6 @@ public abstract class SearchAPI extends ES_API {
 
 		SearchResults<T> results =
 			search(new JsonString(mltBody), esType, queryDoc);
-
-		tLogger.trace("Returned results.iterator().hasNext()=" + results.iterator().hasNext());
 
 		return results;
 	}
@@ -299,10 +403,13 @@ public abstract class SearchAPI extends ES_API {
 			)
 		;
 
+		jsonQuery = ensureSortingForSearchAfter(jsonQuery);
+
 		addType2mltBody(esDocType, jsonQuery);
 
 		return jsonQuery;
 	}
+
 
 	private Set<String> mltSearchableFields(Collection<Map<String, Object>> queryDocs,
 		String esDocType) throws ElasticSearchException {
@@ -456,7 +563,10 @@ public abstract class SearchAPI extends ES_API {
 						)
 					)
 				)
-			);
+			)
+		;
+
+		root = ensureSortingForSearchAfter(root);
 
 		String jsonBody = root.toString();
 
@@ -539,7 +649,7 @@ public abstract class SearchAPI extends ES_API {
 		throws ElasticSearchException {
 
 		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.search.SearchAPI.scroll");
-		List<Hit<T>> scoredHits = scrollScoredHits(scrollID, docPrototype);
+		List<Hit<T>> scoredHits = nextHitsPage_Scroll(scrollID, docPrototype);
 		List<T> unscoredHits = new ArrayList<T>();
 		for (Hit<T> aScoredHit : scoredHits) {
 			unscoredHits.add(aScoredHit.getDocument());
@@ -548,9 +658,9 @@ public abstract class SearchAPI extends ES_API {
 		return unscoredHits;
 	}
 
-	public <T extends Document> List<Hit<T>> scrollScoredHits(
+	public <T extends Document> List<Hit<T>> nextHitsPage_Scroll(
 		String scrollID, T docPrototype) throws ElasticSearchException {
-		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.search.SearchAPI.scrollScoredHits");
+		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.search.SearchAPI.nextHitsPage_Scroll");
 		URL url = urlBuilder().forEndPoint("_search/scroll").build();
 
 		JSONObject postJson = new JSONObject()
@@ -565,6 +675,29 @@ public abstract class SearchAPI extends ES_API {
 			parsedResults = respMapper.parseJsonSearchResponse(jsonResponse, docPrototype);
 		} catch (ElasticSearchException e) {
 			logger.error("scrollID="+scrollID+": parseJsonSearchResponse raised exception!");
+			throw e;
+		}
+
+		return parsedResults.getRight();
+	}
+
+	public <T extends Document> List<Hit<T>> nexHitsPage__SearchAfter(
+		JsonString query, Object searchAfterValue, T docPrototype) throws ElasticSearchException {
+		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.search.SearchAPI.nexHitsPage__SearchAfter");
+		URL url = urlBuilder().forEndPoint("_search").build();
+
+		JSONObject postJson = new JSONObject(query)
+			.put("search_after", new JSONArray()
+				.put(searchAfterValue)
+			);
+		String jsonResponse = null;
+		jsonResponse = transport().post(url, postJson.toString());
+
+		Pair<Pair<Long, String>, List<Hit<T>>> parsedResults = null;
+		try {
+			parsedResults = respMapper.parseJsonSearchResponse(jsonResponse, docPrototype);
+		} catch (ElasticSearchException e) {
+//			logger.error("scrollID="+scrollID+": parseJsonSearchResponse raised exception!");
 			throw e;
 		}
 

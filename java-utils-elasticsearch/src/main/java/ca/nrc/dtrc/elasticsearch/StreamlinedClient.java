@@ -221,7 +221,7 @@ public abstract class StreamlinedClient extends ES_API {
 	}
 
 	public <T extends Document> List<Hit<T>> scrollScoredHits(String scrollID, T docPrototype) throws ElasticSearchException {
-		return searchAPI().scrollScoredHits(scrollID, docPrototype);
+		return searchAPI().nextHitsPage_Scroll(scrollID, docPrototype);
 	}
 
 	public void clearIndex() throws ElasticSearchException, InterruptedException {

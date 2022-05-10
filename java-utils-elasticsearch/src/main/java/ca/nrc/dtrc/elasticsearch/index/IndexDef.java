@@ -1,5 +1,6 @@
 package ca.nrc.dtrc.elasticsearch.index;
 
+import ca.nrc.dtrc.elasticsearch.FieldDef;
 import ca.nrc.dtrc.elasticsearch.TypeDef;
 import org.json.JSONObject;
 
@@ -14,15 +15,30 @@ public class IndexDef {
 	public Integer totalFieldsLimit = null;
 	
 	public IndexDef() {
-		super();
+		init__IndexDef();
 	}
 
 	public IndexDef(String _name) {
 		this.indexName = _name;
+		init__IndexDef();
 	}
-	
+
+	private void init__IndexDef() {
+		setDefaultMappings();
+		return;
+	}
+
+	public void setDefaultMappings() {
+		// Setup the 'id' and 'idWithoutType' fields in such a way that they can
+		// be used for sorting
+		getTypeDef("*").getFieldDef("id").type = FieldDef.Types.keyword;
+		getTypeDef("*").getFieldDef("idWithoutType").type = FieldDef.Types.keyword;
+		return;
+	}
+
 	public IndexDef setTotalFieldsLimit(Integer limit) {
 		totalFieldsLimit = limit;
+
 		return this;
 	}
 
@@ -80,16 +96,23 @@ public class IndexDef {
 			}				
 		}
 		
-		
 		return this;
 	}
 
 	public IndexDef loadMappings(Map<String, Object> mappings) {
-		
-		
 		return this;
 	}
-	
+
+	public IndexDef setFieldMapping(String field, String type) {
+		return setFieldMapping(field, type, (Map<String,Object>)null);
+	}
+
+	public IndexDef setFieldMapping(String field, String type,
+		Map<String,Object> additionalAttributes) {
+
+		return this;
+	}
+
 	public static Map<String, Object> tree2props(Map<String, Object> tree) {
 		Map<String, Object> props = new HashMap<String, Object>();
 		tree2props(tree, "", props);

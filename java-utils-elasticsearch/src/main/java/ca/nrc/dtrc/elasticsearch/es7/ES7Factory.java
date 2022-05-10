@@ -12,10 +12,15 @@ public class ES7Factory extends ESFactory {
 
 	public ES7Factory() throws ElasticSearchException {
 		super();
+		init__ES7Factory();
 	}
 
 	public ES7Factory(String _indexName) throws ElasticSearchException {
 		super(_indexName);
+		init__ES7Factory();
+	}
+
+	private void init__ES7Factory() {
 	}
 
 	@Override

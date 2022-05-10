@@ -1,39 +1,47 @@
 package ca.nrc.dtrc.elasticsearch;
 
-import ca.nrc.dtrc.elasticsearch.Document;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
+/**
+ * Hit found by Elastic Search
+ */
 public class Hit<T extends Document> {
 	public T document;
 	public Double score = 0.0;
 		public void setScore(Double _score) {this.score = _score;}
+
+	// When one or more sort criteria are provided for the list of hits, this
+	// will provide the list of values that were used for sorting.
+	public JSONArray sortValues = null;
 	public JSONObject snippets;
-	
-	/**
-	 * Hit found by Elastic Search
-	 * @param _document Document found
-	 * @param _score Double score for the match
-	 * @param _snippets JsonNode containing the highlights returned from ElasticSearch
-	 */
-	public Hit(T _document, Double _score, JSONObject _snippets) {
-		initialize(_document, _score, _snippets);
+
+	public Hit() {
+		initialize(null, null, null, null);
 	}
 
+
 	public Hit(T _document) {
-		initialize(_document, null, null);
+		initialize(_document, null, null, (JSONArray)null);
 	}
-	
-	private void initialize(T _document, Double _score, JSONObject _snippets) {
+
+	public Hit(T _document, Double _score, JSONObject _snippets) {
+		initialize(_document, _score, _snippets, (JSONArray)null);
+	}
+
+	public Hit(T _document, Double _score, JSONObject _snippets,
+		JSONArray _sortValues) {
+		initialize(_document, _score, _snippets, _sortValues);
+	}
+
+	private void initialize(T _document, Double _score, JSONObject _snippets,
+		JSONArray _sortValues) {
 		this.document = _document;
 		if (_score != null) this.score = _score;
 		this.snippets = getSnippets(_snippets);
+		this.sortValues = _sortValues;
 	}
 
-	public Hit() {
-		initialize(null, null, null);
-	}
-	
-	
 	public T getDocument() {
 		return document;
 	}

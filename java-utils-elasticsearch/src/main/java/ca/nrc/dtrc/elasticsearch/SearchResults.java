@@ -12,24 +12,26 @@ import org.json.JSONObject;
 import java.net.URL;
 import java.util.*;
 
-public class SearchResults<T extends Document> implements Iterable<Hit<T>>, AutoCloseable {
-	
+public abstract class SearchResults<T extends Document> implements Iterable<Hit<T>>, AutoCloseable {
+
+	protected abstract ScoredHitsIterator<T> hitsIterator() throws ElasticSearchException, SearchResultsException;
+
 	final static Logger logger = Logger.getLogger(SearchResults.class);
-	
-	private T docPrototype = null;
 
-	private String indexName = "UNKNOWN";
+	protected T docPrototype = null;
 
-	private String scrollID = null;
+	protected String indexName = "UNKNOWN";
 
-	private JSONObject aggregations = new JSONObject();
+	protected String scrollID = null;
+
+	protected JSONObject aggregations = new JSONObject();
 	
 	protected HitFilter filter = new HitFilter();
-	
-	private Long totalHits = new Long(0);
-	private URL searchURL = null;
 
-	private ResponseMapper respMapper = new ResponseMapper(indexName);
+	protected Long totalHits = new Long(0);
+	protected URL searchURL = null;
+
+	protected ResponseMapper respMapper = new ResponseMapper(indexName);
 
 	public SearchResults(String jsonResponse, T docPrototype,
 		ESFactory _esFactory) throws ElasticSearchException {
@@ -42,6 +44,37 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>>, Auto
 		init__SearchResults(jsonResponse, docPrototype, _esFactory, _indexName);
 	}
 
+	public SearchResults() throws ElasticSearchException {
+		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults");
+		tLogger.trace("Empty constructor");
+		init_Searchresults((String)null, (T)null, (ESFactory) null,
+			(URL)null);
+	}
+
+	public SearchResults(ESFactory _esFactory) throws ElasticSearchException {
+		init_Searchresults((String)null, (T)null, _esFactory,
+			(URL)null);
+	}
+
+	public SearchResults(List<Hit<T>> firstResultsBatch, String _scrollID,
+		Long _totalHits, T _docPrototype, ESFactory _esFactory) throws ElasticSearchException {
+		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults");
+		if (tLogger.isTraceEnabled()) {
+			tLogger.trace("Constructing results from _scrollID="+_scrollID+" and \n   firstResultsBatch="+PrettyPrinter.print(firstResultsBatch));
+		}
+
+		init_Searchresults(firstResultsBatch, _scrollID, _totalHits,
+			(JSONObject)null, _docPrototype, _esFactory, (URL)null);
+	}
+
+	public SearchResults(String jsonResponse, T _docPrototype,
+		ESFactory _esFactory, URL url) throws ElasticSearchException {
+		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults");
+		if (tLogger.isTraceEnabled()) {
+			tLogger.trace("Constructing results from jsonResponse="+jsonResponse);
+		}
+		init_Searchresults(jsonResponse, _docPrototype, _esFactory, url);
+	}
 
 	public void init__SearchResults (String jsonResponse, T docPrototype,
 		ESFactory _esFactory, String _indexName)
@@ -58,8 +91,8 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>>, Auto
 
 	public Long getTotalHits() {return totalHits;}
 		public void setTotalHits(Long _totalHits) {this.totalHits = _totalHits;}
-		
-	private  List<Hit<T>> scoredHitsBatch = new ArrayList<>();	
+
+	protected  List<Hit<T>> scoredHitsBatch = new ArrayList<>();
 		@JsonIgnore
 		public List<Hit<T>> getScoredHitsBatch() {return scoredHitsBatch;}
 		
@@ -84,39 +117,6 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>>, Auto
 	// the list of hits one batch at a time.
 	@JsonIgnore
 	ESFactory esFactory = null;
-
-	public SearchResults() throws ElasticSearchException {
-		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults");
-		tLogger.trace("Empty constructor");
-		init_Searchresults((String)null, (T)null, (ESFactory) null,
-			(URL)null);
-	}
-
-	public SearchResults(ESFactory _esFactory) throws ElasticSearchException {
-		init_Searchresults((String)null, (T)null, _esFactory,
-			(URL)null);
-
-	}
-
-	public SearchResults(List<Hit<T>> firstResultsBatch, String _scrollID,
-		Long _totalHits, T _docPrototype, ESFactory _esFactory) throws ElasticSearchException {
-		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults");
-		if (tLogger.isTraceEnabled()) {
-			tLogger.trace("Constructing results from _scrollID="+_scrollID+" and \n   firstResultsBatch="+PrettyPrinter.print(firstResultsBatch));
-		}
-
-		init_Searchresults(firstResultsBatch, _scrollID, _totalHits,
-			(JSONObject)null, _docPrototype, _esFactory, (URL)null);
-	}	
-	
-	public SearchResults(String jsonResponse, T _docPrototype,
-		ESFactory _esFactory, URL url) throws ElasticSearchException {
-		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults");
-		if (tLogger.isTraceEnabled()) {
-			tLogger.trace("Constructing results from jsonResponse="+jsonResponse);
-		}
-		init_Searchresults(jsonResponse, _docPrototype, _esFactory, url);
-	}
 
 	private Triple<Pair<Long, String>, List<Hit<T>>, JSONObject>
 		parseJsonSearchResponse(String jsonSearchResponse, T docPrototype) throws ElasticSearchException {
@@ -159,7 +159,12 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>>, Auto
 				if (hitJson.has("highlight")) {
 					highglights = hitJson.getJSONObject("highlight");
 				}
-				scoredDocuments.add(new Hit<T>(hitObject, hitScore, highglights));
+				JSONArray sortValues = null;
+				if (hitJson.has("sort")) {
+					sortValues = hitJson.getJSONArray("sort");
+				}
+				scoredDocuments.add(
+					new Hit<T>(hitObject, hitScore, highglights, sortValues));
 			}
 		} catch (RuntimeException e) {
 			throw new ElasticSearchException(e);
@@ -212,7 +217,8 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>>, Auto
 		}
 
 		init_Searchresults(firstBatch, scrollID, _totalHits, _aggregations,
-		_docPrototype, _esFactory, (URL)null);
+			_docPrototype, _esFactory, (URL)null);
+		return;
 	}
 
 	public void init_Searchresults(List<Hit<T>> firstResultsBatch,
@@ -228,20 +234,20 @@ public class SearchResults<T extends Document> implements Iterable<Hit<T>>, Auto
 		if (_aggregations != null) {
 			this.aggregations = _aggregations;
 		}
+		return;
 	}
 	
 	@Override
 	public Iterator<Hit<T>> iterator() {
 		ScoredHitsIterator<T> iter = null;
 		try {
-			iter = new EmptyScoredHitsIterator<T>(docPrototype);
+			iter = new EmptyScoredHitsIterator<T>(esFactory, docPrototype);
 		} catch (ElasticSearchException | SearchResultsException e) {
 			throw new RuntimeException(e);
 		}
 
 		try {
-			iter = new ScoredHitsIterator<T>(scoredHitsBatch, scrollID, docPrototype,
-				esFactory, filter);
+			iter = hitsIterator();
 		} catch (ElasticSearchException | SearchResultsException e) {
 			logger.error(e);
 			if (errorPolicy() == ErrorHandlingPolicy.STRICT) {

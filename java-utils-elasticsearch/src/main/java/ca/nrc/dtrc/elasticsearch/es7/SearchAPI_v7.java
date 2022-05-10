@@ -1,6 +1,7 @@
 package ca.nrc.dtrc.elasticsearch.es7;
 
 import ca.nrc.dtrc.elasticsearch.ESFactory;
+import ca.nrc.dtrc.elasticsearch.ESUrlBuilder;
 import ca.nrc.dtrc.elasticsearch.ElasticSearchException;
 import ca.nrc.dtrc.elasticsearch.search.SearchAPI;
 import org.json.JSONObject;
@@ -14,10 +15,13 @@ public class SearchAPI_v7 extends SearchAPI {
 
 	@Override
 	protected URL searchURL(String docTypeName) throws ElasticSearchException {
-		URL url = urlBuilder()
+		ESUrlBuilder builder = urlBuilder()
 			.forDocType(docTypeName).forEndPoint("_search")
-			.includeTypeInUrl(false)
-			.scroll().build();
+			.includeTypeInUrl(false);
+		if (paginateWith == SearchAPI.PaginationStrategy.SCROLL) {
+			builder.scroll();
+		}
+		URL url = builder.build();
 		return url;
 	}
 

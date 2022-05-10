@@ -246,25 +246,50 @@ public class ESTestHelpers {
 		factory.indexName = hamletTestIndex;
 		// Put a two second delay after each transaction, to give ESFactory time to synchronize all the nodes.
 		factory.sleepSecs = 2.0;
+		Boolean indexUpToDate = null;
 		if (deleteIndex) {
+			indexUpToDate = false;
 			factory.indexAPI().delete();
 			factory.indexAPI().define(true);
 		} else {
-			factory.indexAPI().clear();
+			indexUpToDate = checkHamletIndexUptodate(factory, collectionName);
+			if (! indexUpToDate) {
+				factory.indexAPI().clear(false);
+			}
 		}
 
-		String fPath = hamletJsonFile();
-		if (collectionName == null) {
-			factory.indexAPI().bulk(new File(fPath), PlayLine.class);
-		} else {
-			factory.indexAPI().bulk(new File(fPath), collectionName);
-		}
+		if (!indexUpToDate) {
+			String fPath = hamletJsonFile();
+			if (collectionName == null) {
+				factory.indexAPI().bulk(new File(fPath), PlayLine.class);
+			} else {
+				factory.indexAPI().bulk(new File(fPath), collectionName);
+			}
 
-		// Sleep a bit to give the ESFactory server to propagate the index to
-		// all nodes in its cluster
-		Thread.sleep(1000);
+			// Sleep a bit to give the ESFactory server to propagate the index to
+			// all nodes in its cluster
+			Thread.sleep(1000);
+		}
 
 		return factory;
+	}
+
+	private boolean checkHamletIndexUptodate(ESFactory factory, String collectionName) throws ElasticSearchException {
+		boolean isOK = false;
+		try {
+			PlayLine proto = new PlayLine();
+			SearchResults<PlayLine> results = null;
+			if (collectionName == null) {
+				results = factory.indexAPI().listAll(proto);
+			} else {
+				results = factory.indexAPI().listAll(collectionName, proto);
+			}
+			isOK = (results.totalHits == 4013);
+		} catch (NoSuchIndexException e) {
+			// If the index doesn't exist, just leave isOK = false;
+		}
+
+		return isOK;
 	}
 
 	public String testFilesPath(String relPath) throws ElasticSearchException {

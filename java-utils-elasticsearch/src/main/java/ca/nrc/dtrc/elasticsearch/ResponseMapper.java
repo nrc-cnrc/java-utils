@@ -134,20 +134,42 @@ public class ResponseMapper {
 		Long totalHits;
 		try {
 			jsonRespObj = new JSONObject(jsonSearchResponse);
-			scrollID = jsonRespObj.getString("_scroll_id");
+			if (jsonRespObj.has("_scroll_id")) {
+				scrollID = jsonRespObj.getString("_scroll_id");
+			}
 			JSONObject hitsCollectionNode = jsonRespObj.getJSONObject("hits");
 			totalHits = getTotalHits(hitsCollectionNode);
 			JSONArray hitsArrNode = hitsCollectionNode.getJSONArray("hits");
 			for (int ii = 0; ii < hitsArrNode.length(); ii++) {
 				JSONObject hitJson = hitsArrNode.getJSONObject(ii);
 				T hitObject = response2doc(hitJson, docPrototype, "");
-				Double hitScore = hitJson.getDouble("_score");
+				Double hitScore = 0.0;
+				try {
+					hitScore = hitJson.getDouble("_score");
+				} catch (Exception e) {
+					if (e.getMessage().contains("is not a number")) {
+						// Nothing to do... this is because the value is null in the
+						// json string
+					} else {
+						String mess =
+							"Error parsing ESFactory search response:\n" + jsonSearchResponse;
+						logger.error(mess+ Debug.printCallStack(e));
+						throw new ElasticSearchException(
+							"Error parsing ESFactory search response:\n" + jsonSearchResponse,
+							e, this.indexName);
+					}
+				}
+
+				JSONArray hitSortValues = null;
+				if (hitJson.has("sort")) {
+					hitSortValues = hitJson.getJSONArray("sort");
+				}
 
 				JSONObject highlight = new JSONObject();
 				if (hitJson.has("highlight")) {
 					highlight = hitJson.getJSONObject("highlight");
 				}
-				scoredDocuments.add(new Hit<T>(hitObject, hitScore, highlight));
+				scoredDocuments.add(new Hit<T>(hitObject, hitScore, highlight, hitSortValues));
 			}
 		} catch (Exception e) {
 			String mess =

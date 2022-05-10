@@ -18,10 +18,15 @@ public class ES7miFactory extends ESFactory {
 
 	public ES7miFactory() throws ElasticSearchException {
 		super();
+		init__ES7miFactory();
 	}
 
 	public ES7miFactory(String _indexName) throws ElasticSearchException {
 		super(_indexName);
+		init__ES7miFactory();
+	}
+
+	private void init__ES7miFactory() {
 	}
 
 	@Override

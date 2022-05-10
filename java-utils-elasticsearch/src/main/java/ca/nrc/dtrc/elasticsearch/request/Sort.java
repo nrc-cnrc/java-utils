@@ -38,6 +38,17 @@ public class Sort extends RequestBodyElement {
         return this;
     }
 
+    public boolean hasCriteria(String fldName) {
+    	boolean has = false;
+    	for (Pair<String,Order> crit: criteria) {
+    		if (crit.getFirst().equals(fldName)) {
+    			has = true;
+    			break;
+			}
+		}
+    	return has;
+	 }
+
     @Override
     public JSONObject jsonObject() {
         JSONObject jsonObj = new JSONObject();

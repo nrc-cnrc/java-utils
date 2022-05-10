@@ -36,10 +36,9 @@ public abstract class IndexDefTest {
 
 	@Test
 	public void test__IndexDef__Synopsis() throws Exception {
-		// You must obtain an IndexDef prototype through an ESFactory
-		IndexDef iDef = new IndexDef();
+		IndexDef iDef =  new IndexDef();
 
-		// You can use the IndexDef to provide some generic settigns
+		// You can use the IndexDef to provide some generic settings
 		// for the index. These settings will apply to all fields.
 		//
 		{
@@ -54,7 +53,6 @@ public abstract class IndexDefTest {
 			// Here is how you get the definition of a particular type in that index.
 			//
 			String typeName = "books";
-			;
 			TypeDef tDef = iDef.getTypeDef(typeName);
 
 			// Here is now you get the definition of a particular field in that type

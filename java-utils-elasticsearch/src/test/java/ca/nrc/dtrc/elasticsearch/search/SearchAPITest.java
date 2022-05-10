@@ -14,10 +14,10 @@ import ca.nrc.testing.AssertObject;
 import ca.nrc.testing.AssertString;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.tuple.Pair;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -33,11 +33,11 @@ public abstract class SearchAPITest {
 	public void setUp() throws Exception {
 		esFactory = makeESFactory("UNDEFINED_INDEX");
 		esFactory.updatesWaitForRefresh = true;
-		new ESTestHelpers(esVersion()).makeCartoonTestIndex();
+		return;
 	}
 
 	/////////////////////////////////////////
-	// VERIFICATION TESTS
+	// DOCUMENTATION TESTS
 	/////////////////////////////////////////
 
 	@Test
@@ -140,7 +140,6 @@ public abstract class SearchAPITest {
 
 		}
 
-
 		// You can also ask for some aggregations to be performed on some of
 		// the fields of the hits.
 		//
@@ -210,7 +209,22 @@ public abstract class SearchAPITest {
 
 		}
 
+		// When you invoke a search method (search, moreLikeThis or moreLikeThese).
+		// it returns a SearchResults object which, by default, uses the
+		// SEARCH_AFTER strategy for looping through hits.
+		//
+		// This strategy can be a bit slow, so instead, you may use the SCROLL
+		// strategy, which may be faster. Note however that this may raise an
+		// exception if you issue more than 500 searches in less than a minute,
+		// without closing the returned SearchResults objects.
+		//
+		searchAPI = factory.searchAPI(SearchAPI.PaginationStrategy.SCROLL);
 
+		// If you don't plan to loop through the list of hits at all, you can use
+		// the NONE strategy which is even faster than SCROLL and will not raise
+		// exceptions even if you issue lots of searchs in a short time.
+		//
+		searchAPI = factory.searchAPI(SearchAPI.PaginationStrategy.NONE);
 	}
 
 	/////////////////////////////////////////
@@ -235,6 +249,23 @@ public abstract class SearchAPITest {
 				3
 			);
 	}
+
+	@Test
+	public void test__searchFreeform__GetAtLeastTwoPagesWorthOfResults() throws Exception {
+		ESTestHelpers.PlayLine line = new ESTestHelpers.PlayLine("hello world");
+		Introspection.getFieldValue(line, "longDescription", true);
+		esFactory = new ESTestHelpers(esFactory).makeHamletTestIndex();
+
+		String query = "Hamlet";
+		SearchResults<ESTestHelpers.PlayLine> results =
+			esFactory.searchAPI().search(query, new PlayLine());
+		DocIDIterator<PlayLine> iter = results.docIDIterator();
+		for (int ii=0; ii < 20; ii++) {
+			String id = iter.next();
+			System.out.println("doc #"+ii+" id="+id);
+		}
+	}
+
 
 	@Test
 	public void test__searchFreeform__NullOrEmptyQuery__ReturnsAllDocuments() throws Exception {
@@ -408,6 +439,29 @@ public abstract class SearchAPITest {
 	}
 
 	@Test
+	public void test__search__LoopThroughHitsUsihngDifferentPaginationStrategies() throws Exception {
+		ESTestHelpers.PlayLine line = new ESTestHelpers.PlayLine("hello world");
+		Introspection.getFieldValue(line, "longDescription", true);
+
+		for (SearchAPI.PaginationStrategy strategy: SearchAPI.PaginationStrategy.values()) {
+			esFactory = new ESTestHelpers(esVersion()).makeHamletTestIndex();
+			SearchAPI searchAPI = esFactory.searchAPI(strategy);
+
+			String query = "hamlet";
+			SearchResults<ESTestHelpers.PlayLine> gotSearchResults =
+			searchAPI.search(query, new PlayLine());
+			new AssertSearchResults(gotSearchResults)
+			.totalHitsEquals(4013);
+			if (strategy != SearchAPI.PaginationStrategy.NONE) {
+				DocIDIterator<PlayLine> iter = gotSearchResults.docIDIterator();
+				while (iter.hasNext()) {
+					iter.next();
+				}
+			}
+		}
+	}
+
+	@Test
 	public void test__escapeQuotes__HappyPath() throws Exception {
 		String query = "\"software development\" agile \"ui design\"";
 		SearchAPI searchAPI = makeESFactory("some_index").searchAPI();
@@ -417,7 +471,7 @@ public abstract class SearchAPITest {
 	}
 
 	@Test
-	public void test__scrollThroughSearchResults__HappyPath() throws Exception {
+	public void test__LoopThroughSearchResults__HappyPath() throws Exception {
 		esFactory = new ESTestHelpers(esVersion()).makeHamletTestIndex();
 		SearchAPI searchAPI = esFactory.searchAPI();
 		Thread.sleep(1*1000);
@@ -511,8 +565,22 @@ public abstract class SearchAPITest {
 			mlt
 				.getJSONObject("like")
 					.getJSONObject("doc")
-						.put("type", "character");
+						.put("type", "character")
+				;
+			expJSON.put("sort", new JSONArray()
+				.put(new JSONObject()
+					.put("_score", new JSONObject()
+						.put("order", "desc")
+					)
+				)
+				.put(new JSONObject()
+					.put("id", new JSONObject()
+						.put("order", "asc")
+					)
+				)
+			);
 		}
+
 		AssertJson.assertJsonStringsAreEquivalent("",
 			expJSON.toString(), gotJson);
 	}
@@ -537,16 +605,17 @@ public abstract class SearchAPITest {
 		ExcludeFields filter = new ExcludeFields("firstName");
 		ShowCharacter pers = new ShowCharacter("homer", "simpson");
 		esFactory.crudAPI().putDocument(pers);
-		Map<String, Object> gotFilteredFields = esFactory.searchAPI().filterFields(pers, filter);
+		Map<String, Object> gotFilteredFields =
+			esFactory.searchAPI().filterFields(pers, filter);
 		Map<String,Object> expFilteredFields = new HashMap<String,Object>();
 		{
 			expFilteredFields.put("type", "character");
-			expFilteredFields.put("id", "character:homersimpson");
-			expFilteredFields.put("idWithoutType", "homersimpson");
 			expFilteredFields.put("surname", "simpson");
 			expFilteredFields.put("lang", "en");
 		}
-		AssertObject.assertDeepEquals("Negative filter did not produce expected field names", expFilteredFields, gotFilteredFields);
+		AssertObject.assertDeepEquals(
+			"Negative filter did not produce expected field names",
+			expFilteredFields, gotFilteredFields);
 	}
 
 	@Test
@@ -558,8 +627,6 @@ public abstract class SearchAPITest {
 		Map<String, Object> gotFilteredFields = esFactory.searchAPI().filterFields(pers, nullFilter);
 		Map<String,Object> expFilteredFields = new HashMap<String,Object>();
 		{
-			expFilteredFields.put("id", "character:homersimpson");
-			expFilteredFields.put("idWithoutType", "homersimpson");
 			expFilteredFields.put("type", "character");
 			expFilteredFields.put("firstName", "homer");
 			expFilteredFields.put("surname", "simpson");
@@ -583,8 +650,6 @@ public abstract class SearchAPITest {
 			esFactory.searchAPI().filterFields(homer);
 		Map<String,Object> expFilteredFields = new HashMap<String,Object>();
 		{
-			expFilteredFields.put("id", "person:homersimpson");
-			expFilteredFields.put("idWithoutType", "homersimpson");
 			expFilteredFields.put("type", "person");
 			expFilteredFields.put("lang", "en");
 
@@ -601,7 +666,7 @@ public abstract class SearchAPITest {
 	public void test__search__SearchResults_AutoClosing() throws Exception {
 		esFactory = new ESTestHelpers(esFactory).makeHamletTestIndex();
 
-		// When we hundreds of searches in a short time, there is a risk that we
+		// When we do hundreds of searches in a short time, there is a risk that we
 		// will exceed ES7's quota for the maximum number of opened scroll contexts.
 		//
 		// For that reason, SearchResults are auto-closable and will ask ES to delete
@@ -612,14 +677,8 @@ public abstract class SearchAPITest {
 		//
 		PlayLine proto = new PlayLine();
 		for (int ii=0; ii < 600; ii++) {
-			System.out.println("Search #"+ii);
 			try(SearchResults<PlayLine> results =
 				esFactory.searchAPI().search("Hamlet", "playline", proto)) {
-				DocIterator<PlayLine> iterator = results.docIterator();
-				for (int jj = 0; jj < 20; jj++) {
-					iterator.next();
-				}
-				int x = 1;
 			}
 		}
 	}

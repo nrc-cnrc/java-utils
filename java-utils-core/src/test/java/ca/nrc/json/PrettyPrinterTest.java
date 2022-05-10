@@ -147,7 +147,18 @@ public class PrettyPrinterTest {
 		
 		Assertions.assertEquals(expJson, gotJson);	
 	}
-	
+
+	@Test
+	public void test__print__Class() {
+		class SomeClass {
+		}
+
+		String gotJson = PrettyPrinter.print(SomeClass.class);
+		String expJson ="\"Class<ca.nrc.json.PrettyPrinterTest$3SomeClass>\"";
+
+		Assertions.assertEquals(expJson, gotJson);
+	}
+
 	@Test
 	public void test__print__StringWithADoubleQuoteInIt__MustPutBackslashInFrontOfQuotes() {
 		String someString = "He said: \"Hello World\".";

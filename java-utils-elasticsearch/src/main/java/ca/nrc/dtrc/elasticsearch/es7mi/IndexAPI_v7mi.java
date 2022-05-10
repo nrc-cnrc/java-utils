@@ -138,8 +138,8 @@ public class IndexAPI_v7mi extends IndexAPI {
 	private JSONObject formatMappings(IndexDef iDef) {
 		JSONObject allProps = new JSONObject();
 		JSONObject mappings = new JSONObject()
-		.put("mappings", new JSONObject()
-		.put("properties", allProps)
+			.put("mappings", new JSONObject()
+			.put("properties", allProps)
 		);
 		JSONObject mappingsByType = iDef.jsonMappings();
 		for (String aType: mappingsByType.keySet()) {

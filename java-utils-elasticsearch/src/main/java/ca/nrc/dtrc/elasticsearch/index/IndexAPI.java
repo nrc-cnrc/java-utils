@@ -230,6 +230,10 @@ public abstract class IndexAPI extends ES_API {
 		return type;
 	}
 
+	public Map<String, String> fieldTypes() throws ElasticSearchException {
+		return fieldTypes((String)null);
+	}
+
 	public Map<String, String> fieldTypes(String docTypeName) throws ElasticSearchException {
 		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.index.IndexAPI.fieldTypes");
 		Map<String,String> fieldTypes = uncacheFieldTypes(docTypeName);
@@ -272,10 +276,11 @@ public abstract class IndexAPI extends ES_API {
 			cacheFieldTypes(fieldTypes, docTypeName);
 		}
 
-//		 Type for 'id' may not have been set in ESFactory, if all
-//		 the documents that were put into the type had a null id
-
-		fieldTypes.put("id", "text");
+		// Type for 'id' and 'idWithoutType' may not have been set in ESFactory, if all
+		// the documents that were put into the type had a null id.
+		// Set it to "keyword" so we can use it for sorting purposes.
+		fieldTypes.put("id", FieldDef.Types.keyword.name());
+		fieldTypes.put("idWithoutType", FieldDef.Types.keyword.name());
 
 		return fieldTypes;
 
@@ -428,6 +433,8 @@ public abstract class IndexAPI extends ES_API {
 	public <T extends Document> SearchResults<T> listAll(
 		String esDocTypeName, T docProto, RequestBodyElement... options)
 		throws ElasticSearchException {
+		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.index.IndexAPI.listAll");
+		logger.trace("Invoked");
 
 		esDocTypeName = Document.determineType(esDocTypeName, docProto);
 
@@ -467,12 +474,28 @@ public abstract class IndexAPI extends ES_API {
 	public void bulk(String jsonContent, String docTypeName) throws ElasticSearchException {
 		jsonContent += "\n\n";
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.es5.StreamlinedClient.bulk");
+
+		ensureIndexIsDefined();
 		URL url = url4bulk(docTypeName);
 		tLogger.trace("url=" + url);
 		transport().put(url, jsonContent);
 
 		// A bulk operation may have changed the properties of different document types in different indices
 		clearFieldTypesCache();
+	}
+
+	/**
+	 * Make sure that certain default mappings (ex: for field 'id') are set for
+	 * the index.
+	 */
+	private void ensureIndexIsDefined() throws ElasticSearchException {
+		if (!exists()) {
+			IndexDef iDef = new IndexDef(indexName());
+			iDef.setFieldMapping("id", FieldDef.Types.keyword.name());
+			iDef.setFieldMapping("idWithoutType", FieldDef.Types.keyword.name());
+			define(iDef, false);
+		}
+		return;
 	}
 
 	public void bulk(File jsonFile, Class<? extends Document> docClass)
@@ -530,7 +553,6 @@ public abstract class IndexAPI extends ES_API {
 			int currBatchSize = 0;
 			while (obj != null) {
 				String jsonLine = null;
-
 				if (obj instanceof IndexDef) {
 					if (firstDocumentWasRead) {
 						String errMess =
@@ -539,7 +561,9 @@ public abstract class IndexAPI extends ES_API {
 						System.err.println(errMess);
 						throw new ElasticSearchException(errMess);
 					} else if (!bulkOptions.append){
-						esFactory.indexAPI().define((IndexDef) obj, bulkOptions.createIfNotExists);
+						IndexDef iDef = (IndexDef)obj;
+						iDef.setDefaultMappings();
+						esFactory.indexAPI().define(iDef, bulkOptions.createIfNotExists);
 					}
 				} else if (obj instanceof CurrentDocType) {
 					currDocTypeName = ((CurrentDocType) obj).name;

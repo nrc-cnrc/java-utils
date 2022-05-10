@@ -31,6 +31,11 @@ public class ESFactory_v7miTest extends ESFactoryTest {
 	///////////////////////////////////////////////////////////////////////////
 
 	@Test
+	public void test__TODO__ReactivateSome7miTests() {
+		Assertions.fail("In an attempt to get search_after to work with at least non-mi, I disabled some 7mi test classes (in @Beforeall). Reactivate these tests and fix them. ");
+	}
+
+	@Test
 	public void test__index4type__HappyPath() throws Exception {
 		String baseName = "some-index";
 		String type = "sometype";
