@@ -50,10 +50,10 @@ public class IndexAPI_v7miTest extends IndexAPITest {
 			.put("firstName", "text")
 			.put("id", "keyword")
 			.put("idWithoutType", "keyword")
-			.put("lang", "text")
+			.put("lang", "keyword")
 			.put("name", "text")
 			.put("surname", "text")
-			.put("type", "text")
+			.put("type", "keyword")
 			;
 		return exp;
 	}
