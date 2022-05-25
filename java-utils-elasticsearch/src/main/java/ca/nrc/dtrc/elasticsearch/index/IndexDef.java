@@ -33,6 +33,8 @@ public class IndexDef {
 		// be used for sorting
 		getTypeDef("*").getFieldDef("id").type = FieldDef.Types.keyword;
 		getTypeDef("*").getFieldDef("idWithoutType").type = FieldDef.Types.keyword;
+		getTypeDef("*").getFieldDef("type").type = FieldDef.Types.keyword;
+		getTypeDef("*").getFieldDef("lang").type = FieldDef.Types.keyword;
 		return;
 	}
 

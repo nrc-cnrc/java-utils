@@ -539,8 +539,7 @@ public abstract class SearchAPITest {
 			"                     \"min_term_freq\": 1,\n" +
 			"                     \"fields\": [\n" +
 			"                         \"firstName\",\n" +
-			"                         \"surname\",\n" +
-			"                         \"type\"\n" +
+			"                         \"surname\"" +
 			"                     ]\n" +
 			"                 }\n" +
 			"             }\n"+
@@ -609,9 +608,7 @@ public abstract class SearchAPITest {
 			esFactory.searchAPI().filterFields(pers, filter);
 		Map<String,Object> expFilteredFields = new HashMap<String,Object>();
 		{
-			expFilteredFields.put("type", "character");
 			expFilteredFields.put("surname", "simpson");
-			expFilteredFields.put("lang", "en");
 		}
 		AssertObject.assertDeepEquals(
 			"Negative filter did not produce expected field names",
@@ -627,10 +624,8 @@ public abstract class SearchAPITest {
 		Map<String, Object> gotFilteredFields = esFactory.searchAPI().filterFields(pers, nullFilter);
 		Map<String,Object> expFilteredFields = new HashMap<String,Object>();
 		{
-			expFilteredFields.put("type", "character");
 			expFilteredFields.put("firstName", "homer");
 			expFilteredFields.put("surname", "simpson");
-			expFilteredFields.put("lang", "en");
 		}
 		AssertObject.assertDeepEquals("Negative filter did not produce expected field names", expFilteredFields, gotFilteredFields);
 	}
@@ -650,9 +645,6 @@ public abstract class SearchAPITest {
 			esFactory.searchAPI().filterFields(homer);
 		Map<String,Object> expFilteredFields = new HashMap<String,Object>();
 		{
-			expFilteredFields.put("type", "person");
-			expFilteredFields.put("lang", "en");
-
 			expFilteredFields.put("content", "Homer is a character created by Matt Groening in etc..");
 			expFilteredFields.put("shortDescription", "Homer is a the father of the Simpsons family");
 

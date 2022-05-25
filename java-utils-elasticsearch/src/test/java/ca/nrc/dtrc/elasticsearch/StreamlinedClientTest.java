@@ -563,7 +563,7 @@ public abstract class StreamlinedClientTest {
 			expTypes.put("id", "keyword");
 			expTypes.put("idWithoutType", "keyword");
 			expTypes.put("_detect_language", "boolean");
-			expTypes.put("lang", "text");
+			expTypes.put("lang", "keyword");
 			expTypes.put("additionalFields.birthDay", "date");
 			expTypes.put("additionalFields.first", "text");
 			expTypes.put("additionalFields.last", "text");
@@ -596,7 +596,7 @@ public abstract class StreamlinedClientTest {
 		{
 			expTypes.put("id", "keyword");
 			expTypes.put("idWithoutType", "keyword");
-			expTypes.put("type", "text");
+			expTypes.put("type", "keyword");
 			expTypes.put("_detect_language", "boolean");
 			expTypes.put("lang", "text");
 
@@ -626,7 +626,7 @@ public abstract class StreamlinedClientTest {
 			expTypes.put("idWithoutType", "keyword");
 			expTypes.put("type", "text");
 			expTypes.put("_detect_language", "boolean");
-			expTypes.put("lang", "text");
+			expTypes.put("lang", "keyword");
 			expTypes.put("birthDay", "date");
 			expTypes.put("firstName", "text");
 			expTypes.put("surname", "text");
