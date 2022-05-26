@@ -3,6 +3,7 @@ package ca.nrc.dtrc.elasticsearch.index;
 import ca.nrc.data.file.ObjectStreamReader;
 import ca.nrc.data.file.ObjectStreamReaderException;
 import ca.nrc.dtrc.elasticsearch.*;
+import ca.nrc.dtrc.elasticsearch.request.Query;
 import ca.nrc.dtrc.elasticsearch.request.RequestBodyElement;
 import static ca.nrc.dtrc.elasticsearch.ESFactory.*;
 import ca.nrc.json.PrettyPrinter;
@@ -438,8 +439,19 @@ public abstract class IndexAPI extends ES_API {
 
 		esDocTypeName = Document.determineType(esDocTypeName, docProto);
 
+		Query query = new Query(
+			new JSONObject()
+				.put("bool", new JSONObject()
+					.put("must", new JSONObject()
+						.put("match", new JSONObject()
+							.put("type", esDocTypeName)
+						)
+					)
+				)
+		);
+
 		SearchResults<T> results =
-			esFactory.searchAPI().search("+type:"+esDocTypeName, esDocTypeName, docProto);
+			esFactory.searchAPI().search(query, esDocTypeName, docProto);
 		return results;
 	}
 
