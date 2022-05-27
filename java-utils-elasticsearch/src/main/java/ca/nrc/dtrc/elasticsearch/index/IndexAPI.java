@@ -277,14 +277,15 @@ public abstract class IndexAPI extends ES_API {
 			cacheFieldTypes(fieldTypes, docTypeName);
 		}
 
-		// Type for 'id' and 'idWithoutType' may not have been set in ESFactory, if all
-		// the documents that were put into the type had a null id.
-		// Set it to "keyword" so we can use it for sorting purposes.
+		// Certain fields that should be "keyword" type, may have been set to
+		// "text" if all the documents that were put into the type had a null
+		// value for those fields.
 		fieldTypes.put("id", FieldDef.Types.keyword.name());
 		fieldTypes.put("idWithoutType", FieldDef.Types.keyword.name());
+		fieldTypes.put("type", FieldDef.Types.keyword.name());
+		fieldTypes.put("lang", FieldDef.Types.keyword.name());
 
 		return fieldTypes;
-
 	}
 
 	protected Map<String, String> collectAdditionalFields(JSONObject dynFieldsMapping, Map<String, String> fieldTypes) {
