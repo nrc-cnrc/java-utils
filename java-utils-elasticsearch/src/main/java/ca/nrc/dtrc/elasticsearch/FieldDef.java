@@ -30,6 +30,7 @@ public class FieldDef {
 		}
 		return analyzer;
 	}
+
 	public FieldDef setAnalyzer(String lang) {
 		__analyzerLang = getLangFullName(lang);
 		return this;
@@ -46,11 +47,6 @@ public class FieldDef {
 	
 	public void initialize(Types _type, String _analyzerLang) {
 
-		if (_type == null) {
-//			_type = Types.text;
-		}
-		this.type = _type;
-		
 		_analyzerLang = getLangFullName(_analyzerLang);
 		if (type == Types.text && _analyzerLang == null) {
 			// By default, text fields are analyzed with the "english" analyzer
@@ -79,7 +75,7 @@ public class FieldDef {
 		if (analyzer != null) {
 			json.put("analyzer", analyzer);
 		}
-		
+
 		return json;
 	}
 	

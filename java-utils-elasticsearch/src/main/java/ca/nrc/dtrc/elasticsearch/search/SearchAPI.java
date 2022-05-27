@@ -169,7 +169,14 @@ public abstract class SearchAPI extends ES_API {
 		}
 
 
-		String reqJson = mergedElt.jsonString().toString();
+		JSONObject jsonObj = mergedElt.jsonObject();
+		if (esFactory.version() >= 7) {
+			// For ES7, we need to add track_total_hits, otherwise the total nubmer
+			// of hits will max out at 10K
+			jsonObj.put("track_total_hits", true);
+		}
+
+		String reqJson = jsonObj.toString();
 		SearchResults<T> results = search(new JsonString(reqJson), docTypeName, docPrototype);
 		logger.trace("returning results with #hits=" + results.getTotalHits());
 		return results;
