@@ -1,7 +1,7 @@
 package ca.nrc.dtrc.elasticsearch;
 
 
-import ca.nrc.dtrc.elasticsearch.request.JsonString;
+import org.json.JSONObject;
 
 import java.net.URL;
 
@@ -10,14 +10,14 @@ import java.net.URL;
  * search results.
  */
 public class SearchResults_SearchAfter<T extends Document> extends SearchResults<T>{
-	protected JsonString request;
+	protected JSONObject request;
 
-	public SearchResults_SearchAfter(JsonString _request, String jsonResponse, T _docPrototype, ESFactory _esFactory, URL url) throws ElasticSearchException {
+	public SearchResults_SearchAfter(JSONObject _request, String jsonResponse, T _docPrototype, ESFactory _esFactory, URL url) throws ElasticSearchException {
 		super(jsonResponse, _docPrototype, _esFactory, url);
 		init__SearchResults_SearchAfter(_request);
 	}
 
-	private void init__SearchResults_SearchAfter(JsonString _request) {
+	private void init__SearchResults_SearchAfter(JSONObject _request) {
 		this.request = _request;
 	}
 

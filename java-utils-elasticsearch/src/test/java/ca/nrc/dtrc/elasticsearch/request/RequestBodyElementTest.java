@@ -49,7 +49,7 @@ public class RequestBodyElementTest {
         // either a json String or object
         //
         JSONObject aggsJsonObject = aggsElt.jsonObject();
-        JsonString aggsJsonString = aggsElt.jsonString();
+        String aggsJsonString = aggsElt.jsonString();
 
 
         // You can also merge several elements into a single one

@@ -3,7 +3,6 @@ package ca.nrc.dtrc.elasticsearch;
 import ca.nrc.dtrc.elasticsearch.cluster.ClusterAPI;
 import ca.nrc.dtrc.elasticsearch.crud.CrudAPI;
 import ca.nrc.dtrc.elasticsearch.index.IndexAPI;
-import ca.nrc.dtrc.elasticsearch.request.JsonString;
 import ca.nrc.dtrc.elasticsearch.request.Query;
 import ca.nrc.dtrc.elasticsearch.request.RequestBodyElement;
 import ca.nrc.dtrc.elasticsearch.search.SearchAPI;
@@ -11,6 +10,7 @@ import static ca.nrc.dtrc.elasticsearch.ESFactory.*;
 import ca.nrc.ui.commandline.UserIO;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.json.JSONObject;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
@@ -205,7 +205,7 @@ public abstract class StreamlinedClient extends ES_API {
 	}
 
 	private <T extends Document> SearchResults<T> search(
-		JsonString jsonQuery, String docTypeName, T docPrototype) throws ElasticSearchException {
+		JSONObject jsonQuery, String docTypeName, T docPrototype) throws ElasticSearchException {
 		return searchAPI()
 			.search(jsonQuery, docTypeName, docPrototype);
 	}

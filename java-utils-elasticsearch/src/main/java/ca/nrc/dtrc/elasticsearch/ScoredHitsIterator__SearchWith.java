@@ -1,6 +1,5 @@
 package ca.nrc.dtrc.elasticsearch;
 
-import ca.nrc.dtrc.elasticsearch.request.JsonString;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -17,7 +16,7 @@ public class ScoredHitsIterator__SearchWith<T extends Document> extends ScoredHi
 	private boolean noMoreHitsAvailable = false;
 
 	public ScoredHitsIterator__SearchWith(
-		JsonString _request, List<Hit<T>> firstResultsBatch, T _docPrototype,
+		JSONObject _request, List<Hit<T>> firstResultsBatch, T _docPrototype,
 		ESFactory _esFactory, HitFilter _filter) throws ElasticSearchException, SearchResultsException {
 		super(firstResultsBatch, _docPrototype, _esFactory, _filter);
 		init__ScoredHitsIterator__SearchWith(_request, firstResultsBatch);
@@ -25,7 +24,7 @@ public class ScoredHitsIterator__SearchWith<T extends Document> extends ScoredHi
 	}
 
 	private void init__ScoredHitsIterator__SearchWith(
-		JsonString jsonRequest, List<Hit<T>> firstResultsBatch) {
+		JSONObject jsonRequest, List<Hit<T>> firstResultsBatch) {
 		if (jsonRequest != null) {
 			this.request = new JSONObject(jsonRequest.toString());
 		}
