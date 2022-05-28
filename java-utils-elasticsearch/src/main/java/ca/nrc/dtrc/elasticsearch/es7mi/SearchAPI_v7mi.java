@@ -1,7 +1,6 @@
 package ca.nrc.dtrc.elasticsearch.es7mi;
 
 import ca.nrc.dtrc.elasticsearch.*;
-import ca.nrc.dtrc.elasticsearch.request.JsonString;
 import ca.nrc.dtrc.elasticsearch.search.SearchAPI;
 import org.json.JSONObject;
 

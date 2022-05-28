@@ -684,7 +684,7 @@ public abstract class SearchAPI extends ES_API {
 	}
 
 	public <T extends Document> List<Hit<T>> nexHitsPage__SearchAfter(
-		JsonString query, Object searchAfterValue, T docPrototype) throws ElasticSearchException {
+		JSONObject query, Object searchAfterValue, T docPrototype) throws ElasticSearchException {
 		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.search.SearchAPI.nexHitsPage__SearchAfter");
 		URL url = urlBuilder().forEndPoint("_search").build();
 

@@ -1,6 +1,5 @@
 package ca.nrc.dtrc.elasticsearch;
 
-import ca.nrc.dtrc.elasticsearch.request.JsonString;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;

@@ -3,7 +3,6 @@ package ca.nrc.dtrc.elasticsearch;
 import ca.nrc.dtrc.elasticsearch.cluster.ClusterAPI;
 import ca.nrc.dtrc.elasticsearch.crud.CrudAPI;
 import ca.nrc.dtrc.elasticsearch.index.IndexAPI;
-import ca.nrc.dtrc.elasticsearch.request.JsonString;
 import ca.nrc.dtrc.elasticsearch.request.Query;
 import ca.nrc.dtrc.elasticsearch.request.RequestBodyElement;
 import ca.nrc.dtrc.elasticsearch.search.SearchAPI;

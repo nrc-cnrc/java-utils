@@ -47,9 +47,9 @@ public abstract class RequestBodyElement {
 
 	public abstract JSONObject jsonObject();
 
-	public JsonString jsonString() {
+	public String jsonString() {
 		String jString = jsonObject().toString();
-		return new JsonString(jString);
+		return jString;
 	}
 
 	public  boolean containsKey(String key) {
