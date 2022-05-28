@@ -39,7 +39,7 @@ public class SearchAPI_v7mi extends SearchAPI {
 
 	@Override
 	public <T extends Document> SearchResults<T> search(
-		JsonString jsonQuery, String docTypeName, T docPrototype)
+		JSONObject jsonQuery, String docTypeName, T docPrototype)
 		throws ElasticSearchException {
 
 		// Initialize results to an empty results set.

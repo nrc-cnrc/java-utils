@@ -11,6 +11,7 @@ import static ca.nrc.dtrc.elasticsearch.ESFactory.*;
 import ca.nrc.ui.commandline.UserIO;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.json.JSONObject;
 
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
@@ -205,7 +206,7 @@ public abstract class StreamlinedClient extends ES_API {
 	}
 
 	private <T extends Document> SearchResults<T> search(
-		JsonString jsonQuery, String docTypeName, T docPrototype) throws ElasticSearchException {
+		JSONObject jsonQuery, String docTypeName, T docPrototype) throws ElasticSearchException {
 		return searchAPI()
 			.search(jsonQuery, docTypeName, docPrototype);
 	}

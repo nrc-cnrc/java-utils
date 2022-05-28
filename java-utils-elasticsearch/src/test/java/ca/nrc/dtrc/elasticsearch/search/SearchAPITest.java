@@ -293,6 +293,50 @@ public abstract class SearchAPITest {
 	}
 
 	@Test
+	public void test__searchFreeform__IndexWithMultipleDocTypes__ShouldNotRaiseException() throws Exception {
+		// ES6+ got rid of the concept of document type. As a result, you can't
+		// anymore 'natively' limit a search to a doc type and instead, you have
+		// to either:
+		//
+		// - Store different types in different indices
+		// - Add a 'type' field to each document in an index, and use that to
+		//   limit searches to that type.
+		//
+		// This test is here to ensure that this works.
+		//
+		TVShow proto = new TVShow();
+		esFactory = new ESTestHelpers(esVersion()).makeCartoonTestIndex();
+		Thread.sleep(1*1000);
+		SearchResults<TVShow> results =
+			esFactory.searchAPI().search((String)null, (String)null, proto);
+		new AssertSearchResults(results)
+			.totalHitsEquals(-999)
+			;
+	}
+
+	@Test
+	public void test__searchStructured__IndexWithMultipleDocTypes__ShouldNotRaiseException() throws Exception {
+		// ES6+ got rid of the concept of document type. As a result, you can't
+		// anymore 'natively' limit a search to a doc type and instead, you have
+		// to either:
+		//
+		// - Store different types in different indices
+		// - Add a 'type' field to each document in an index, and use that to
+		//   limit searches to that type.
+		//
+		// This test is here to ensure that this works.
+		//
+		TVShow proto = new TVShow();
+		esFactory = new ESTestHelpers(esVersion()).makeCartoonTestIndex();
+		Thread.sleep(1*1000);
+		SearchResults<TVShow> results =
+			esFactory.searchAPI().search((Query)null, (String)null, proto);
+		new AssertSearchResults(results)
+			.totalHitsEquals(-999)
+			;
+	}
+
+	@Test
 	public void test__searchFreeform__QuotedExpressions() throws Exception {
 		ESTestHelpers.PlayLine line = new ESTestHelpers.PlayLine("hello world");
 		Introspection.getFieldValue(line, "longDescription", true);
@@ -502,7 +546,7 @@ public abstract class SearchAPITest {
 		crudAPI.putDocument(homer);
 
 		Map<String, Object> homerMap = new ObjectMapper().convertValue(homer, Map.class);
-		String gotJson = searchAPI.moreLikeThisJsonBody(homer.type, homerMap);
+		JSONObject gotJson = searchAPI.moreLikeThisJsonBody(homer.type, homerMap);
 		JSONObject expJSON = new JSONObject(
 			"{\n" +
 			"    \"highlight\": {\n" +
@@ -580,8 +624,8 @@ public abstract class SearchAPITest {
 			);
 		}
 
-		AssertJson.assertJsonStringsAreEquivalent("",
-			expJSON.toString(), gotJson);
+		AssertObject.assertDeepEquals("",
+			expJSON, gotJson);
 	}
 
 	@Test

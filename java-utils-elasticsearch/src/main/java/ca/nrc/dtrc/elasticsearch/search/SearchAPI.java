@@ -176,8 +176,7 @@ public abstract class SearchAPI extends ES_API {
 			jsonObj.put("track_total_hits", true);
 		}
 
-		String reqJson = jsonObj.toString();
-		SearchResults<T> results = search(new JsonString(reqJson), docTypeName, docPrototype);
+		SearchResults<T> results = search(jsonObj, docTypeName, docPrototype);
 		logger.trace("returning results with #hits=" + results.getTotalHits());
 		return results;
 	}
@@ -243,7 +242,7 @@ public abstract class SearchAPI extends ES_API {
 	}
 
 	public <T extends Document> SearchResults<T> search(
-		JsonString jsonQuery,
+		JSONObject jsonQuery,
 		String docTypeName, T docPrototype) throws ElasticSearchException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.search.SearchAPI.search__3");
 
@@ -307,15 +306,15 @@ public abstract class SearchAPI extends ES_API {
 		queryDocMap = filterFields(queryDoc, esDocTypeName, fldFilter);
 
 		String esType = Document.determineType(esDocTypeName, queryDoc);
-		String mltBody = moreLikeThisJsonBody(esType, queryDocMap);
+		JSONObject mltBody = moreLikeThisJsonBody(esType, queryDocMap);
 
 		SearchResults<T> results =
-			search(new JsonString(mltBody), esType, queryDoc);
+			search(mltBody, esType, queryDoc);
 
 		return results;
 	}
 
-	public String moreLikeThisJsonBody(
+	public JSONObject moreLikeThisJsonBody(
 	String type, Map<String, Object> queryDoc) throws ElasticSearchException {
 		ObjectMapper mapper = new ObjectMapper();
 
@@ -343,9 +342,7 @@ public abstract class SearchAPI extends ES_API {
 		JSONObject jsonQuery = composeMLTQuery(type, jsonQueryDoc, jsonSearchableFields);
 
 
-		String jsonBody = jsonQuery.toString();
-
-		return jsonBody;
+		return jsonQuery;
 	}
 
 	protected JSONObject mltClause(JSONObject mltQuery) {
@@ -471,11 +468,11 @@ public abstract class SearchAPI extends ES_API {
 		queryDocMaps = filterFields(queryDocs, esDocTypeName, fldFilter);
 
 		String esType = Document.determineType(esDocTypeName, queryDocs.get(0));
-		String mltBody = moreLikeTheseJsonBody(esType, queryDocMaps);
+		JSONObject mltBody = moreLikeTheseJsonBody(esType, queryDocMaps);
 
 
 		SearchResults results = null;
-		results = search(new JsonString(mltBody), esDocTypeName, queryDocs.get(0));
+		results = search(mltBody, esDocTypeName, queryDocs.get(0));
 
 		return results;
 	}
@@ -533,7 +530,7 @@ public abstract class SearchAPI extends ES_API {
 		return jsonBody;
 	}
 
-	private String moreLikeTheseJsonBody(String type, List<Map<String, Object>> queryDocMaps) throws ElasticSearchException {
+	private JSONObject moreLikeTheseJsonBody(String type, List<Map<String, Object>> queryDocMaps) throws ElasticSearchException {
 		ObjectMapper mapper = new ObjectMapper();
 
 		Set<String> searchableFields = this.mltSearchableFields(queryDocMaps, type);
@@ -575,9 +572,7 @@ public abstract class SearchAPI extends ES_API {
 
 		root = ensureSortingForSearchAfter(root);
 
-		String jsonBody = root.toString();
-
-		return jsonBody;
+		return root;
 	}
 
 	public Map<String, Object> filterFields(Document queryDoc) throws ElasticSearchException {
