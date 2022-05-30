@@ -106,22 +106,29 @@ public abstract class SearchAPI extends ES_API {
 
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.es5.StreamlinedClient.searchFreeform");
 
-		Query queryBody = null;
+		JSONObject queryJson =
+			new JSONObject()
+					.put("bool", new JSONObject()
+						.put("must", new JSONArray())
+					);
+		JSONArray must = queryJson.getJSONObject("bool").getJSONArray("must");
 
 		if (freeformQuery != null && !freeformQuery.matches("^\\s*$")) {
-			queryBody = new Query(
-				new JSONObject()
-					.put("query_string", new JSONObject()
+			must.put(new JSONObject()
+				.put("query_string", new JSONObject()
 					.put("query", freeformQuery)
-				));
+				)
+			);
 		} else {
-			queryBody = new Query(
-				new JSONObject()
+			must
+				.put(new JSONObject()
 					.put("exists", new JSONObject()
-					.put("field", "id")
-				));
+						.put("field", "id")
+					)
+				);
 		}
 
+	Query queryBody = new Query(queryJson);
 		SearchResults<T> hits =
 			search(queryBody, docTypeName, docPrototype,
 				additionalSearchSpecs);
@@ -152,6 +159,23 @@ public abstract class SearchAPI extends ES_API {
 		RequestBodyElement... additionalBodyElts) throws ElasticSearchException {
 
 		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.search.SearchAPI.search_4");
+
+		if (query == null) {
+			String type = Document.determineType(docTypeName, docPrototype);
+			query = new Query(
+				new JSONObject()
+					.put("bool", new JSONObject()
+						.put("must", new JSONArray()
+							.put(new JSONObject()
+								.put("match", new JSONObject()
+									.put("type", type)
+								)
+							)
+						)
+					)
+			);
+
+		}
 
 		RequestBodyElement[] bodyElements =
 			new RequestBodyElement[additionalBodyElts.length + 1];

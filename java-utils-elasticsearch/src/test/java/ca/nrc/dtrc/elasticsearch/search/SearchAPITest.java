@@ -310,7 +310,8 @@ public abstract class SearchAPITest {
 		SearchResults<TVShow> results =
 			esFactory.searchAPI().search((String)null, (String)null, proto);
 		new AssertSearchResults(results)
-			.totalHitsEquals(-999)
+			.totalHitsEquals(2)
+			.hitIDsEqual("Peanuts", "The Simpsons");
 			;
 	}
 
@@ -332,7 +333,8 @@ public abstract class SearchAPITest {
 		SearchResults<TVShow> results =
 			esFactory.searchAPI().search((Query)null, (String)null, proto);
 		new AssertSearchResults(results)
-			.totalHitsEquals(-999)
+			.totalHitsEquals(2)
+			.hitIDsEqual("Peanuts", "The Simpsons");
 			;
 	}
 

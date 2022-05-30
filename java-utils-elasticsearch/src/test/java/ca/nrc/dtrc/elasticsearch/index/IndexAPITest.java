@@ -252,13 +252,13 @@ public abstract class IndexAPITest {
 			factory.indexAPI().listAll(showCharacterProto);
 		new AssertSearchResults(characterResults, "List of ShowCharacter not as expected")
 			.hitIDsEqual(
-				"character:CharlieBrown", "character:HomerSimpson", "character:Lucy",
-				"character:MargeSimpson", "character:MrBurns");
+				"CharlieBrown", "HomerSimpson", "Lucy",
+				"MargeSimpson", "MrBurns");
 
 		SearchResults<TVShow> showResults =
 			factory.indexAPI().listAll(tvShowProto);
 		new AssertSearchResults(showResults, "List of TVShow not as expected")
-			.hitIDsEqual("show:Peanuts","show:The Simpsons");
+			.hitIDsEqual("Peanuts","The Simpsons");
 	}
 
 
