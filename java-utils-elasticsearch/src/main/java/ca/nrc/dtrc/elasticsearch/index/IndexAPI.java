@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.*;
@@ -443,9 +444,11 @@ public abstract class IndexAPI extends ES_API {
 		Query query = new Query(
 			new JSONObject()
 				.put("bool", new JSONObject()
-					.put("must", new JSONObject()
-						.put("match", new JSONObject()
-							.put("type", esDocTypeName)
+					.put("must", new JSONArray()
+						.put(new JSONObject()
+							.put("match", new JSONObject()
+								.put("type", esDocTypeName)
+							)
 						)
 					)
 				)

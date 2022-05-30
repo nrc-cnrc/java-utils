@@ -196,7 +196,7 @@ public abstract class CrudAPITest {
 		ShowCharacter homer = new ShowCharacter("Homer", "Simpson", "The Simpsons");
 		SearchResults<ShowCharacter> gotPeople = indexAPI.listAll(homer);
 		new AssertSearchResults(gotPeople, "Initial set of people not as expected")
-			.containsIDs(homer.getId());
+			.containsIDs(homer.getIdWithoutType());
 
 		crudAPI.deleteDocumentWithID(homer.getId(), ShowCharacter.class);
 		Thread.sleep(1*1000);

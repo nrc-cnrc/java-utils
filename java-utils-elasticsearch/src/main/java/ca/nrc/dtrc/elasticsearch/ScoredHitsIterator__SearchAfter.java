@@ -9,13 +9,13 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ScoredHitsIterator__SearchWith<T extends Document> extends ScoredHitsIterator<T> {
+public class ScoredHitsIterator__SearchAfter<T extends Document> extends ScoredHitsIterator<T> {
 
 	private JSONArray searchAfterValue = null;
 	private JSONObject request = null;
 	private boolean noMoreHitsAvailable = false;
 
-	public ScoredHitsIterator__SearchWith(
+	public ScoredHitsIterator__SearchAfter(
 		JSONObject _request, List<Hit<T>> firstResultsBatch, T _docPrototype,
 		ESFactory _esFactory, HitFilter _filter) throws ElasticSearchException, SearchResultsException {
 		super(firstResultsBatch, _docPrototype, _esFactory, _filter);

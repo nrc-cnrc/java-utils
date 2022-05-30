@@ -44,7 +44,7 @@ public class DocIDIterator<T extends Document> implements Iterator<String> {
     @Override
     public String next() {
     	T hit =  hitsIter.next().getDocument();
-    	String id = hit.getId();
+    	String id = hit.getIdWithoutType();
     	if (withoutType) {
     		id = hit.getIdWithoutType();
 		}

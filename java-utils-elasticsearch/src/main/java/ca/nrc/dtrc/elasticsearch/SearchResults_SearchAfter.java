@@ -24,7 +24,7 @@ public class SearchResults_SearchAfter<T extends Document> extends SearchResults
 	@Override
 	protected ScoredHitsIterator<T> hitsIterator() throws ElasticSearchException, SearchResultsException {
 		ScoredHitsIterator<T> iter =
-			new ScoredHitsIterator__SearchWith<T>(
+			new ScoredHitsIterator__SearchAfter<T>(
 				request, scoredHitsBatch, docPrototype,
 				esFactory, filter);
 		return iter;
