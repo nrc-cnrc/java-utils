@@ -70,6 +70,8 @@ public abstract class CrudAPI extends ES_API {
 		URL url = url4putDocument(type, docID);
 		tLogger.trace("(String, String, String) putting url=" + url + ", type=" + type + ", docID=" + docID + ", updatesWaitForRefresh=" + esFactory.updatesWaitForRefresh + ", jsonDoc=" + jsonDoc);
 
+		esFactory.indexAPI();
+
 		String jsonResponse = esFactory.transport().put(url, jsonDoc);
 
 		esFactory.indexAPI().clearFieldTypesCache(type);

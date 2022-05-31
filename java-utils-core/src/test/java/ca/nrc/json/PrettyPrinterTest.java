@@ -12,6 +12,7 @@ import java.util.Set;
 import ca.nrc.introspection.IntrospectionTest;
 import ca.nrc.testing.AssertObject;
 import ca.nrc.testing.AssertString;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.*;
 
@@ -65,6 +66,54 @@ public class PrettyPrinterTest {
 		public int compareTo(SomeComparableClass o) {
 			return this.keyField.compareTo(o.keyField);
 		}
+	}
+
+	public static class ClassWithPropertyAccessorMethods {
+
+		private String _propWithJustGetter = "_propWithJustGetter";
+		private String _propWithJustSetter = "_propWithJustSetter";
+		private String _propWithBothGetterAndSetter = "_propWithJustSetter";
+
+		// The following methods will be printed because their names suggest that
+		// they are property accessor methods
+		public String getPropWithJustGetter() {
+			return _propWithJustGetter;
+		}
+		public void setPropWithJustSetter(String _propWithJustSetter) {
+			this._propWithJustSetter = _propWithJustSetter;
+		}
+		public String getPropWithBothGetterAndSetter() {
+			return _propWithBothGetterAndSetter;
+		}
+		public void setPropWithBothGetterAndSetter(String _propWithBothGetterAndSetter) {
+			this._propWithBothGetterAndSetter = _propWithBothGetterAndSetter;
+		}
+		public boolean isBooleanProp() {
+			return true;
+		}
+
+		// The following methods will NOT be printed eventhough their names suggest
+		// a property accessor. The reason being that they are JsonIgnored.
+		@JsonIgnore
+		public String getSomethingJsonIgnored() {
+			// Throw an exception to prove that the method is not invoked during
+			// pretty printing
+			if (1 - 1 == 0) {
+				throw new RuntimeException("Method should not have been invoked during pretty printing");
+			}
+			return "hi";
+		}
+		@JsonIgnore
+		public boolean isSomething() {
+			// Throw an exception to prove that the method is not invoked during
+			// pretty printing
+			if (1 - 1 == 0) {
+				throw new RuntimeException("Method should not have been invoked during pretty printing");
+			}
+			return false;
+		}
+
+
 	}
 
 	@BeforeEach
@@ -646,6 +695,23 @@ public class PrettyPrinterTest {
 		String expJson = "\"quoted word: \\\"hello\\\" backslash char: \\\\\"";
 		Assertions.assertEquals(expJson, gotJson);
 	}
+
+	@Test
+	public void test__pprint__ClassWithSomePropertyAccessorMethods() {
+		ClassWithPropertyAccessorMethods obj = new ClassWithPropertyAccessorMethods();
+		String gotJson = new PrettyPrinter().pprint(obj);
+		String expJson =
+			"{\n" +
+			"  \"ooleanProp\":\n" +
+			"    true,\n" +
+			"  \"propWithBothGetterAndSetter\":\n" +
+			"    \"_propWithJustSetter\",\n" +
+			"  \"propWithJustGetter\":\n" +
+			"    \"_propWithJustGetter\"\n" +
+			"}";
+		Assertions.assertEquals(expJson, gotJson);
+	}
+
 
 	@Test
 	protected void test__print__Object__IgnorePrivateFields() {

@@ -95,7 +95,7 @@ public class Introspection {
 			if (aField.isAnnotationPresent(JsonIgnore.class)) {
 				continue;
 			}
-			if(Modifier.isStatic(aField.getModifiers())) {
+			if (Modifier.isStatic(aField.getModifiers())) {
 				continue;
 			}
 			String fieldName = aField.getName();
@@ -124,17 +124,17 @@ public class Introspection {
 			String methName = meth.getName();
 			if (methName.equals("getClass")) continue;
 			JsonIgnore ann = meth.getAnnotation(JsonIgnore.class);
-			Object methValue;
-			tLogger.trace("Getting value of public method named "+methName);
-			try {
-				methValue = meth.invoke(obj);
-			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				throw new IntrospectionException(
-					"Could not invoke method "+methName+" of object "+obj, e);
-			}
 			if (ann == null) {
+				Object methValue;
+				tLogger.trace("Getting value of public method named " + methName);
+				try {
+					methValue = meth.invoke(obj);
+				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+					throw new IntrospectionException(
+					"Could not invoke method " + methName + " of object " + obj, e);
+				}
 				String fieldName = methName.substring(4, methName.length());
-				String firstChar = methName.substring(3,4).toLowerCase();
+				String firstChar = methName.substring(3, 4).toLowerCase();
 				fieldName = firstChar + fieldName;
 				fields.put(fieldName, methValue);
 			}
