@@ -90,26 +90,26 @@ public class AssertSet extends Asserter<Set> {
         assertContainsAll(mess, expItems, gotItems);
     }
 
-    public static <T> void assertContainsAll(String mess,
-		T[] expItemsArr, Set<T> gotItems) {
-        Set<T> expItems = new HashSet<T>();
-        Collections.addAll(expItems, expItemsArr);
-        assertContainsAll(mess, expItems, gotItems);
+    public static <T> void assertContainsAll(
+    		String mess, Set<T> superSet, T[] gotItems) {
+        Set<T> gotItemsSet = new HashSet<T>();
+        Collections.addAll(gotItemsSet, gotItems);
+        assertContainsAll(mess, superSet, gotItemsSet);
     }
 
     public static <T> void assertContainsAll(String mess,
-                                             Set<T> expItems, Set<T> gotItems) {
+        Set<T> expSuperSet, Set<T> gotSet) {
         Set<T> itemsNotFound = new HashSet<T>();
-        for (T item: expItems) {
-            if (! gotItems.contains(item)) {
+        for (T item: gotSet) {
+            if (! expSuperSet.contains(item)) {
                 itemsNotFound.add(item);
             }
         }
         if (!itemsNotFound.isEmpty()) {
             mess +=
-                    "\nThe following expected items were not contained in the actual collection:\n"+
-                            PrettyPrinter.print(itemsNotFound)+"\n"+
-                            "Actual collection was:\n"+PrettyPrinter.print(gotItems);
+					"\nThe following expected items were not contained in the actual collection:\n"+
+					PrettyPrinter.print(itemsNotFound)+"\n"+
+					"Actual collection was:\n"+PrettyPrinter.print(expSuperSet);
             Assertions.fail(mess);
         }
     }
@@ -152,7 +152,7 @@ public class AssertSet extends Asserter<Set> {
 		}
 		assertContainsAll(
 			mess+"\nThe actual set was not a subset of the expected superset",
-			gotSet, expSuperset
+			expSuperset, gotSet
 		);
 	 }
 
