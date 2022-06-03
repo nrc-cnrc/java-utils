@@ -38,7 +38,7 @@ public class AssertSearchResults extends Asserter<SearchResults> {
 		Set<String> gotIDs = hitIDsSet();
 		AssertSet.assertContainsAll(
 			baseMessage+"\nRetrieved docs did not contain the expected IDs",
-			expIDs, hitIDsSet());
+			hitIDsSet(), expIDs);
 	}
 
 	public AssertSearchResults doesNotcontainIDs(String... unexpectedIDs) throws IOException {
