@@ -137,7 +137,14 @@ public abstract class SearchAPITest {
 		);
 		try (SearchResults<ShowCharacter> hits =
 			  searchAPI.search(queryBody, characterPrototype)) {
+		}
 
+		// When you iterate through search results, under the hood, SearchAPI
+		// pulls hits from ElasticSearch in batches. By default, the size of a
+		// batch is 10 hits. But you can change that
+		Integer batchSize = 100;
+		try (SearchResults<ShowCharacter> hits =
+			  searchAPI.search(queryBody, characterPrototype, batchSize)) {
 		}
 
 		// You can also ask for some aggregations to be performed on some of

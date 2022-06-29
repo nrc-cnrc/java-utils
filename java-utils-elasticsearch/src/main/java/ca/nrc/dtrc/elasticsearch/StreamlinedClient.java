@@ -186,14 +186,16 @@ public abstract class StreamlinedClient extends ES_API {
 	public <T extends Document> SearchResults<T> search(
 		Query query, String docTypeName, T docPrototype) throws ElasticSearchException {
 		return searchAPI()
-			.search(query, docTypeName, docPrototype, new RequestBodyElement[0]);
+			.search(query, docTypeName, docPrototype, (Integer)null,
+				new RequestBodyElement[0]);
 	}
 
 	public <T extends Document> SearchResults<T> search(
 		Query query, T docPrototype, RequestBodyElement... additionalSearchSpecs)
 		throws ElasticSearchException {
 		return searchAPI()
-			.search(query, null, docPrototype, additionalSearchSpecs);
+			.search(query, (String)null, docPrototype, (Integer)null,
+				additionalSearchSpecs);
 	}
 
 	public <T extends Document> SearchResults<T> search(
@@ -201,7 +203,8 @@ public abstract class StreamlinedClient extends ES_API {
 		RequestBodyElement... additionalBodyElts) throws ElasticSearchException {
 
 		return searchAPI()
-			.search(query, docTypeName, docPrototype, additionalBodyElts);
+			.search(query, docTypeName, docPrototype, (Integer)null,
+				additionalBodyElts);
 	}
 
 	private <T extends Document> SearchResults<T> search(
