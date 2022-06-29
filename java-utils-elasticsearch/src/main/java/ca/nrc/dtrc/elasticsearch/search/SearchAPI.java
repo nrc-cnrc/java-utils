@@ -86,6 +86,12 @@ public abstract class SearchAPI extends ES_API {
 	}
 
 	public <T extends Document> SearchResults<T> search(
+		String freeformQuery, T docPrototype, Integer batchSize) throws ElasticSearchException {
+		return search(freeformQuery, (String)null, docPrototype, batchSize,
+			new RequestBodyElement[0]);
+	}
+
+	public <T extends Document> SearchResults<T> search(
 		String freeformQuery, String docTypeName,
 		T docPrototype) throws ElasticSearchException {
 
@@ -101,6 +107,14 @@ public abstract class SearchAPI extends ES_API {
 
 	public <T extends Document> SearchResults<T> search(
 		String freeformQuery, String docTypeName, T docPrototype,
+		RequestBodyElement... additionalSearchSpecs)
+		throws ElasticSearchException {
+		return search(freeformQuery, docTypeName, docPrototype, (Integer)null,
+			additionalSearchSpecs);
+	}
+
+	public <T extends Document> SearchResults<T> search(
+		String freeformQuery, String docTypeName, T docPrototype, Integer batchSize,
 		RequestBodyElement... additionalSearchSpecs)
 		throws ElasticSearchException {
 
@@ -131,7 +145,7 @@ public abstract class SearchAPI extends ES_API {
 	Query queryBody = new Query(queryJson);
 		SearchResults<T> hits =
 			search(queryBody, docTypeName, docPrototype,
-				additionalSearchSpecs);
+			batchSize, additionalSearchSpecs);
 
 		tLogger.trace("Returning results with #hits=" + hits.getTotalHits());
 
@@ -140,22 +154,28 @@ public abstract class SearchAPI extends ES_API {
 
 	public <T extends Document> SearchResults<T> search(
 		Query queryBody, T docPrototype) throws ElasticSearchException {
-		return search(queryBody, null, docPrototype);
+		return search(queryBody, (String)null, docPrototype);
+	}
+
+	public <T extends Document> SearchResults<T> search(
+		Query queryBody, T docPrototype, Integer batchSize) throws ElasticSearchException {
+		return search(queryBody, (String)null, docPrototype, (Integer)null, new RequestBodyElement[0]);
 	}
 
 	public <T extends Document> SearchResults<T> search(
 		Query query, String docTypeName, T docPrototype) throws ElasticSearchException {
-		return search(query, docTypeName, docPrototype, new RequestBodyElement[0]);
+		return search(query, docTypeName, docPrototype, (Integer)null, new RequestBodyElement[0]);
 	}
 
 	public <T extends Document> SearchResults<T> search(
 		Query query, T docPrototype, RequestBodyElement... additionalSearchSpecs)
 		throws ElasticSearchException {
-		return search(query, null, docPrototype, additionalSearchSpecs);
+		return search(query, (String)null, docPrototype, (Integer)null,
+			additionalSearchSpecs);
 	}
 
 	public <T extends Document> SearchResults<T> search(
-		Query query, String docTypeName, T docPrototype,
+		Query query, String docTypeName, T docPrototype, Integer batchSize,
 		RequestBodyElement... additionalBodyElts) throws ElasticSearchException {
 
 		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.search.SearchAPI.search_4");
@@ -200,7 +220,7 @@ public abstract class SearchAPI extends ES_API {
 			jsonObj.put("track_total_hits", true);
 		}
 
-		SearchResults<T> results = search(jsonObj, docTypeName, docPrototype);
+		SearchResults<T> results = search(jsonObj, docTypeName, docPrototype, batchSize);
 		logger.trace("returning results with #hits=" + results.getTotalHits());
 		return results;
 	}
@@ -266,9 +286,18 @@ public abstract class SearchAPI extends ES_API {
 	}
 
 	public <T extends Document> SearchResults<T> search(
+		JSONObject jsonQuery, String docTypeName, T docPrototype) throws ElasticSearchException {
+		return search(jsonQuery, docTypeName, docPrototype, (Integer)null);
+	}
+
+	public <T extends Document> SearchResults<T> search(
 		JSONObject jsonQuery,
-		String docTypeName, T docPrototype) throws ElasticSearchException {
+		String docTypeName, T docPrototype, Integer size) throws ElasticSearchException {
 		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.search.SearchAPI.search__3");
+
+		if (size != null) {
+			jsonQuery.put("size", size);
+		}
 
 		docTypeName = Document.determineType(docTypeName, docPrototype);
 

@@ -13,9 +13,11 @@ public class IndexAPI_v7miTest extends IndexAPITest {
 
 	@BeforeAll
 	public static void beforeAll() throws Exception {
+		org.junit.Assume.assumeFalse("Skipping ES7 multi-index tests", true);
 		new ESTestHelpers(7).skipTestsUnlessESIsRunning(9207);
 		return;
 	}
+
 
 	@Override
 	protected ESFactory makeESFactory(String indexName) throws ElasticSearchException {

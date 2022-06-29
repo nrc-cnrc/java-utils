@@ -41,9 +41,7 @@ public abstract class StreamlinedClientTest {
 	@BeforeAll
 	public static void beforeAll() throws Exception {
 		boolean skip = true;
-		org.junit.Assume.assumeFalse(skip);
 	}
-
 
 	@BeforeEach
 	public void setUp() throws Exception {
