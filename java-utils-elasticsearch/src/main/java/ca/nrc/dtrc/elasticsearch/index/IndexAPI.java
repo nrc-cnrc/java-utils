@@ -430,11 +430,28 @@ public abstract class IndexAPI extends ES_API {
 
 	public <T extends Document> SearchResults<T> listAll(T docProto)
 		throws ElasticSearchException {
-		return listAll(null, docProto, new RequestBodyElement[0]);
+		return listAll((String)null, docProto, (Integer)null, new RequestBodyElement[0]);
+	}
+
+	public <T extends Document> SearchResults<T> listAll(String esDocType, T docProto)
+		throws ElasticSearchException {
+		return listAll(esDocType, docProto, (Integer)null, new RequestBodyElement[0]);
+	}
+
+	public <T extends Document> SearchResults<T> listAll(T docProto, Integer batchSize)
+		throws ElasticSearchException {
+		return listAll((String)null, docProto, batchSize, new RequestBodyElement[0]);
 	}
 
 	public <T extends Document> SearchResults<T> listAll(
 		String esDocTypeName, T docProto, RequestBodyElement... options)
+		throws ElasticSearchException {
+		return listAll(esDocTypeName, docProto, (Integer)null, options);
+	}
+
+
+	public <T extends Document> SearchResults<T> listAll(
+		String esDocTypeName, T docProto, Integer batchSize, RequestBodyElement... options)
 		throws ElasticSearchException {
 		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.index.IndexAPI.listAll");
 		logger.trace("Invoked");
@@ -455,7 +472,7 @@ public abstract class IndexAPI extends ES_API {
 		);
 
 		SearchResults<T> results =
-			esFactory.searchAPI().search(query, esDocTypeName, docProto);
+			esFactory.searchAPI().search(query, esDocTypeName, docProto, batchSize);
 		return results;
 	}
 

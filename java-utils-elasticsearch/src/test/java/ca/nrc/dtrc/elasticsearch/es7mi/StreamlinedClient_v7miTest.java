@@ -10,7 +10,7 @@ public class StreamlinedClient_v7miTest extends StreamlinedClientTest {
 
 	@BeforeAll
 	public static void beforeAll() throws Exception {
-		org.junit.Assume.assumeFalse(true);
+		org.junit.Assume.assumeFalse("Skipping ES7 multi-index tests", true);
 		new ESTestHelpers(7).skipTestsUnlessESIsRunning(9200);
 		return;
 	}

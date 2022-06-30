@@ -7,6 +7,7 @@ import static ca.nrc.dtrc.elasticsearch.ESTestHelpers.*;
 
 import ca.nrc.file.ResourceGetter;
 import ca.nrc.testing.AssertFile;
+import ca.nrc.testing.AssertNumber;
 import ca.nrc.testing.AssertObject;
 import ca.nrc.testing.AssertString;
 import org.json.JSONObject;
@@ -521,4 +522,35 @@ public abstract class IndexAPITest {
 		Assertions.assertTrue(indexAPI.exists(),
 			"Index should STILL have existed even after it was cleared");
 	}
+
+	@Test
+	public void test__test__listAll__SpeedWithLargeBatchSizelistAll__SpeedWithLargeBatchSize() throws Exception {
+		Map<Integer,Long>  elapsedTimes = new HashMap<Integer,Long>();
+		for (Integer batchSize: new Integer[] {1000, null}) {
+			esFactory = new ESTestHelpers(esFactory).makeHamletTestIndex();
+			PlayLine proto = new PlayLine();
+			Long startTime = System.currentTimeMillis();
+			try(SearchResults<PlayLine> results =
+				 esFactory.indexAPI().listAll(proto, batchSize)) {
+				DocIDIterator<PlayLine> iter = results.docIDIterator();
+				while (iter.hasNext()) {
+					iter.next();
+				}
+			}
+			Long endTime = System.currentTimeMillis();
+			Long elapsedTime = endTime - startTime;
+			elapsedTimes.put(batchSize, elapsedTime);
+		}
+
+		double gotRatio = 1.0 * elapsedTimes.get(null) / elapsedTimes.get(new Integer(1000));
+		double expMinRatio = 2.5;
+//		System.out.println("batchSize=null  : "+elapsedTimes.get(null));
+//		System.out.println("batchSize=1000  : "+elapsedTimes.get(new Integer(1000)));
+//		System.out.println("null/1000 ratio : "+gotRatio);
+		AssertNumber.isGreaterOrEqualTo(
+			"listAll  with large batch size should have been much faster",
+			gotRatio, expMinRatio);
+
+	}
+
 }

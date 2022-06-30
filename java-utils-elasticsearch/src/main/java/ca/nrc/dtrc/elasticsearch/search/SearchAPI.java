@@ -86,6 +86,12 @@ public abstract class SearchAPI extends ES_API {
 	}
 
 	public <T extends Document> SearchResults<T> search(
+		String freeformQuery, T docPrototype, Integer batchSize) throws ElasticSearchException {
+		return search(freeformQuery, (String)null, docPrototype, batchSize,
+			new RequestBodyElement[0]);
+	}
+
+	public <T extends Document> SearchResults<T> search(
 		String freeformQuery, String docTypeName,
 		T docPrototype) throws ElasticSearchException {
 
@@ -101,6 +107,14 @@ public abstract class SearchAPI extends ES_API {
 
 	public <T extends Document> SearchResults<T> search(
 		String freeformQuery, String docTypeName, T docPrototype,
+		RequestBodyElement... additionalSearchSpecs)
+		throws ElasticSearchException {
+		return search(freeformQuery, docTypeName, docPrototype, (Integer)null,
+			additionalSearchSpecs);
+	}
+
+	public <T extends Document> SearchResults<T> search(
+		String freeformQuery, String docTypeName, T docPrototype, Integer batchSize,
 		RequestBodyElement... additionalSearchSpecs)
 		throws ElasticSearchException {
 
@@ -131,7 +145,7 @@ public abstract class SearchAPI extends ES_API {
 	Query queryBody = new Query(queryJson);
 		SearchResults<T> hits =
 			search(queryBody, docTypeName, docPrototype,
-			(Integer)null, additionalSearchSpecs);
+			batchSize, additionalSearchSpecs);
 
 		tLogger.trace("Returning results with #hits=" + hits.getTotalHits());
 
@@ -206,7 +220,7 @@ public abstract class SearchAPI extends ES_API {
 			jsonObj.put("track_total_hits", true);
 		}
 
-		SearchResults<T> results = search(jsonObj, docTypeName, docPrototype);
+		SearchResults<T> results = search(jsonObj, docTypeName, docPrototype, batchSize);
 		logger.trace("returning results with #hits=" + results.getTotalHits());
 		return results;
 	}

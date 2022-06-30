@@ -36,12 +36,12 @@ public class SearchAPI_v7 extends SearchAPI {
 
 	@Override
 	public <T extends Document> SearchResults<T> search(
-		JSONObject jsonQuery,
-		String docTypeName, T docPrototype) throws ElasticSearchException {
+		JSONObject jsonQuery, String docTypeName, T docPrototype,
+		Integer batchSize) throws ElasticSearchException {
 
 		jsonQuery = ensureHasTypeRestriction(jsonQuery, docTypeName, docPrototype);
 
-		return super.search(jsonQuery, docTypeName, docPrototype);
+		return super.search(jsonQuery, docTypeName, docPrototype, batchSize);
 	}
 
 	/**

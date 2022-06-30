@@ -9,7 +9,7 @@ import ca.nrc.dtrc.elasticsearch.request.Aggs;
 import ca.nrc.dtrc.elasticsearch.request.Query;
 import ca.nrc.dtrc.elasticsearch.request.Sort;
 import ca.nrc.introspection.Introspection;
-import ca.nrc.testing.AssertJson;
+import ca.nrc.testing.AssertNumber;
 import ca.nrc.testing.AssertObject;
 import ca.nrc.testing.AssertString;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -727,4 +727,34 @@ public abstract class SearchAPITest {
 			}
 		}
 	}
+
+	@Test
+	public void test__search__IsMuchFasterWithLargeBatchSize() throws Exception {
+		Map<Integer,Long>  elapsedTimes = new HashMap<Integer,Long>();
+		for (Integer batchSize: new Integer[] {1000, null}) {
+			esFactory = new ESTestHelpers(esFactory).makeHamletTestIndex();
+			PlayLine proto = new PlayLine();
+			Long startTime = System.currentTimeMillis();
+			try(SearchResults<PlayLine> results =
+				 esFactory.searchAPI().search("the", proto, batchSize)) {
+				DocIDIterator<PlayLine> iter = results.docIDIterator();
+				while (iter.hasNext()) {
+					iter.next();
+				}
+			}
+			Long endTime = System.currentTimeMillis();
+			Long elapsedTime = endTime - startTime;
+			elapsedTimes.put(batchSize, elapsedTime);
+		}
+
+		double gotRatio = 1.0 * elapsedTimes.get(null) / elapsedTimes.get(new Integer(1000));
+		double expMinRatio = 2.0;
+		System.out.println("batchSize=null  : "+elapsedTimes.get(null));
+		System.out.println("batchSize=1000  : "+elapsedTimes.get(new Integer(1000)));
+		System.out.println("null/1000 ratio : "+gotRatio);
+		AssertNumber.isGreaterOrEqualTo(
+			"Search with large batch size should have been much faster",
+			gotRatio, expMinRatio);
+	}
+
 }
