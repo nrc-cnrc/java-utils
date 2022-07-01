@@ -100,12 +100,27 @@ public class ESTestHelpers {
 		this.esFactory = _esFactory;
 	}
 
-	public ESTestHelpers(Integer version) throws ElasticSearchException {
+	public ESTestHelpers(Integer version) throws Exception {
+		init_ESTestHelpers(version, (Boolean)null);
+	}
+
+	public ESTestHelpers(Integer version, Boolean multiIndex) throws Exception {
+		init_ESTestHelpers(version, multiIndex);
+	}
+
+	private void init_ESTestHelpers(Integer version, Boolean multiIndex) throws Exception {
+		if (multiIndex == null) {
+			multiIndex = false;
+		}
 		if (version != null) {
 			if (version <= 5) {
 				esFactory = new ES5Factory("");
 			} else if (version <= 7) {
-				esFactory = new ES7Factory("");
+				if (multiIndex) {
+					esFactory = new ES7miFactory("");
+				} else {
+					esFactory = new ES7Factory("");
+				}
 			} else {
 				throw new ElasticSearchException("Unsupported ESFactory version "+version);
 			}
