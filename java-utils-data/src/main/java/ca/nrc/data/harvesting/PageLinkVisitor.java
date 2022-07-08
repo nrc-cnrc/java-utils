@@ -8,8 +8,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.htmlcleaner.HtmlNode;
 import org.htmlcleaner.TagNode;
 import org.htmlcleaner.TagNodeVisitor;
@@ -102,7 +102,7 @@ public class PageLinkVisitor implements TagNodeVisitor {
 	}
 
 	private void visitAnchorHref(URL curUrl, String innerlink) throws PageHarvesterException {
-		Logger logger = Logger.getLogger("ca.nrc.data.harvesting.PageLinkVisitor.visit");
+		Logger logger = LogManager.getLogger("ca.nrc.data.harvesting.PageLinkVisitor.visit");
 		logger.trace("curUrl="+curUrl+", innerLink="+innerlink);
 		Matcher mp = relatPath.matcher(innerlink);
 

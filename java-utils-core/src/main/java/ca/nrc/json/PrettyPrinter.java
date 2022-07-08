@@ -19,7 +19,8 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /**
  * Generates a DETERMISTIC Json PrettyPrint of any object.
@@ -370,7 +371,7 @@ public class PrettyPrinter {
 		return json;	}
 
 	private String prettyPrintObject(Object obj, Set<String> fieldsToIgnore, int indentLevel)  {
-		Logger logger = Logger.getLogger("ca.nrc.json.PrettyPrinter.prettyPrintObject");
+		Logger logger = LogManager.getLogger("ca.nrc.json.PrettyPrinter.prettyPrintObject");
 		String className = null;
 		if (logger.isTraceEnabled()) {
 			className = (obj==null?null:obj.getClass().getSimpleName());

@@ -6,8 +6,8 @@ import ca.nrc.web.HttpException;
 import ca.nrc.web.HttpResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.RequestBody;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -91,7 +91,7 @@ public class Transport {
 	}
 
 	public String post(URL url, String json) throws ElasticSearchException {
-		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.Transport.post");
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.Transport.post");
 		tLogger.trace("posting url=" + url + ", with json=" + json);
 
 		for (ESObserver obs : observers) {

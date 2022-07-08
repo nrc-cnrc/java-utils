@@ -24,7 +24,8 @@ import java.nio.file.attribute.FileAttribute;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 /*
  * A class for accessing resource files and directories.
@@ -212,7 +213,7 @@ public class ResourceGetter {
 	
 	
 	public static File copyResourceToTempLocation(String resRelPath) throws ResourceGetterException {
-		Logger tLogger = Logger.getLogger("ca.nrc.file.ResourceGetter.copyResourceToTempLocation");
+		Logger tLogger = LogManager.getLogger("ca.nrc.file.ResourceGetter.copyResourceToTempLocation");
 
 
 		String resPath;
@@ -279,7 +280,7 @@ public class ResourceGetter {
 
 
 	private static File copyJarResourceToTempFile(String resPath) throws ResourceGetterException {
-		Logger tLogger = Logger.getLogger("ca.nrc.file.ResourceGetter.copyJarResourceToTempFile");
+		Logger tLogger = LogManager.getLogger("ca.nrc.file.ResourceGetter.copyJarResourceToTempFile");
 		tLogger.trace("Getting resPath="+resPath);
 		File tempLocation = null;
 

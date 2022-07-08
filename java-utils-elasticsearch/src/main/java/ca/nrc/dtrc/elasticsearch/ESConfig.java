@@ -1,7 +1,7 @@
 package ca.nrc.dtrc.elasticsearch;
 
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import ca.nrc.config.Config;
 import ca.nrc.config.ConfigException;

@@ -12,7 +12,8 @@ import ca.nrc.data.harvesting.SearchEngine.Hit;
 import ca.nrc.data.harvesting.SearchEngine.IHitVisitor;
 import ca.nrc.data.harvesting.SearchEngine.Query;
 import ca.nrc.data.harvesting.SearchEngine.SearchEngineException;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public abstract class PageHarvester {
 
@@ -141,7 +142,7 @@ public abstract class PageHarvester {
 	}
 
 	protected void getPage(String urlStr) throws PageHarvesterException {
-		Logger tLogger = Logger.getLogger("ca.nrc.data.harvesting.PageHarvester.getPage");
+		Logger tLogger = LogManager.getLogger("ca.nrc.data.harvesting.PageHarvester.getPage");
 		URL url = null;
 		try {
 			url = new URL(urlStr);

@@ -5,6 +5,8 @@ import org.apache.commons.cli.Option;
 import ca.nrc.ui.commandline.CommandLineException;
 import ca.nrc.ui.commandline.MainCommand;
 import ca.nrc.ui.commandline.SubCommand;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class DataCLI {
 	
@@ -60,6 +62,8 @@ public class DataCLI {
 	}
 
 	public static void main(String[] args) throws Exception {
+		Logger logger = LogManager.getLogger("ca.nrc.data.bin.DataCLI");
+		logger.trace("CLI invoked with args="+String.join(", ", args));
 		MainCommand mainCmd = defineMainCommand();
 		mainCmd.run(args);
 	}

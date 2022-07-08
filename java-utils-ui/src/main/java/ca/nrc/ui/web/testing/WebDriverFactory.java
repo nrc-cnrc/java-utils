@@ -3,7 +3,8 @@ package ca.nrc.ui.web.testing;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
@@ -95,7 +96,7 @@ public class WebDriverFactory {
 //	}
 	
 	private static WebDriver makeChromeDriver(File driverPath) {
-		Logger tLogger = Logger.getLogger("ca.nrc.ui.web.testing.WebDriverFactory.makeChromeDriver");
+		Logger tLogger = LogManager.getLogger("ca.nrc.ui.web.testing.WebDriverFactory.makeChromeDriver");
 		tLogger.trace("driverPath="+driverPath);
 		System.setProperty("webdriver.chrome.driver", driverPath.toString());
 		WebDriver driver = new ChromeDriver();

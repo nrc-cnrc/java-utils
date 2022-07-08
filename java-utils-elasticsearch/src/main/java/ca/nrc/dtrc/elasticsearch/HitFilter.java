@@ -5,7 +5,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import ca.nrc.datastructure.Pair;
 
@@ -55,7 +56,7 @@ public class HitFilter<T extends Document> {
 	}
 
 	public boolean keep(Hit<T> aHit) throws HitFilterException {
-		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.HitFilter.keep");
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.HitFilter.keep");
 		
 		Document doc = aHit.getDocument();
 		int totalTermsMatched = 0;

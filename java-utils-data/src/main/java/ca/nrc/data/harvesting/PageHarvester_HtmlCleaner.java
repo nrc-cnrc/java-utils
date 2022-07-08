@@ -24,8 +24,8 @@ import de.l3s.boilerpipe.extractors.ArticleExtractor;
 import de.l3s.boilerpipe.extractors.KeepEverythingExtractor;
 
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.htmlcleaner.CleanerProperties;
 import org.htmlcleaner.HtmlCleaner;
 import org.htmlcleaner.TagNode;
@@ -190,7 +190,7 @@ public class PageHarvester_HtmlCleaner extends PageHarvester {
 
 	@Override
 	protected void loadPage(String url) throws PageHarvesterException {
-		Logger tLogger = Logger.getLogger("ca.nrc.data.harvesting.PageHarvester_HtmlCleaner.loadPage");
+		Logger tLogger = LogManager.getLogger("ca.nrc.data.harvesting.PageHarvester_HtmlCleaner.loadPage");
 		tLogger.trace("url="+url);
 		try {
 			this.currentURL = new URL(url);
@@ -289,7 +289,7 @@ public class PageHarvester_HtmlCleaner extends PageHarvester {
 	}
 
 	protected String getHttpPage(URL url) throws PageHarvesterException, IOException {
-		Logger tLogger = Logger.getLogger("ca.nrc.data.harvesting.PageHarvester_HtmlCleaner.getHttpPage");
+		Logger tLogger = LogManager.getLogger("ca.nrc.data.harvesting.PageHarvester_HtmlCleaner.getHttpPage");
 		tLogger.trace("Getting url="+url);
 		String oldUserAgent = System.getProperty("http.agent");
 		failureStatus  = 0;
@@ -353,7 +353,7 @@ public class PageHarvester_HtmlCleaner extends PageHarvester {
 	}	
 	
 	private String readPage(HttpURLConnection conn) throws IOException {
-		Logger tLogger = Logger.getLogger("ca.nrc.data.harvesting.PageHarvester_HtmlCleaner.readPage");
+		Logger tLogger = LogManager.getLogger("ca.nrc.data.harvesting.PageHarvester_HtmlCleaner.readPage");
 		String result;
 		try {
 			tLogger.trace("Reading from conn="+conn);

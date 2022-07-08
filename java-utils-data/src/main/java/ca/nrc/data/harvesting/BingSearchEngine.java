@@ -23,7 +23,8 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URLEncodedUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -65,7 +66,7 @@ public class BingSearchEngine extends SearchEngine {
 	
 	@Override
 	protected SearchResults searchRaw(Query seQuery) throws SearchEngineException {
-		Logger tLogger = Logger.getLogger("ca.nrc.data.harvesting.BingSearchEngine.search");
+		Logger tLogger = LogManager.getLogger("ca.nrc.data.harvesting.BingSearchEngine.search");
 		
 		String queryStr = seQuery.fuzzyQuery;
 		

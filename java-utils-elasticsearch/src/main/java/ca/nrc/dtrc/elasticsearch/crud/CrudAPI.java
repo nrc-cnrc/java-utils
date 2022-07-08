@@ -6,8 +6,8 @@ import ca.nrc.dtrc.elasticsearch.index.IndexAPI;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 
 import java.net.URL;
@@ -114,7 +114,7 @@ public abstract class CrudAPI extends ES_API {
 			failIfNoSuchIndex = true;
 		}
 
-		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.CrudAPI.getDocumentWithID");
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.CrudAPI.getDocumentWithID");
 
 		esDocType = Document.determineType(esDocType, docClass);
 		T doc = null;
@@ -152,7 +152,7 @@ public abstract class CrudAPI extends ES_API {
 	}
 
 	public void deleteDocumentWithID(String docID, String esDocType) throws ElasticSearchException  {
-		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.crud.CrudAPI.deleteDocumentWithID");
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.crud.CrudAPI.deleteDocumentWithID");
 		URL url = url4doc(esDocType, docID);
 		transport().delete(url);
 		sleep();
@@ -173,7 +173,7 @@ public abstract class CrudAPI extends ES_API {
 	}
 
 	public void updateDocument(String esDocType, String docID, Map<String, Object> partialDoc) throws ElasticSearchException  {
-		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.es5.StreamlinedClient.updateDocument");
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.es5.StreamlinedClient.updateDocument");
 		URL url = url4updateDocument(esDocType, docID);
 		String jsonBody = null;
 		Map<String, Object> jsonData = new HashMap<String, Object>();

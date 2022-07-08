@@ -1,22 +1,16 @@
 package ca.nrc.data.harvesting;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import ca.nrc.data.harvesting.SearchEngine.Hit;
 import ca.nrc.data.harvesting.SearchEngine.Query;
 import ca.nrc.data.harvesting.SearchEngine.SearchEngineException;
-import ca.nrc.data.harvesting.SearchEngine.Type;
 import ca.nrc.datastructure.Cloner;
 import ca.nrc.datastructure.Cloner.ClonerException;
 import ca.nrc.json.PrettyPrinter;
@@ -86,7 +80,7 @@ public class SearchEngineWorker implements Runnable {
 	
 	@Override
 	public void run()  {
-		Logger tLogger = Logger.getLogger("ca.nrc.data.harvesting.SearchEngineWorker.run");
+		Logger tLogger = LogManager.getLogger("ca.nrc.data.harvesting.SearchEngineWorker.run");
 		try {
 			
 			// Keep fetching new batches of results until someone tells the thread

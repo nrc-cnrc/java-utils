@@ -1,7 +1,8 @@
 package ca.nrc.dtrc.elasticsearch;
 
 import ca.nrc.json.PrettyPrinter;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Iterator;
 
@@ -20,7 +21,7 @@ public class DocIDIterator<T extends Document> implements Iterator<String> {
 	}
 
 	private void init__DocIDIterator(Iterator<Hit<T>> _hitsIter, Boolean _withoutType) {
-		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.init__DocIDIterator");
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.init__DocIDIterator");
 		if (_withoutType != null) {
 			this.withoutType = _withoutType;
 		}

@@ -8,7 +8,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -30,7 +31,7 @@ public class Introspection {
 	}
 
 	public static Set<String> fieldNames(Class clazz, Boolean publicFieldsOnly) throws  IntrospectionException {
-		Logger tLogger = Logger.getLogger("ca.nrc.introspection.Introspection.fields");
+		Logger tLogger = LogManager.getLogger("ca.nrc.introspection.Introspection.fields");
 		Set<String> names = uncacheFieldNames(clazz, publicFieldsOnly);
 		if (names == null) {
 			Object obj = prototype4class(clazz);
@@ -69,7 +70,7 @@ public class Introspection {
 	public static Map<String,Object> fieldValues(Object obj, Boolean publicFieldsOnly)
 		throws IntrospectionException {
 		
-		Logger tLogger = Logger.getLogger("ca.nrc.introspection.Introspection.fieldValues");
+		Logger tLogger = LogManager.getLogger("ca.nrc.introspection.Introspection.fieldValues");
 
 		if (publicFieldsOnly == null) {
 			publicFieldsOnly = true;

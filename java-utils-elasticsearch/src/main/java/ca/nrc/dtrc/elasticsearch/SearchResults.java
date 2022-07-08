@@ -5,7 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.lang3.tuple.Triple;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -16,7 +17,7 @@ public abstract class SearchResults<T extends Document> implements Iterable<Hit<
 
 	protected abstract ScoredHitsIterator<T> hitsIterator() throws ElasticSearchException, SearchResultsException;
 
-	final static Logger logger = Logger.getLogger(SearchResults.class);
+	final static Logger logger = LogManager.getLogger(SearchResults.class);
 
 	protected T docPrototype = null;
 
@@ -45,7 +46,7 @@ public abstract class SearchResults<T extends Document> implements Iterable<Hit<
 	}
 
 	public SearchResults() throws ElasticSearchException {
-		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults");
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults");
 		tLogger.trace("Empty constructor");
 		init_Searchresults((String)null, (T)null, (ESFactory) null,
 			(URL)null);
@@ -58,7 +59,7 @@ public abstract class SearchResults<T extends Document> implements Iterable<Hit<
 
 	public SearchResults(List<Hit<T>> firstResultsBatch, String _scrollID,
 		Long _totalHits, T _docPrototype, ESFactory _esFactory) throws ElasticSearchException {
-		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults");
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults");
 		if (tLogger.isTraceEnabled()) {
 			tLogger.trace("Constructing results from _scrollID="+_scrollID+" and \n   firstResultsBatch="+PrettyPrinter.print(firstResultsBatch));
 		}
@@ -69,7 +70,7 @@ public abstract class SearchResults<T extends Document> implements Iterable<Hit<
 
 	public SearchResults(String jsonResponse, T _docPrototype,
 		ESFactory _esFactory, URL url) throws ElasticSearchException {
-		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults");
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults");
 		if (tLogger.isTraceEnabled()) {
 			tLogger.trace("Constructing results from jsonResponse="+jsonResponse);
 		}
@@ -79,7 +80,7 @@ public abstract class SearchResults<T extends Document> implements Iterable<Hit<
 	public void init__SearchResults (String jsonResponse, T docPrototype,
 		ESFactory _esFactory, String _indexName)
 		throws ElasticSearchException {
-		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults.init__SearchResults");
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults.init__SearchResults");
 		if (tLogger.isTraceEnabled()) {
 			tLogger.trace("Constructing results of type "+docPrototype.getClass().getName()+" from jsonResponse="+jsonResponse);
 		}
@@ -120,7 +121,7 @@ public abstract class SearchResults<T extends Document> implements Iterable<Hit<
 
 	private Triple<Pair<Long, String>, List<Hit<T>>, JSONObject>
 		parseJsonSearchResponse(String jsonSearchResponse, T docPrototype) throws ElasticSearchException {
-		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults.parseJsonSearchResponse");
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults.parseJsonSearchResponse");
 		if (tLogger.isTraceEnabled()) {
 			tLogger.trace("invoked with docPrototype="+docPrototype.getClass().getName()+", jsonSearchResponse="+jsonSearchResponse);
 		}
@@ -335,7 +336,7 @@ public abstract class SearchResults<T extends Document> implements Iterable<Hit<
 	}
 
 	public void close() throws ElasticSearchException {
-		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults.close");
+		Logger logger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults.close");
 		if (scrollID != null) {
 			URL url = urlBuilder().noIndexName()
 				.forEndPoint("_search/scroll/"+scrollID)

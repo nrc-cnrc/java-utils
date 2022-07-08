@@ -6,8 +6,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -53,8 +55,8 @@ public class ResponseMapper {
 		if (_indexname != null) {
 			indexName = _indexname;
 		}
-		errorLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.ResponseMapper");
-		errorLogger.setLevel(Level.ERROR);
+		errorLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.ResponseMapper");
+		Configurator.setLevel(errorLogger, Level.ERROR);
 	}
 
 	public <T extends Document> T response2doc(
@@ -126,7 +128,7 @@ public class ResponseMapper {
 	}
 
 	public <T extends Document> Pair<Pair<Long, String>, List<Hit<T>>> parseJsonSearchResponse(String jsonSearchResponse, T docPrototype) throws ElasticSearchException {
-		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.es5.StreamlinedClient.parseJsonSearchResponse");
+		Logger logger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.es5.StreamlinedClient.parseJsonSearchResponse");
 		List<Hit<T>> scoredDocuments = new ArrayList<>();
 		String scrollID = null;
 		ObjectMapper mapper = new ObjectMapper();

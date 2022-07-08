@@ -1,7 +1,8 @@
 package ca.nrc.dtrc.elasticsearch;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 
 import java.net.URL;
@@ -22,7 +23,7 @@ public class ScoredHitsIterator_Scroll<T extends Document> extends ScoredHitsIte
 
 	@Override
 	protected List<Hit<T>> nextHitsPage() throws ElasticSearchException {
-		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.ScoredHitsIterator_Scroll.nextHitsPage");
+		Logger logger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.ScoredHitsIterator_Scroll.nextHitsPage");
 		URL url = esFactory.urlBuilder().forEndPoint("_search/scroll").build();
 
 		JSONObject postJson = new JSONObject()

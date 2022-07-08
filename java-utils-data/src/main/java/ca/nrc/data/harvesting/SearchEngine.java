@@ -4,7 +4,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import ca.nrc.datastructure.Pair;
 import ca.nrc.json.PrettyPrinter;
@@ -29,7 +30,7 @@ public abstract class SearchEngine {
 		}
 	
 	public SearchResults search(Query seQuery) throws SearchEngineException {
-		Logger tLogger = Logger.getLogger("ca.nrc.data.harvesting.SearchEngine.search");
+		Logger tLogger = LogManager.getLogger("ca.nrc.data.harvesting.SearchEngine.search");
 
 		if (tLogger.isTraceEnabled()) {
 			tLogger.trace("Invoked with seQuery=\n"+PrettyPrinter.print(seQuery));

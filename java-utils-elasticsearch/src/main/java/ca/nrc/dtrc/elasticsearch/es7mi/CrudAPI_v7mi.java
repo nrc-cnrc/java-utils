@@ -6,7 +6,8 @@ import ca.nrc.dtrc.elasticsearch.ElasticSearchException;
 import ca.nrc.dtrc.elasticsearch.NoSuchIndexException;
 import ca.nrc.dtrc.elasticsearch.crud.CrudAPI;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 
 import java.net.URL;
@@ -63,7 +64,7 @@ public class CrudAPI_v7mi extends CrudAPI {
 			failIfNoSuchIndex = true;
 		}
 
-		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.CrudAPI.getDocumentWithID");
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.CrudAPI.getDocumentWithID");
 
 		esDocType = Document.determineType(esDocType, docClass);
 		T doc = null;

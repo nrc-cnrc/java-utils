@@ -1,14 +1,11 @@
 package ca.nrc.data.harvesting;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import ca.nrc.data.harvesting.SearchEngine.Hit;
 import ca.nrc.data.harvesting.SearchEngine.Query;
@@ -63,7 +60,7 @@ public class SearchEngineMultiQuery  {
 
 	public SearchResults search(Query query) throws SearchEngineException, IOException {
 		
-		Logger tLogger = Logger.getLogger("ca.nrc.data.harvesting.SearchEngineMultQuery.search");
+		Logger tLogger = LogManager.getLogger("ca.nrc.data.harvesting.SearchEngineMultQuery.search");
 
 		if (tLogger.isTraceEnabled()) {
 			tLogger.trace("Invoked with query="+PrettyPrinter.print(query));
@@ -90,7 +87,7 @@ public class SearchEngineMultiQuery  {
 	 */
 	
 	private void createAndStartWorkers(Query query) throws SearchEngineException {
-		Logger tLogger = Logger.getLogger("ca.nrc.data.harvesting.SearchEngineMultQuery.createAndStartWorkers");
+		Logger tLogger = LogManager.getLogger("ca.nrc.data.harvesting.SearchEngineMultQuery.createAndStartWorkers");
 		tLogger.trace("invoked");
 		
 //		System.out.println("** createAndStartWorkers: shouldCheckHitSummary()="+shouldCheckHitSummary());
@@ -118,7 +115,7 @@ public class SearchEngineMultiQuery  {
 	}	
 
 	private SearchResults mergeTermResults(Integer maxHits) throws SearchEngineException {		
-		Logger tLogger = Logger.getLogger("ca.nrc.data.harvesting.SearchEngineMultQuery.mergeTermResults");
+		Logger tLogger = LogManager.getLogger("ca.nrc.data.harvesting.SearchEngineMultQuery.mergeTermResults");
 
 		tLogger.trace("invoked with maxHits="+maxHits);
 		
@@ -142,7 +139,7 @@ public class SearchEngineMultiQuery  {
 	}
 
 	private void addHitsFromSingleTermWorkers(Integer maxHits) throws SearchEngineException {
-		Logger tLogger = Logger.getLogger("ca.nrc.data.harvesting.SearchEngineMultQuery.addHitsFromSingleTermWorkers");
+		Logger tLogger = LogManager.getLogger("ca.nrc.data.harvesting.SearchEngineMultQuery.addHitsFromSingleTermWorkers");
 		
 		tLogger.trace("Adding hits for search for each of the workers");
 		

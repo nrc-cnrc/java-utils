@@ -8,7 +8,8 @@ import ca.nrc.dtrc.elasticsearch.index.IndexAPI;
 import ca.nrc.json.PrettyPrinter;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -154,7 +155,7 @@ public class IndexAPI_v7mi extends IndexAPI {
 
 	@Override
 	public boolean exists() throws ElasticSearchException {
-		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.es7mi.IndexAPI_v7mi.exists");
+		Logger logger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.es7mi.IndexAPI_v7mi.exists");
 		logger.trace("invoked for index="+esFactory().indexName);
 		PrettyPrinter pprinter = new PrettyPrinter();
 		Boolean answer = IndexAPI.uncacheIndexExists(esFactory().indexName);
@@ -187,7 +188,7 @@ public class IndexAPI_v7mi extends IndexAPI {
 
 	@Override
 	public void delete() throws ElasticSearchException {
-		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.es7mi.IndexAPI_v7mi.exists");
+		Logger logger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.es7mi.IndexAPI_v7mi.exists");
 		Set<String> types = types();
 		types.add("idefs");
 		for (String aType: types) {
@@ -220,7 +221,7 @@ public class IndexAPI_v7mi extends IndexAPI {
 	}
 
 	private void clearType(String docTypeName, Boolean failIfIndexNotFound) throws ElasticSearchException {
-		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.es7mi.IndexAPI_v7mi.clearType");
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.es7mi.IndexAPI_v7mi.clearType");
 		URL url = url4deleteByQuery(docTypeName);
 		JSONObject json = new JSONObject()
 			.put("query", new JSONObject()

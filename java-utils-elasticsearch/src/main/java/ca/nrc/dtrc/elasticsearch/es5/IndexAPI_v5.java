@@ -6,7 +6,8 @@ import ca.nrc.dtrc.elasticsearch.index.IndexDef;
 import ca.nrc.dtrc.elasticsearch.index.IndexAPI;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 
 import java.net.URL;
@@ -58,7 +59,7 @@ public class IndexAPI_v5 extends IndexAPI {
 
 	@Override
 	protected void putIndexDefintion(IndexDef iDef) throws ElasticSearchException {
-		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.es5.IndexAPI_v5.putIndexDefintion");
+		Logger logger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.es5.IndexAPI_v5.putIndexDefintion");
 		String jsonString;
 		String json;
 		URL url;

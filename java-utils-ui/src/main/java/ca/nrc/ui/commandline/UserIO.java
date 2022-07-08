@@ -1,6 +1,7 @@
 package ca.nrc.ui.commandline;
 
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -95,7 +96,7 @@ public class UserIO {
 	public void echo(String message, Verbosity messageLevel,
 		Boolean newline) {
 
-		Logger tLogger = Logger.getLogger("ca.nrc.ui.commandline.UserIO.echo");
+		Logger tLogger = LogManager.getLogger("ca.nrc.ui.commandline.UserIO.echo");
 
 		if (messageLevel == null) {
 			messageLevel = Verbosity.Level0;
@@ -119,7 +120,7 @@ public class UserIO {
 	
 	public boolean verbosityLevelIsMet(Verbosity messageLevel) {
 		Logger tLogger =
-			Logger.getLogger("ca.nrc.ui.commandline.UserIO.verbosityLevelIsMet");
+			LogManager.getLogger("ca.nrc.ui.commandline.UserIO.verbosityLevelIsMet");
 		tLogger.trace("messageLevel="+messageLevel+", verbosity="+verbosity);
 		boolean answer = false;
 		Integer messageLevelInt = verbosityToInt(messageLevel);
@@ -177,7 +178,7 @@ public class UserIO {
 	}
 	
 	public Boolean prompt_yes_or_no(String mess) {
-		Logger tLogger = Logger.getLogger("ca.nrc.ui.commandline.UserIO.prompt_yes_or_no");
+		Logger tLogger = LogManager.getLogger("ca.nrc.ui.commandline.UserIO.prompt_yes_or_no");
 		tLogger.trace("invoked with mess="+mess);
 		Pattern patt = Pattern.compile("^\\s*([yn])");
 		boolean answer = false;

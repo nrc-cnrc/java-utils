@@ -11,8 +11,8 @@ import ca.nrc.ui.commandline.UserIO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.io.FileUtils;
-import org.apache.log4j.LogManager;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -82,7 +82,7 @@ public abstract class IndexAPI extends ES_API {
 	}
 
 	public void define(IndexDef iDef, Boolean force) throws ElasticSearchException {
-		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.index.indexAPI.define");
+		Logger logger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.index.indexAPI.define");
 		if (force == null) {
 			force = false;
 		}
@@ -237,7 +237,7 @@ public abstract class IndexAPI extends ES_API {
 	}
 
 	public Map<String, String> fieldTypes(String docTypeName) throws ElasticSearchException {
-		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.index.IndexAPI.fieldTypes");
+		Logger logger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.index.IndexAPI.fieldTypes");
 		Map<String,String> fieldTypes = uncacheFieldTypes(docTypeName);
 		if (fieldTypes == null) {
 			fieldTypes = new HashMap<String,String>();
@@ -453,7 +453,7 @@ public abstract class IndexAPI extends ES_API {
 	public <T extends Document> SearchResults<T> listAll(
 		String esDocTypeName, T docProto, Integer batchSize, RequestBodyElement... options)
 		throws ElasticSearchException {
-		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.index.IndexAPI.listAll");
+		Logger logger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.index.IndexAPI.listAll");
 		logger.trace("Invoked");
 
 		esDocTypeName = Document.determineType(esDocTypeName, docProto);
@@ -563,7 +563,7 @@ public abstract class IndexAPI extends ES_API {
 
 	public Document bulkIndex(String dataFPath, String defDocTypeName,
 		Integer batchSize, ESOptions... esOptions) throws ElasticSearchException {
-		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.index.IndexAPI.bulkIndex");
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.index.IndexAPI.bulkIndex");
 		BulkIndexOptions bulkOptions = new BulkIndexOptions(esOptions);
 		int docCounter = 0;
 		Document docPrototype = null;

@@ -10,7 +10,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.log4j.*;
+import org.apache.logging.log4j.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -178,7 +178,7 @@ public abstract class SearchAPI extends ES_API {
 		Query query, String docTypeName, T docPrototype, Integer batchSize,
 		RequestBodyElement... additionalBodyElts) throws ElasticSearchException {
 
-		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.search.SearchAPI.search_4");
+		Logger logger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.search.SearchAPI.search_4");
 
 		if (query == null) {
 			String type = Document.determineType(docTypeName, docPrototype);
@@ -703,7 +703,7 @@ public abstract class SearchAPI extends ES_API {
 	public <T extends Document> List<T> scroll(String scrollID, T docPrototype)
 		throws ElasticSearchException {
 
-		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.search.SearchAPI.scroll");
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.search.SearchAPI.scroll");
 		List<Hit<T>> scoredHits = nextHitsPage_Scroll(scrollID, docPrototype);
 		List<T> unscoredHits = new ArrayList<T>();
 		for (Hit<T> aScoredHit : scoredHits) {
@@ -715,7 +715,7 @@ public abstract class SearchAPI extends ES_API {
 
 	public <T extends Document> List<Hit<T>> nextHitsPage_Scroll(
 		String scrollID, T docPrototype) throws ElasticSearchException {
-		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.search.SearchAPI.nextHitsPage_Scroll");
+		Logger logger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.search.SearchAPI.nextHitsPage_Scroll");
 		URL url = urlBuilder().forEndPoint("_search/scroll").build();
 
 		JSONObject postJson = new JSONObject()
@@ -738,7 +738,7 @@ public abstract class SearchAPI extends ES_API {
 
 	public <T extends Document> List<Hit<T>> nexHitsPage__SearchAfter(
 		JSONObject query, Object searchAfterValue, T docPrototype) throws ElasticSearchException {
-		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.search.SearchAPI.nexHitsPage__SearchAfter");
+		Logger logger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.search.SearchAPI.nexHitsPage__SearchAfter");
 		URL url = urlBuilder().forEndPoint("_search").build();
 
 		JSONObject postJson = new JSONObject(query)

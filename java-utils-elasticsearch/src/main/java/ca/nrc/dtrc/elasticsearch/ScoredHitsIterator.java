@@ -7,8 +7,9 @@ import java.util.List;
 import ca.nrc.dtrc.elasticsearch.search.SearchAPI;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -81,7 +82,7 @@ public abstract class ScoredHitsIterator<T extends Document> implements Iterator
 	}
 	
 	protected void retrieveAndFilterUntilNonEmptyBatch() throws ElasticSearchException, SearchResultsException {
-		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.ScoredHitsIterator.retrieveAndFilterUntilNonEmptyBatch");
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.ScoredHitsIterator.retrieveAndFilterUntilNonEmptyBatch");
 		if (tLogger.isTraceEnabled()) {
 			tLogger.trace(
 				"\n  esClient.getErrorPolicy(): " + esFactory.getErrorPolicy());
@@ -156,7 +157,7 @@ public abstract class ScoredHitsIterator<T extends Document> implements Iterator
 
 
 	protected void filterDocumentsBatch() throws SearchResultsException {
-		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.filterDocumentsBatch");
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.filterDocumentsBatch");
 		if (documentsBatch != null) {
 			List<Hit<T>> filteredHits = new ArrayList<Hit<T>>();
 			for (Hit<T> aHit : documentsBatch) {
@@ -177,7 +178,7 @@ public abstract class ScoredHitsIterator<T extends Document> implements Iterator
 	}
 	@Override
 	public boolean hasNext() {
-		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.ScoredHitsIterator.hasNext");
+		Logger logger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.ScoredHitsIterator.hasNext");
 		Boolean answer = null;
 
 		while (answer == null) {
@@ -220,7 +221,7 @@ public abstract class ScoredHitsIterator<T extends Document> implements Iterator
 			}
 		}
 
-		if (logger.isEnabledFor(Level.ERROR)) {
+		if (logger.isErrorEnabled()) {
 			if (answer && null == documentsBatch.get(batchCursor)) {
 				logger.error("Iterator claims there is a next element, yet the element at the cursor is null");
 			}
@@ -231,7 +232,7 @@ public abstract class ScoredHitsIterator<T extends Document> implements Iterator
 	
 	@Override
 	public Hit<T> next() {
-		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.ScoredHitsIterator.next");
+		Logger logger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.ScoredHitsIterator.next");
 		Hit<T> nextItem = null;
 		if (!hasNext()) {
 			String errMess = "There were no more in the list of ElasticSearch hits.";
@@ -250,7 +251,7 @@ public abstract class ScoredHitsIterator<T extends Document> implements Iterator
 			batchCursor++;
 		}
 
-		if (logger.isEnabledFor(Level.ERROR)) {
+		if (logger.isErrorEnabled()) {
 			String docClass = "UNKNOWN";
 			if (docPrototype != null) {
 				docClass = docPrototype.getClass().getSimpleName();

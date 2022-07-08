@@ -1,7 +1,8 @@
 package ca.nrc.dtrc.elasticsearch;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.log4j.Logger;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -37,7 +38,7 @@ public class ScoredHitsIterator__SearchAfter<T extends Document> extends ScoredH
 
 	@Override
 	protected List<Hit<T>> nextHitsPage() throws ElasticSearchException {
-		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.ScoredHitsIterator_SearchAfter.nextHitsPage");
+		Logger logger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.ScoredHitsIterator_SearchAfter.nextHitsPage");
 		logger.trace("searchAfterValue=" + searchAfterValue);
 
 		List<Hit<T>> hits = new ArrayList<Hit<T>>();
@@ -88,7 +89,7 @@ public class ScoredHitsIterator__SearchAfter<T extends Document> extends ScoredH
 
 //	@Override
 //	public Hit<T> next() {
-//		Logger logger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.ScoredHitsIterator.next");
+//		Logger logger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.ScoredHitsIterator.next");
 //		Hit<T> nextHit = super.next();
 //		searchAfterValue = nextHit.sortValues;
 //		return nextHit;
