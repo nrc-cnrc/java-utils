@@ -197,6 +197,23 @@ public abstract class SearchAPI extends ES_API {
 
 		}
 
+		if (query == null) {
+			String type = Document.determineType(docTypeName, docPrototype);
+			query = new Query(
+				new JSONObject()
+					.put("bool", new JSONObject()
+						.put("must", new JSONArray()
+							.put(new JSONObject()
+								.put("match", new JSONObject()
+									.put("type", type)
+								)
+							)
+						)
+					)
+			);
+
+		}
+
 		RequestBodyElement[] bodyElements =
 			new RequestBodyElement[additionalBodyElts.length + 1];
 			bodyElements[0] = query;
