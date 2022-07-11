@@ -91,7 +91,7 @@ public class Transport {
 	}
 
 	public String post(URL url, String json) throws ElasticSearchException {
-		Logger tLogger = Logger.getLogger("ca.nrc.dtrc.elasticsearch.Transport.post");
+		Logger tLogger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.Transport.post");
 		tLogger.trace("posting url=" + url + ", with json=" + json);
 
 		for (ESObserver obs : observers) {
