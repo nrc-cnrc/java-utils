@@ -35,7 +35,6 @@ public class SpeedComparison__MultiVersuSingleIndexTest {
 	@Test
 	public void test__listAll__SpeedComparison() throws Exception {
 		Assertions.fail("TODO: Implement this test");
-
 		ESFactory factoryMultiIndex = new ESTestHelpers(7, true).makeHamletTestIndex();
 		ESFactory factorySigleIndex = new ESTestHelpers(7, false).makeHamletTestIndex();
 

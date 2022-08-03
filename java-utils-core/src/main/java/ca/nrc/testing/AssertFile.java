@@ -3,6 +3,7 @@ package ca.nrc.testing;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,7 +16,17 @@ import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.*;
 
 public class AssertFile {
-	
+
+	public static void assertExists(Path path, String mess) {
+		Assertions.assertTrue(path.toFile().exists(),
+			"Path SHOULD have existed: "+path);
+	}
+
+	public static void assertDoesNotExist(Path path, String mess) {
+		Assertions.assertFalse(path.toFile().exists(),
+			"Path should NOT have existed: "+path);
+	}
+
 	public static void assertFileContains(
 		String mess, File fPath, String pattern,
 		Boolean isCaseSensitive, Boolean isRegexp) throws IOException {

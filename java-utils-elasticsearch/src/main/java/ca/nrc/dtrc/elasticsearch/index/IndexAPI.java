@@ -124,6 +124,8 @@ public abstract class IndexAPI extends ES_API {
 
 
 	public boolean exists() throws ElasticSearchException {
+		Logger logger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.index.indexAPI.exists");
+		logger.trace("Invoked for index="+this.indexName());
 		Boolean exists = uncacheIndexExists(indexName());
 		if (exists == null) {
 			URL url = null;
@@ -133,11 +135,13 @@ public abstract class IndexAPI extends ES_API {
 				throw new RuntimeException(e);
 			}
 
+			logger.trace("No cached value; calling ES server url="+url.toString());
 			int status = transport().head(url);
 			exists = (200 == status);
 			cacheIndexExists(indexName(), exists);
 		}
 
+		logger.trace("returning exists="+exists);
 		return exists;
 	}
 
@@ -522,6 +526,8 @@ public abstract class IndexAPI extends ES_API {
 	 * the index.
 	 */
 	private void ensureIndexIsDefined() throws ElasticSearchException {
+		Logger logger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.index.indexAPI.ensureIndexIsDefined");
+		logger.trace("invoked for index="+this.indexName());
 		if (!exists()) {
 			IndexDef iDef = new IndexDef(indexName());
 			iDef.setFieldMapping("id", FieldDef.Types.keyword.name());

@@ -270,7 +270,7 @@ public class Document {
 	public String toString() {
 		String toS = null;
 		try {
-			toString(null);
+			toS = toString(null);
 		} catch (ElasticSearchException e) {
 			throw new RuntimeException(e);
 		}

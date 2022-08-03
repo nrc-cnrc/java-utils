@@ -92,6 +92,13 @@ public abstract class SearchAPI extends ES_API {
 	}
 
 	public <T extends Document> SearchResults<T> search(
+		String freeformQuery, T docPrototype, Integer batchSize,
+		RequestBodyElement... additionalSearchSpecs) throws ElasticSearchException {
+		return search(freeformQuery, (String)null, docPrototype, batchSize,
+			additionalSearchSpecs);
+	}
+
+	public <T extends Document> SearchResults<T> search(
 		String freeformQuery, String docTypeName,
 		T docPrototype) throws ElasticSearchException {
 
