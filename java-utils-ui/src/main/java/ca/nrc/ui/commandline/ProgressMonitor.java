@@ -4,7 +4,7 @@ public abstract class ProgressMonitor {
 
 	protected String message = null;
 	public Long numSteps = null;
-	private int refreshEveryNSecs = 60;
+	public int refreshEveryNSecs = 60;
 
 	protected long stepsSoFar = 0;
 	protected long startMSecs = 0;

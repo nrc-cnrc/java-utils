@@ -36,7 +36,12 @@ public abstract class ProgressMonitorTest {
 		//   is an abstract class that cannot be instantiated)
 		//
 		ProgressMonitor monitor = makeProgressMonitor(numSteps, message);
-		
+
+		// By default, the monitor will refresh the progress display every
+		// 60 secs. Howewever, you can change it as follows. For example,
+		// this will refresh the progress display every second.
+		monitor.refreshEveryNSecs = 1;
+
 		// Everytime you complete a step, you invoke stepCompmleted().
 		// This will automatically show the progress
 		//
@@ -59,5 +64,4 @@ public abstract class ProgressMonitorTest {
 		String expFormatted = "2h 3m 15s";
 		Assert.assertEquals(expFormatted, gotFormatted);
 	}
-
 }
