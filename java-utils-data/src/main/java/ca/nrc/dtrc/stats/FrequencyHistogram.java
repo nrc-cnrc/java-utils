@@ -8,6 +8,8 @@ import java.util.Set;
 public class FrequencyHistogram<T> {
 	
 	Map<T,Long> freq4value = new HashMap<T,Long>();
+	Long _min = null;
+	Long _max = null;
 
 	public void updateFreq(T value) {
 		updateFreq(value, 1);
@@ -18,7 +20,14 @@ public class FrequencyHistogram<T> {
 			freq4value.put(value, new Long(0));
 		}
 		Long oldFreq = freq4value.get(value);
-		freq4value.put(value, oldFreq + incr);	
+		Long newFreq = oldFreq + incr;
+		freq4value.put(value, newFreq);
+		if (_min == null || _min > newFreq) {
+			_min = newFreq;
+		}
+		if (_max == null || _max < newFreq) {
+			_max = newFreq;
+		}
 	}
 
 	public Set<T> allValues() {
@@ -59,4 +68,11 @@ public class FrequencyHistogram<T> {
 		return percentStr;
 	}
 
+	public long min() {
+		return _min;
+	}
+
+	public long max() {
+		return _max;
+	}
 }

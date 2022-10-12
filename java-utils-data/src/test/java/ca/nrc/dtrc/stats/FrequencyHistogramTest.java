@@ -8,6 +8,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import ca.nrc.testing.AssertObject;
+import org.junit.jupiter.api.Assertions;
 
 public class FrequencyHistogramTest {
 	
@@ -53,7 +54,10 @@ public class FrequencyHistogramTest {
 		// Relative frequency formatted as a percentage with single
 		// decimal place.
 		String relFreqPerc = hist.relativeFrequency("hello", 1);
-		// Relative 
+
+		// Min max frequencies
+		long minFreq = hist.min();
+		long maxFreq = hist.max();
 	}
 
 	//////////////////////////////
@@ -102,9 +106,14 @@ public class FrequencyHistogramTest {
 		// Relative frequency formatted as a percentage with single
 		// decimal place.
 		String relFreqPerc = hist.relativeFrequency("hello", 1);
-		// Relative 
+
+		Assertions.assertEquals(1, hist.min(),
+			"Min frequency not as expected");
+		Assertions.assertEquals(15, hist.max(),
+			"Max frequency not as expected");
 	}
 
+	
 	private void assertRelFreqPercEquals(FrequencyHistogram<String> hist, 
 			String value, String expPercent) {
 		Assert.assertEquals(
