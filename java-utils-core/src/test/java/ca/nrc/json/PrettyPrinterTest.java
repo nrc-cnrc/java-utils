@@ -14,6 +14,7 @@ import ca.nrc.testing.AssertObject;
 import ca.nrc.testing.AssertString;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.json.JSONObject;
 import org.junit.jupiter.api.*;
 
 public class PrettyPrinterTest {
@@ -236,6 +237,29 @@ public class PrettyPrinterTest {
 		String expJson = "[\n  \"hello\",\n  \"world\"\n]";
 		Assertions.assertEquals(expJson, gotJson);
 	}
+
+	@Test
+	public void test__print__JSONObject() {
+		JSONObject jObj  = new JSONObject().put("hello", 1);
+		String gotJson = PrettyPrinter.print(jObj);
+		String expJson = "{\"hello\": 1}";
+		Assertions.assertEquals(expJson, gotJson);
+	}
+
+	@Test
+	public void test__print__ListOfJSONObjects() {
+		List<JSONObject> list = new ArrayList<JSONObject>();
+		list.add(new JSONObject().put("hello", 1));
+		list.add(new JSONObject().put("world", 1));
+		String gotJson = PrettyPrinter.print(list);
+		String expJson =
+			"[\n" +
+			"  {\"hello\": 1},\n" +
+			"  {\"world\": 1}\n" +
+			"]";
+		Assertions.assertEquals(expJson, gotJson);
+	}
+
 
 	@Test
 	public void test__print__StringThatContainsDoubleQuotes() {

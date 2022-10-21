@@ -18,9 +18,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.json.JSONObject;
 
 /**
  * Generates a DETERMISTIC Json PrettyPrint of any object.
@@ -174,7 +174,9 @@ public class PrettyPrinter {
 		} else if (obj instanceof JsonNode) {
 			json = prettyPrintJsonNode((JsonNode) obj, fieldsToIgnore, indentLevel);
 		} else if (obj instanceof Class) {
-			json = prettyPrintClass((Class)obj);
+			json = prettyPrintClass((Class) obj);
+		} else if (obj instanceof JSONObject) {
+			json = prettyPrintJSONObject((JSONObject)obj, indentLevel);
 		} else {
 			json = prettyPrintObject(obj, fieldsToIgnore, indentLevel);
 		}
@@ -183,6 +185,17 @@ public class PrettyPrinter {
 			removeFromAlreadySeen(obj);
 		}
 		
+		return json;
+	}
+
+	private String prettyPrintJSONObject(JSONObject obj, int indentLevel) {
+		String json = "null";
+		if (obj != null) {
+			json = obj.toString(indentLevel+1);
+			String padding = indentation(indentLevel);
+			json = padding + json;
+			json = json.replaceAll("\n(\\s*)}$", "\n$1"+padding+"}");
+		}
 		return json;
 	}
 
