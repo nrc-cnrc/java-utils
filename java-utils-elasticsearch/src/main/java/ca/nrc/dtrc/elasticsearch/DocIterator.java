@@ -1,8 +1,10 @@
 package ca.nrc.dtrc.elasticsearch;
 
+import ca.nrc.datastructure.CloseableIterator;
+
 import java.util.Iterator;
 
-public class DocIterator<T extends Document> implements Iterator<T> {
+public class DocIterator<T extends Document> implements CloseableIterator<T> {
 
     Iterator<Hit<T>> hitsIter = null;
 
@@ -19,4 +21,9 @@ public class DocIterator<T extends Document> implements Iterator<T> {
     public T next() {
         return hitsIter.next().getDocument();
     }
+
+	@Override
+	public void close() throws Exception {
+		// Nothing to close
+	}
 }

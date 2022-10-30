@@ -1,12 +1,12 @@
 package ca.nrc.dtrc.elasticsearch;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
+import ca.nrc.datastructure.CloseableIterator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-public class UnscoredHitsIterator<T extends Document> implements Iterator<T> {
+public class UnscoredHitsIterator<T extends Document> implements CloseableIterator<T> {
 	private T docPrototype = null;
 
 	private String scrollID = null;
@@ -90,8 +90,10 @@ public class UnscoredHitsIterator<T extends Document> implements Iterator<T> {
 
 		return nextItem;
 	}
-	
-	
-	
 
+
+	@Override
+	public void close() throws Exception {
+		// Nothing to close
+	}
 }

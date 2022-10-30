@@ -1,13 +1,12 @@
 package ca.nrc.dtrc.elasticsearch;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
+import ca.nrc.datastructure.CloseableIterator;
 import ca.nrc.dtrc.elasticsearch.search.SearchAPI;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -15,7 +14,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import ca.nrc.json.PrettyPrinter;
 
-public abstract class ScoredHitsIterator<T extends Document> implements Iterator<Hit<T>> {
+public abstract class ScoredHitsIterator<T extends Document> implements CloseableIterator<Hit<T>> {
 
 	protected abstract List<Hit<T>> nextHitsPage() throws ElasticSearchException;
 
@@ -272,4 +271,10 @@ public abstract class ScoredHitsIterator<T extends Document> implements Iterator
 		}
 		return nextItem;
 	}
+
+	@Override
+	public void close() throws Exception {
+		// Nothing to close
+	}
+
 }

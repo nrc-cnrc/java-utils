@@ -13,7 +13,7 @@ import org.json.JSONObject;
 import java.net.URL;
 import java.util.*;
 
-public abstract class SearchResults<T extends Document> implements Iterable<Hit<T>>, AutoCloseable {
+public abstract class SearchResults<T extends Document> implements AutoCloseable {
 
 	protected abstract ScoredHitsIterator<T> hitsIterator() throws ElasticSearchException, SearchResultsException;
 
@@ -238,23 +238,22 @@ public abstract class SearchResults<T extends Document> implements Iterable<Hit<
 		return;
 	}
 	
-	@Override
 	public Iterator<Hit<T>> iterator() {
 		ScoredHitsIterator<T> iter = null;
-		try {
+			try {
 			iter = new EmptyScoredHitsIterator<T>(esFactory, docPrototype);
-		} catch (ElasticSearchException | SearchResultsException e) {
-			throw new RuntimeException(e);
-		}
-
-		try {
-			iter = hitsIterator();
-		} catch (ElasticSearchException | SearchResultsException e) {
-			logger.error(e);
-			if (errorPolicy() == ErrorHandlingPolicy.STRICT) {
+			} catch (ElasticSearchException | SearchResultsException e) {
 				throw new RuntimeException(e);
 			}
-		}
+
+			try {
+			iter = hitsIterator();
+			} catch (ElasticSearchException | SearchResultsException e) {
+				logger.error(e);
+				if (errorPolicy() == ErrorHandlingPolicy.STRICT) {
+					throw new RuntimeException(e);
+				}
+			}
 		return iter;
 	}
 
@@ -335,6 +334,7 @@ public abstract class SearchResults<T extends Document> implements Iterable<Hit<
 		return value;
 	}
 
+	@Override
 	public void close() throws ElasticSearchException {
 		Logger logger = LogManager.getLogger("ca.nrc.dtrc.elasticsearch.SearchResults.close");
 		if (scrollID != null) {

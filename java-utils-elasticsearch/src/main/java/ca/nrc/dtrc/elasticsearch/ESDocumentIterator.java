@@ -1,9 +1,11 @@
 package ca.nrc.dtrc.elasticsearch;
 
+import ca.nrc.datastructure.CloseableIterator;
+
 import java.util.Iterator;
 
 
-public class ESDocumentIterator<DOC_TYPE extends Document> implements Iterator<DOC_TYPE>
+public class ESDocumentIterator<DOC_TYPE extends Document> implements CloseableIterator<DOC_TYPE>
 {
 
 	private Iterator<Hit<DOC_TYPE>> iterator = null;
@@ -35,5 +37,10 @@ public class ESDocumentIterator<DOC_TYPE extends Document> implements Iterator<D
 		}
 		
 		return nextDoc;
+	}
+
+	@Override
+	public void close() throws Exception {
+		// Nothing to close
 	}
 }

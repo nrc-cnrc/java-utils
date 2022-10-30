@@ -1,12 +1,13 @@
 package ca.nrc.dtrc.elasticsearch;
 
+import ca.nrc.datastructure.CloseableIterator;
 import ca.nrc.json.PrettyPrinter;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Iterator;
 
-public class DocIDIterator<T extends Document> implements Iterator<String> {
+public class DocIDIterator<T extends Document> implements CloseableIterator<String> {
 
 	Iterator<Hit<T>> hitsIter = null;
 
@@ -51,4 +52,9 @@ public class DocIDIterator<T extends Document> implements Iterator<String> {
 		}
     	return id;
     }
+
+	@Override
+	public void close() throws Exception {
+		// Nothing to do in terms of closing.
+	}
 }
