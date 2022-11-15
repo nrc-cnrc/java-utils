@@ -11,6 +11,9 @@ public class FrequencyHistogram<T> {
 	Long _min = null;
 	Long _max = null;
 
+	// Empty constructor for Jackson serialization
+	public FrequencyHistogram() {}
+
 	public void updateFreq(T value) {
 		updateFreq(value, 1);
 	}
@@ -74,5 +77,15 @@ public class FrequencyHistogram<T> {
 
 	public long max() {
 		return _max;
+	}
+
+	public Map<T,Long> toMap() {
+		return freq4value;
+	}
+
+	public static <T> FrequencyHistogram fromMap(Map<T,Long> freqMap) {
+		FrequencyHistogram<T> hist = new FrequencyHistogram<T>();
+		hist.freq4value = freqMap;
+		return hist;
 	}
 }
