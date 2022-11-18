@@ -47,9 +47,24 @@ public class FrequencyHistogram<T> {
 	}
 
 	public long frequency(T value) {
-		long freq = 0;
+		Long freq = new Long(0);
 		if (freq4value.containsKey(value)) {
-			freq = freq4value.get(value);
+			Number freqNumber = freq4value.get(value);
+			if (freqNumber.getClass() == Integer.class) {
+				// For some unfathomable reason, when a histogram is created from a
+				// using fromMap(Map<String,Long>), the freq4value map actually
+				// contains Integers for its values.
+				//
+				// I don't understand how this is even possible because a
+				// Map<String,Integer> can't be cast as a Map<String,Long>.
+				//
+				// In any case, if that happens, simply convert the Integer
+				// frequency to a Long one.
+				//
+				freq = new Long((Integer) freqNumber);
+			} else {
+				freq = (Long)freqNumber;
+			}
 		}
 		return freq;
 	}
