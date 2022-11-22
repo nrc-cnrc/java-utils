@@ -8,7 +8,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
-import ca.nrc.testing.outputcapture.CapturedPrintWriter;
+import ca.nrc.io.CapturedPrintWriter;
 
 public class MockHttpServletResponse implements HttpServletResponse {
 

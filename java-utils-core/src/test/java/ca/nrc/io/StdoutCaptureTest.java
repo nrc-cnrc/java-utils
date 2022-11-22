@@ -1,5 +1,6 @@
-package ca.nrc.testing.outputcapture;
+package ca.nrc.io;
 
+import ca.nrc.io.StdoutCapture;
 import org.junit.jupiter.api.*;
 
 import ca.nrc.testing.AssertHelpers;

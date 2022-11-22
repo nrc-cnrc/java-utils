@@ -1,10 +1,6 @@
 package ca.nrc.debug;
 
-import java.io.FileNotFoundException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import ca.nrc.testing.outputcapture.CapturedPrintWriter;
+import ca.nrc.io.CapturedPrintWriter;
 
 public class Debug {
 	

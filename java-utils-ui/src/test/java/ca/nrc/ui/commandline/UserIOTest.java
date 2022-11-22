@@ -1,6 +1,6 @@
 package ca.nrc.ui.commandline;
 
-import ca.nrc.testing.outputcapture.StdoutCapture;
+import ca.nrc.io.StdoutCapture;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;

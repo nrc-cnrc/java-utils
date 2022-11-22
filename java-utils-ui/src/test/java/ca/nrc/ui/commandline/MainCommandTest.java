@@ -1,8 +1,7 @@
 package ca.nrc.ui.commandline;
 
 import ca.nrc.testing.AssertString;
-import ca.nrc.testing.outputcapture.StdoutCapture;
-import com.fasterxml.jackson.databind.BeanProperty;
+import ca.nrc.io.StdoutCapture;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

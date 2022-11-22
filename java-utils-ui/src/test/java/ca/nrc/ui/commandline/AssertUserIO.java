@@ -2,7 +2,7 @@ package ca.nrc.ui.commandline;
 
 import ca.nrc.testing.AssertString;
 import ca.nrc.testing.Asserter;
-import ca.nrc.testing.outputcapture.StdoutCapture;
+import ca.nrc.io.StdoutCapture;
 import org.junit.jupiter.api.Assertions;
 import static ca.nrc.ui.commandline.UserIO.Verbosity;
 

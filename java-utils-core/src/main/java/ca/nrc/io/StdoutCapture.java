@@ -1,4 +1,4 @@
-package ca.nrc.testing.outputcapture;
+package ca.nrc.io;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;

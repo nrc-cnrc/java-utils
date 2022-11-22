@@ -1,4 +1,4 @@
-package ca.nrc.testing.outputcapture;
+package ca.nrc.io;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -7,9 +7,6 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
-
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 public class CapturedPrintWriter extends PrintWriter {
     private StringBuilder outputCapture = new StringBuilder();
